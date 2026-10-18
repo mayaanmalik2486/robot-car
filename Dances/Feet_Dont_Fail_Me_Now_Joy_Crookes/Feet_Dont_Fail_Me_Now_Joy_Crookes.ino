@@ -1,6 +1,6 @@
 /*
 ======================================================
-       ROBOT CAR  -  v8  (tidied up + OLED, buzzer, servo search)
+       ROBOT CAR  -  v9    dance song: Feet Don't Fail Me Now - Joy Crookes
 ======================================================
 
   WHAT THIS ROBOT DOES
@@ -9,15 +9,19 @@
   - It has self-driving modes that use the ultrasonic distance sensor
     (HC-SR04) so it stops before it bumps into things, some fun moves
     (dance, demo, chaos, donut, drift) and a SEARCH mode that turns the
-    sensor with the servo to look left, ahead and right for the clearest way.
+    sensor with the servo to look left, ahead and right, then turns toward
+    the side with the most room until the way ahead is open (boxed in: it
+    turns 90 degrees at a time until it finds an opening).
+  - DANCE follows a whole song: calm moves in the calm parts, its best
+    moves in the chorus / drop, in time with the beat, while the buzzer
+    plays the drum beat. The song is set in section 3c (THE SONG).
   - SEARCH and CHAOS keep going by themselves until you send another command
     (holding or releasing the phone button doesn't stop them).
   - A small OLED screen shows what the robot is doing and how far away
     things are. While the servo moves (hello wave, SEARCH) it shows two
     cute eyes that look where the sensor looks and blink.
-  - A buzzer plays a jingle for each mode, a song for the dance (one note
-    per dance move), parking-sensor beeps that speed up as you get close,
-    and warning beeps.
+  - A buzzer plays a jingle for each mode, drum beats for the dance,
+    parking-sensor beeps that speed up as you get close, and warning beeps.
   - When you switch it on, and when your phone sends its first command,
     it says hello: "Hello!" on the screen + a tune + a little servo wave.
 
@@ -28,12 +32,15 @@
     2 auto forward (stops at obstacles)       J auto backward
     3 donut          U 180-degree turn         u smooth brake
     4 dance          Y demo           1 chaos          I search (looks around)
+    X (the "!" button) mute / unmute every sound
+    (4 again while dancing: tap it ON a beat to line the dance up with the music)
 
   IR REMOTE BUTTONS
     OK   stop everything             UP   forward (only if the way is clear)
     DOWN backward                    LEFT / RIGHT  short turn (150 ms)
     1 180-degree turn    2 slow/full speed    3 smooth brake
-    4 demo   5 dance   6 chaos    7 drift left   8 drift right   9 search
+    4 demo   5 dance (again while dancing = line up with the beat)
+    6 chaos  7 drift left   8 drift right   9 search
     * auto forward       # auto backward      0 donut
     Holding an arrow button keeps it going; other buttons act once per press.
     The buzzer borrows the IR receiver's timer, so keep IrReceiver.begin() in
@@ -52,7 +59,9 @@
     plus Servo, SoftwareSerial and Wire (come with the Arduino IDE).
 
   HOW THE PROGRAM IS ORGANISED (top to bottom)
-    1 libraries   2 pins   3 settings   4 remote codes   5 robot "memory"
+    1 libraries   2 pins   3 settings   3b dance moves + patterns
+    3c THE SONG (tempo + the dance from start to end)
+    4 remote codes   5 robot "memory"
     6 motors      7 buzzer   8 OLED screen   9 distance sensor   10 servo
    11 greeting    12 timed moves   13 stop / start helpers   14 IR remote
    15 Bluetooth   16 self-driving modes   17 setup() and loop()
@@ -66,6 +75,7 @@
 
 #include <Arduino.h>
 #include <Servo.h>            // moves the SG90 servo
+#define DECODE_NEC            // only understand NEC remotes (yours is one): saves ~4.8 KB and TV remotes can't drive the car
 #include <IRremote.hpp>       // reads the IR remote (version 4.x)
 #include <SoftwareSerial.h>   // extra serial port for the HC-05
 #include <Wire.h>             // I2C, used by the OLED
@@ -116,7 +126,6 @@ const long BT_BAUD = 9600;            // HC-05 default speed
 const int FULL_SPEED = 255;
 const int SLOW_SPEED_PERCENT = 60;
 const int SLOW_SPEED = FULL_SPEED * SLOW_SPEED_PERCENT / 100;   // = 153
-const int DANCE_SPEED = 200;          // speed used by the dance routine
 const int TURN_SPEED_PERCENT = 85;    // spins use 85 % of the current speed
 const int DRIFT_SLOW_PERCENT = 60;    // inner wheels run at 60 % when drifting
 
@@ -136,14 +145,15 @@ const int NO_ECHO = 999;                       // value used when nothing echoes
 const unsigned long PING_GAP_MS = 15;          // pause between the 3 pings of one measurement
 
 // Timed moves (milliseconds)
-const unsigned long TURN180_TIME = 440;        // spin time for a 180-degree turn
+// Spin time for a 180-degree turn. (The old 440 really ran about 490 ms because
+// the turn was only stopped once per loop - that was the 190-200 degrees. Now it
+// stops on time, and 455 ms = 180 degrees on this car. Still off? Change it a little.)
+const unsigned long TURN180_TIME = 455;
+const unsigned long TURN90_TIME = TURN180_TIME / 2;   // and for a 90-degree turn (SEARCH when boxed in)
 const unsigned long IR_TURN_TIME = 150;        // one tap of IR LEFT/RIGHT turns this long
 
 const unsigned long BRAKE_STEP_MS = 40;        // smooth brake: lower the speed every 40 ms ...
 const int BRAKE_STEP_PWM = 10;                 // ... by this much
-
-const unsigned long DANCE_STEP_MS = 200;       // each dance move (and its note) lasts this long
-const unsigned int DANCE_NOTE_MS = 140;        // the note is a bit shorter than the move: bouncy!
 
 const unsigned long DEMO_FORWARD_MS = 400;
 const unsigned long DEMO_PAUSE_MS = 600;
@@ -166,11 +176,23 @@ const int CHAOS_WIGGLE_CHANCE = 15;                // % chance of a little rever
 // CHAOS drives a bit slower than full speed, so it crashes less
 const int AUTO_SPEED_PERCENT = 75;
 
-// SEARCH mode: stop, look left / right / ahead with the servo, go the clearest way
+// SEARCH mode: stop, look left / right / ahead with the servo, then turn
+// toward the side with the most room UNTIL THE SENSOR SEES OPEN SPACE
 const unsigned long SEARCH_BACKUP_MS = 120;    // back up a little after stopping
 const unsigned long SERVO_SETTLE_MS = 250;     // time for a 50-degree servo move
 const unsigned long SERVO_SWING_MS = 350;      // time for the 100-degree swing left -> right
-const int SEARCH_MS_PER_DEGREE = 3;            // turning time per degree (50 degrees = 150 ms)
+const unsigned long SEARCH_TURN_STEP_MS = 60;  // turn toward the open side in small steps (about 20 degrees each):
+                                               // turn, stop, measure while standing still, repeat
+const byte SEARCH_TURN_MAX_STEPS = 18;         // no open way after this many steps (all the way round): look again
+const byte SEARCH_TURN_EXTRA_STEPS = 1;        // after it sees open space: one more step, so the whole car gets past the edge
+const int SEARCH_OPEN_ENOUGH = 100;            // open = this much is clear ahead (or 3/4 of what it saw on that side)
+const unsigned long SEARCH_STUCK_MS = 1500;    // driving, but the distance ahead hasn't changed for this long ...
+const int SEARCH_STUCK_CM = 4;                 // ... (by less than this) = stuck on something the sensor can't see
+const byte SEARCH_NO_ECHO_CHECKS = 4;          // seeing nothing at all ahead for 4 checks in a row (6 s) = probably stuck too
+const int SEARCH_STUCK_NEAR_CM = 100;          // the 1.5 s stuck check only counts when the thing ahead is closer than this
+const byte SEARCH_STUCK_FAR_CHECKS = 3;        // farther away: unchanged for 3 checks in a row (4.5 s). (In a narrow corridor
+                                               // the sensor sees the side walls, so the reading hardly changes while driving.)
+const unsigned long SEARCH_STUCK_BACKUP_MS = 300;  // when stuck, back up this long (then it always turns, never straight on)
 
 // Phone apps send the letter while you hold a button and 'S' when you let go.
 // For this long after a mode letter, that 'S' is ignored so the mode keeps going.
@@ -182,6 +204,7 @@ const unsigned long IR_REPEAT_WINDOW_MS = 300; // a "held down" signal must foll
 // Buzzer: if your buzzer board gets warm or clicks while it should be silent,
 // it is the kind that turns on with LOW - change this to HIGH.
 const byte BUZZER_OFF_LEVEL = LOW;
+const unsigned long MUTE_PRESS_GAP_MS = 300;   // the mute button (phone X) ignores repeats closer than this
 
 // Parking-sensor beeps: while driving forward toward something, beep faster
 // and faster the closer it gets (set to false to switch them off)
@@ -205,11 +228,314 @@ const unsigned long BLINK_MAX_GAP_MS = 4500;   // ... these two
 const unsigned long EYES_FRAME_MS = 60;        // eye animation: at most one new picture every 60 ms
 const unsigned long SURPRISE_MS = 1000;        // big "whoa!" eyes after an emergency stop
 const unsigned long SLEEPY_AFTER_MS = 25000;   // doing nothing this long = sleepy eyes
+const unsigned long DIZZY_AFTER_DONUT_MS = 1300;  // after you stop a donut: dizzy eyes and a wobbly head this long
+const unsigned long DIZZY_WOBBLE_MS = 130;     // the head wobbles left/right this often while dizzy
+const int DIZZY_WOBBLE_DEGREES = 25;           // ... by this much
 
 // OLED and greeting
 const unsigned long OLED_REFRESH_MS = 250;     // redraw each part of the screen at most 4 times a second
 const unsigned long GREETING_SCREEN_MS = 3000; // how long "Hello!" stays on the screen
 const unsigned long WAVE_STEP_MS = 220;        // speed of the hello wave
+
+// Dance
+const bool DANCE_HEAD = true;                  // the sensor head turns with the dance moves (false = it stays still)
+const int DANCE_TWIST_PERCENT = 70;            // TWIST moves turn at 70 % of the dance speed
+const int DANCE_CURVE_PERCENT = 35;            // SWAY / BACK curves: the inner wheels run at 35 %
+const unsigned long DANCE_TAP_GAP_MS = 400;    // a new tap of the dance button (not just holding it)
+const unsigned long SONG_NAME_SCROLL_MS = 350; // a long song name scrolls one letter this often
+const unsigned long SHOUT_MS = 2000;           // the special moment's text stays on the screen this long
+const unsigned long SHOUT_SOUND_MS = 300;      // (the zap sound plays over the tune for this long)
+const unsigned long DANCE_DRAW_GUARD_US = 70000;  // no screen drawing in the last 70 ms before a dance step
+const int DANCE_HEAD_BOB_DEGREES = 25;         // head bob: how far the head turns on the straight moves
+const byte DANCE_TUNE_OCTAVES = 2;             // the tune plays 2 octaves above middle C (the buzzer is loudest up there) ...
+const byte DANCE_BASS_OCTAVES = 1;             // ... and the bass 1 octave above it
+const byte DANCE_TUNE_HIGHEST = 96;            // no tune note higher than this (MIDI 96 = C7, about 2100 Hz)
+const unsigned long DANCE_NOTE_GAP_MS = 15;    // a tiny gap between notes so each one is heard
+const unsigned long DANCE_BASS_MAX_MS = 140;   // bass notes are short and punchy
+
+
+//======================================================
+// 3b. DANCE MOVES, DRUM SOUNDS AND DANCE PATTERNS
+//
+//     The dance follows a beat grid: every beat is split into 2 steps,
+//     so one bar of 4 beats = 8 steps. Each step is one move + one drum
+//     sound, written like  FWD+KICK  (forward, with a bass drum).
+//     A pattern is one bar (8 steps). The song (next section) says which
+//     pattern to dance for how many bars, from the start of the song to the end.
+//======================================================
+
+// Moves
+const byte POSE = 0;       // stand still
+const byte FWD = 1;        // forward
+const byte BACK = 2;       // backward
+const byte SPIN_L = 3;     // spin left on the spot
+const byte SPIN_R = 4;     // spin right on the spot
+const byte TWIST_L = 5;    // smaller, slower turn left (a shimmy)
+const byte TWIST_R = 6;    // smaller, slower turn right
+const byte SWAY_L = 7;     // curve forward to the left
+const byte SWAY_R = 8;     // curve forward to the right
+const byte BACK_L = 9;     // curve backward - exactly undoes SWAY_L
+const byte BACK_R = 10;    // curve backward - exactly undoes SWAY_R
+const byte DASH = 11;      // forward at full speed
+const byte LOOK_L = 12;    // stand still, sensor head looks left
+const byte LOOK_R = 13;    // stand still, sensor head looks right
+const byte HOLD = 14;      // keep doing the last move
+
+// Drum sounds (the buzzer plays the beat - drums only, no tunes)
+const byte QUIET = 0x00;   // no sound
+const byte TICK = 0x10;    // hi-hat "ts"
+const byte TAP = 0x20;     // wood block "tok"
+const byte KICK = 0x30;    // bass drum "boom"
+const byte CLAP = 0x40;    // snare / clap "pah"
+const byte HIT = 0x50;     // big accent "ta-daa"
+
+const byte STEPS_PER_BAR = 8;
+
+// The pattern library. Steps 1, 3, 5, 7 are the beats you clap to.
+// Patterns that move the car also bring it back, so it dances on the spot.
+const byte P_STILL = 0;    // calm: stand still, soft pulse
+const byte P_LOOK = 1;     // calm: look left, look right
+const byte P_PULSE = 2;    // calm: stand still, heartbeat drum
+const byte P_ROCK = 3;     // gentle: rock left and right
+const byte P_GLIDE_L = 4;  // gentle: glide forward-left and back
+const byte P_GLIDE_R = 5;  // gentle: glide forward-right and back
+const byte P_MARCH = 6;    // steady: step forward, step back
+const byte P_STEP = 7;     // groove: forward-back on the beat
+const byte P_WIGGLE = 8;   // groove: shimmy left-right
+const byte P_SWING = 9;    // groove: swing left, swing right
+const byte P_BOUNCE = 10;  // lively: bounce forward and back
+const byte P_SHUFFLE = 11; // lively: zig-zag shuffle
+const byte P_PUMP = 12;    // hype: fast forward-back (head-bang)
+const byte P_PARTY = 13;   // hype: spin, spin, bounce, pose
+const byte P_SPIN = 14;    // hype: big spins both ways
+const byte P_DROP = 15;    // hype: dash, spins, accents (for drops and big choruses)
+const byte P_BHANGRA = 16; // lively: shoulder shimmy + bounce, dhol-style drums
+const byte P_BUILD = 17;   // build-up: drums get busier, shimmy gets faster
+const byte P_FILL = 18;    // end of a part: spin with a drum roll, pose
+const byte P_FINALE = 19;  // the very last bar: spin and a big final pose
+const byte P_JAZZ = 20;    // jazzy: little shimmy, then a cool look left and right
+const byte P_SNAP = 21;    // jazzy: stand, look around on the off-beats (finger-snap feel)
+const byte P_SLIDE = 22;   // jazzy: slow slide forward, pose, slide back, pose
+
+const byte DANCE_PATTERNS[][STEPS_PER_BAR] PROGMEM = {
+    { POSE+TAP,     HOLD,         HOLD,         HOLD,         HOLD+TICK,    HOLD,         HOLD,         HOLD        },  // P_STILL
+    { LOOK_L+TAP,   HOLD,         HOLD,         HOLD,         LOOK_R+TAP,   HOLD,         HOLD,         HOLD        },  // P_LOOK
+    { POSE+KICK,    HOLD,         HOLD+TICK,    HOLD,         HOLD+KICK,    HOLD,         HOLD+TICK,    HOLD        },  // P_PULSE
+    { TWIST_L+KICK, HOLD,         POSE+TICK,    HOLD,         TWIST_R+KICK, HOLD,         POSE+TICK,    HOLD        },  // P_ROCK
+    { SWAY_L+KICK,  HOLD,         HOLD+TICK,    HOLD,         BACK_L+KICK,  HOLD,         HOLD+TICK,    HOLD        },  // P_GLIDE_L
+    { SWAY_R+KICK,  HOLD,         HOLD+TICK,    HOLD,         BACK_R+KICK,  HOLD,         HOLD+TICK,    HOLD        },  // P_GLIDE_R
+    { FWD+KICK,     HOLD,         POSE+TAP,     HOLD,         BACK+KICK,    HOLD,         POSE+TAP,     HOLD        },  // P_MARCH
+    { FWD+KICK,     POSE+TICK,    BACK+CLAP,    POSE+TICK,    FWD+KICK,     POSE+TICK,    BACK+CLAP,    POSE+TICK   },  // P_STEP
+    { TWIST_L+KICK, TWIST_R+TICK, TWIST_L+CLAP, TWIST_R+TICK, TWIST_L+KICK, TWIST_R+TICK, TWIST_L+CLAP, TWIST_R+TICK},  // P_WIGGLE
+    { SWAY_L+KICK,  HOLD+TICK,    BACK_L+CLAP,  HOLD+TICK,    SWAY_R+KICK,  HOLD+TICK,    BACK_R+CLAP,  HOLD+TICK   },  // P_SWING
+    { FWD+KICK,     BACK+TICK,    POSE+CLAP,    HOLD+TICK,    BACK+KICK,    FWD+TICK,     POSE+CLAP,    HOLD+TICK   },  // P_BOUNCE
+    { SWAY_L+KICK,  BACK_L+TICK,  SWAY_R+CLAP,  BACK_R+TICK,  SWAY_L+KICK,  BACK_L+TICK,  SWAY_R+CLAP,  BACK_R+TICK },  // P_SHUFFLE
+    { FWD+KICK,     BACK+TICK,    FWD+CLAP,     BACK+TICK,    FWD+KICK,     BACK+TICK,    FWD+CLAP,     BACK+TICK   },  // P_PUMP
+    { SPIN_L+KICK,  HOLD+TICK,    SPIN_R+CLAP,  HOLD+TICK,    FWD+KICK,     BACK+TICK,    POSE+HIT,     HOLD        },  // P_PARTY
+    { SPIN_R+KICK,  HOLD+TICK,    HOLD+CLAP,    HOLD+TICK,    SPIN_L+KICK,  HOLD+TICK,    HOLD+CLAP,    POSE+TICK   },  // P_SPIN
+    { DASH+HIT,     BACK+KICK,    POSE+TICK,    HOLD+TICK,    SPIN_L+CLAP,  HOLD+TICK,    SPIN_R+KICK,  POSE+CLAP   },  // P_DROP
+    { TWIST_L+KICK, TWIST_R+TAP,  TWIST_L+TAP,  TWIST_R+CLAP, FWD+KICK,     BACK+TAP,     FWD+TAP,      BACK+CLAP   },  // P_BHANGRA
+    { POSE+TICK,    HOLD+TICK,    TWIST_L+TICK, TWIST_R+TICK, TWIST_L+CLAP, TWIST_R+CLAP, TWIST_L+CLAP, TWIST_R+CLAP},  // P_BUILD
+    { SPIN_R+CLAP,  HOLD+CLAP,    HOLD+CLAP,    HOLD+CLAP,    SPIN_L+KICK,  HOLD+KICK,    POSE+HIT,     HOLD        },  // P_FILL
+    { SPIN_L+KICK,  HOLD+KICK,    HOLD+KICK,    HOLD+KICK,    POSE+HIT,     HOLD,         HOLD,         HOLD        },  // P_FINALE
+    { TWIST_L+TAP,  HOLD,         TWIST_R+TICK, HOLD,         POSE+TAP,     LOOK_L,       HOLD+TICK,    LOOK_R      },  // P_JAZZ
+    { POSE+TAP,     LOOK_L,       HOLD+TICK,    POSE,         HOLD+TAP,     LOOK_R,       HOLD+TICK,    POSE        },  // P_SNAP
+    { FWD+KICK,     HOLD,         HOLD+TICK,    POSE,         BACK+TAP,     HOLD,         HOLD+TICK,    POSE        },  // P_SLIDE
+};
+
+// Names of the song parts (shown on the screen while dancing)
+const byte INTRO = 0;
+const byte VERSE = 1;
+const byte PRE = 2;        // pre-chorus
+const byte CHORUS = 3;
+const byte HOOK = 4;
+const byte BUILD = 5;
+const byte DROP = 6;
+const byte BRIDGE = 7;
+const byte BREAK = 8;      // breakdown
+const byte SOLO = 9;       // instrumental / solo
+const byte OUTRO = 10;
+const byte POWER = 0x80;   // add to a part name (CHORUS+POWER): that part dances at DANCE_POWER_SPEED - the explosive bits
+
+const char PART_NAMES[][8] PROGMEM = {
+    "INTRO", "VERSE", "PRE-CHO", "CHORUS", "HOOK", "BUILD", "DROP!", "BRIDGE", "BREAK", "SOLO", "OUTRO"
+};
+
+// THE BUZZER TUNE. While dancing, the buzzer plays a tune that follows the
+// song's chords (in the song's key): bass notes on the main beats and a
+// melody on top. Each step of a tune pattern is one of these:
+const byte SIL = 0x00;          // silence
+const byte TIE = 0x10;          // keep the last note going
+const byte ROOT = 0x20;         // melody notes, counted up the scale from the chord's root note:
+const byte SECOND = 0x21;
+const byte THIRD = 0x22;
+const byte FOURTH = 0x23;
+const byte FIFTH = 0x24;
+const byte SIXTH = 0x25;
+const byte SEVENTH = 0x26;
+const byte HIGH_ROOT = 0x27;    // the root one octave higher
+const byte HIGH_SECOND = 0x28;
+const byte HIGH_THIRD = 0x29;
+const byte HIGH_FIFTH = 0x2B;
+const byte BASS = 0x30;         // bass note: the chord's root, lower down
+const byte BASS_FIFTH = 0x34;   // bass: the chord's fifth
+
+const byte T_CALM = 0;          // slow: a bass note and a few long notes
+const byte T_FLOAT = 1;         // slow: rising long notes
+const byte T_PULSE = 2;         // steady bass on every beat, a note in between
+const byte T_GROOVE = 3;        // bouncy bass + short notes
+const byte T_ARP = 4;           // lively: chord notes running up and down
+const byte T_HOOK_A = 5;        // catchy two-bar melody (part A) ...
+const byte T_HOOK_B = 6;        // ... and part B
+const byte T_DRIVE = 7;         // hype: driving bass with high hits
+const byte T_RISE = 8;          // build-up: climbing the scale
+const byte T_DARK = 9;          // mysterious: low, slow, minor-sounding steps
+const byte T_END = 10;          // the last bar: one long high note
+
+const byte TUNE_PATTERNS[][STEPS_PER_BAR] PROGMEM = {
+    { BASS,      TIE,        TIE,       TIE,        FIFTH,     TIE,        THIRD,     TIE        },  // T_CALM
+    { BASS,      TIE,        THIRD,     TIE,        FIFTH,     TIE,        HIGH_ROOT, TIE        },  // T_FLOAT
+    { BASS,      FIFTH,      BASS,      THIRD,      BASS,      FIFTH,      BASS,      HIGH_ROOT  },  // T_PULSE
+    { BASS,      SIL,        FIFTH,     THIRD,      BASS_FIFTH, SIL,       HIGH_ROOT, FIFTH      },  // T_GROOVE
+    { BASS,      THIRD,      FIFTH,     HIGH_ROOT,  HIGH_THIRD, HIGH_ROOT, FIFTH,     THIRD      },  // T_ARP
+    { HIGH_ROOT, TIE,        FIFTH,     SIXTH,      FIFTH,     TIE,        THIRD,     TIE        },  // T_HOOK_A
+    { THIRD,     FIFTH,      HIGH_ROOT, TIE,        HIGH_SECOND, HIGH_ROOT, FIFTH,    TIE        },  // T_HOOK_B
+    { BASS,      BASS,       HIGH_ROOT, BASS,       BASS_FIFTH, BASS,      HIGH_THIRD, HIGH_ROOT },  // T_DRIVE
+    { ROOT,      SECOND,     THIRD,     FOURTH,     FIFTH,     SIXTH,      SEVENTH,   HIGH_ROOT  },  // T_RISE
+    { BASS,      TIE,        SIL,       ROOT,       TIE,       SECOND,     THIRD,     TIE        },  // T_DARK
+    { HIGH_ROOT, TIE,        TIE,       TIE,        TIE,       TIE,        TIE,       SIL        },  // T_END
+};
+
+// Steps of the major and minor scales, in semitones
+const byte MAJOR_SCALE[7] PROGMEM = {0, 2, 4, 5, 7, 9, 11};
+const byte MINOR_SCALE[7] PROGMEM = {0, 2, 3, 5, 7, 8, 10};
+
+// What the buzzer plays while dancing
+const byte DANCE_SOUND_TUNE = 0;   // the tune that follows the song's chords
+const byte DANCE_SOUND_DRUMS = 1;  // the old drum beeps
+const byte DANCE_SOUND_OFF = 2;    // a silent dance
+
+
+//======================================================
+// 3c. THE SONG THIS ROBOT DANCES TO  (phone 4 / remote 5)
+//
+//     HOW TO DANCE IN TIME: start the song on a speaker or laptop and press
+//     dance exactly on the FIRST BEAT. If the robot drifts off the beat later,
+//     tap dance again exactly on a beat - it lines itself up with your tap.
+//     Moves too fast or too slow for the song? Change SONG_BPM a little.
+//======================================================
+
+// ----- SONG START (each song file has its own version of this part) -----
+// Song: Feet Don't Fail Me Now - Joy Crookes
+// Version this dance is timed to (3:18 long): Original 2021 single / album version
+//  (Skin), 3:18 (Deezer 198 s, ISRC GBARL2100616)
+// HOW TO START: play the song, and press dance (phone 4 / remote 5) on the
+// first beat - right when the song starts. The dance lasts the whole song
+// (93 bars, about 3:17). Tap dance again on a beat to line it up if it drifts.
+// Tempo: 113 BPM (checked in several places).
+// Song parts (estimated - where the dance changes): 0:00 INTRO, 0:08 VERSE, 0:38 PRE,
+//  0:44 CHORUS, 1:16 VERSE, 1:29 PRE, 1:35 CHORUS, 1:52 CHORUS, 2:05 BRIDGE, 2:26 CHORUS,
+//  2:56 OUTRO
+const char SONG_NAME[] PROGMEM = "Feet Don't Fail Me Now - Joy Crookes";
+const float SONG_BPM = 113;                        // beats per minute
+const unsigned long SONG_FIRST_BEAT_MS = 0;        // where the first beat is in the song (so the clock on the screen matches your player)
+const int DANCE_SPEED = 240;                       // motor speed for the dance moves (0-255)
+const int DANCE_POWER_SPEED = 240;                 // motor speed in the POWER parts (the explosive bits)
+const char SONG_SHOUT[] PROGMEM = "";              // a special moment: this text on the screen + a zap sound ("" = none)
+const int SONG_SHOUT_STEPS[3] = { -1, -1, -1 };    // ... at these steps of the dance (2 steps per beat, 0 = the first step, -1 = not used)
+const bool DANCE_HEAD_BOB = true;                  // the sensor head also bobs left/right on the straight moves
+const byte DANCE_SOUND = DANCE_SOUND_TUNE;         // buzzer: DANCE_SOUND_TUNE, DANCE_SOUND_DRUMS or DANCE_SOUND_OFF
+
+// The song's key and chords (for the buzzer tune) - A# minor, A# minor (fairly sure)
+const byte SONG_KEY = 70;                          // key note: 60 C, 61 C#, 62 D, 63 D#, 64 E, 65 F, 66 F#, 67 G, 68 G#, 69 A, 70 A#, 71 B
+const bool SONG_MINOR = true;                     // true = minor key
+// Chord progressions, one chord per bar, as steps of the scale (1 = the key's own chord)
+const byte SONG_CHORDS[][4] PROGMEM = {
+    { 1, 7, 1, 7 },                                // 0 verse
+    { 1, 6, 4, 5 },                                // 1 chorus
+    { 3, 5, 4, 5 },                                // 2 bridge
+};
+
+// The song from start to end: { dance pattern, how many bars, part name, chords, tune pattern }
+const byte SONG_MAP[][5] PROGMEM = {
+    { P_PULSE,     1, INTRO,        0, T_CALM   },
+    { P_PULSE,     1, INTRO,        0, T_FLOAT  },
+    { P_WIGGLE,    1, INTRO,        0, T_CALM   },
+    { P_WIGGLE,    1, INTRO,        0, T_FLOAT  },
+    { P_BOUNCE,    2, VERSE,        0, T_GROOVE },
+    { P_SWING,     2, VERSE,        0, T_PULSE  },
+    { P_BOUNCE,    2, VERSE,        0, T_GROOVE },
+    { P_SWING,     2, VERSE,        0, T_PULSE  },
+    { P_BOUNCE,    2, VERSE,        0, T_GROOVE },
+    { P_SWING,     2, VERSE,        0, T_PULSE  },
+    { P_BOUNCE,    2, VERSE,        0, T_GROOVE },
+    { P_BOUNCE,    2, PRE,          0, T_GROOVE },
+    { P_FILL,      1, PRE,          0, T_PULSE  },
+    { P_DROP,      1, CHORUS,       1, T_HOOK_A },
+    { P_SHUFFLE,   1, CHORUS,       1, T_HOOK_B },
+    { P_PARTY,     1, CHORUS,       1, T_HOOK_A },
+    { P_PARTY,     1, CHORUS,       1, T_HOOK_B },
+    { P_BOUNCE,    1, CHORUS,       1, T_HOOK_A },
+    { P_BOUNCE,    1, CHORUS,       1, T_HOOK_B },
+    { P_SPIN,      1, CHORUS,       1, T_HOOK_A },
+    { P_SPIN,      1, CHORUS,       1, T_HOOK_B },
+    { P_SHUFFLE,   1, CHORUS,       1, T_HOOK_A },
+    { P_SHUFFLE,   1, CHORUS,       1, T_HOOK_B },
+    { P_PARTY,     1, CHORUS,       1, T_HOOK_A },
+    { P_PARTY,     1, CHORUS,       1, T_HOOK_B },
+    { P_BOUNCE,    1, CHORUS,       1, T_HOOK_A },
+    { P_BOUNCE,    1, CHORUS,       1, T_HOOK_B },
+    { P_SPIN,      1, CHORUS,       1, T_HOOK_A },
+    { P_BOUNCE,    2, VERSE,        0, T_GROOVE },
+    { P_SWING,     2, VERSE,        0, T_PULSE  },
+    { P_BOUNCE,    2, VERSE,        0, T_GROOVE },
+    { P_BOUNCE,    2, PRE,          0, T_GROOVE },
+    { P_FILL,      1, PRE,          0, T_PULSE  },
+    { P_DROP,      1, CHORUS,       1, T_HOOK_A },
+    { P_SHUFFLE,   1, CHORUS,       1, T_HOOK_B },
+    { P_PARTY,     1, CHORUS,       1, T_HOOK_A },
+    { P_PARTY,     1, CHORUS,       1, T_HOOK_B },
+    { P_BOUNCE,    1, CHORUS,       1, T_HOOK_A },
+    { P_BOUNCE,    1, CHORUS,       1, T_HOOK_B },
+    { P_SPIN,      1, CHORUS,       1, T_HOOK_A },
+    { P_SPIN,      1, CHORUS,       1, T_HOOK_B },
+    { P_DROP,      1, CHORUS,       1, T_HOOK_A },
+    { P_SHUFFLE,   1, CHORUS,       1, T_HOOK_B },
+    { P_PARTY,     1, CHORUS,       1, T_HOOK_A },
+    { P_PARTY,     1, CHORUS,       1, T_HOOK_B },
+    { P_BOUNCE,    1, CHORUS,       1, T_HOOK_A },
+    { P_BOUNCE,    1, CHORUS,       1, T_HOOK_B },
+    { P_BOUNCE,    2, BRIDGE,       2, T_GROOVE },
+    { P_SWING,     2, BRIDGE,       2, T_PULSE  },
+    { P_BOUNCE,    2, BRIDGE,       2, T_GROOVE },
+    { P_SWING,     2, BRIDGE,       2, T_PULSE  },
+    { P_BOUNCE,    1, BRIDGE,       2, T_GROOVE },
+    { P_FILL,      1, BRIDGE,       2, T_GROOVE },
+    { P_DROP,      1, CHORUS,       1, T_HOOK_A },
+    { P_DROP,      1, CHORUS,       1, T_HOOK_B },
+    { P_PARTY,     1, CHORUS,       1, T_DRIVE  },
+    { P_PARTY,     1, CHORUS,       1, T_HOOK_B },
+    { P_SHUFFLE,   1, CHORUS,       1, T_HOOK_A },
+    { P_SHUFFLE,   1, CHORUS,       1, T_HOOK_B },
+    { P_SPIN,      1, CHORUS,       1, T_DRIVE  },
+    { P_SPIN,      1, CHORUS,       1, T_HOOK_B },
+    { P_DROP,      1, CHORUS,       1, T_HOOK_A },
+    { P_DROP,      1, CHORUS,       1, T_HOOK_B },
+    { P_PARTY,     1, CHORUS,       1, T_DRIVE  },
+    { P_PARTY,     1, CHORUS,       1, T_HOOK_B },
+    { P_SHUFFLE,   1, CHORUS,       1, T_HOOK_A },
+    { P_SHUFFLE,   1, CHORUS,       1, T_HOOK_B },
+    { P_BOUNCE,    2, OUTRO,        0, T_GROOVE },
+    { P_SWING,     2, OUTRO,        0, T_PULSE  },
+    { P_BOUNCE,    2, OUTRO,        0, T_GROOVE },
+    { P_SWING,     2, OUTRO,        0, T_PULSE  },
+    { P_BOUNCE,    1, OUTRO,        0, T_GROOVE },
+    { P_FINALE,    1, OUTRO,        0, T_END    },
+};
+// ----- SONG END -----
+
+const byte SONG_PARTS = sizeof(SONG_MAP) / sizeof(SONG_MAP[0]);
+const unsigned long DANCE_STEP_US = 60000000.0 / (SONG_BPM * 2);   // one step, in microseconds
 
 
 //======================================================
@@ -286,10 +612,21 @@ int brakePWM = FULL_SPEED;
 bool turning180 = false;
 unsigned long turn180Timer = 0;    // when the turn started
 
-// Dance, demo and chaos: which step they are on and when it started
+// Dance: where we are in the song (part of SONG_MAP, bar in that part, step in that bar)
 bool danceMode = false;
+byte dancePart = 0;
+byte danceBar = 0;
 byte danceStep = 0;
-unsigned long danceTimer = 0;
+byte danceSectionBar = 0;          // bar number inside the current song part (for the chords)
+unsigned int danceStepCount = 0;   // steps since the dance started (for the special moment)
+unsigned long shoutUntil = 0;      // the special moment's text is on the screen until this time
+bool danceHeadBobLeft = false;     // the head bob goes left and right in turn
+byte danceMove = POSE;             // the move it is doing right now
+unsigned long danceNextUs = 0;     // when the next step is due (micros)
+unsigned long danceBeatUs = 0;     // when the last beat was (micros), to line up with your taps
+unsigned long danceStartMs = 0;    // when the dance started (for the clock on the screen)
+
+// Demo and chaos: which step they are on and when it started
 
 bool demoMode = false;
 byte demoStep = 0;
@@ -311,11 +648,22 @@ const byte AVOID_DRIVE = 0;          // drive forward, looking ahead
 const byte AVOID_LOOK_LEFT = 1;
 const byte AVOID_LOOK_RIGHT = 2;
 const byte AVOID_LOOK_CENTER = 3;
-const byte AVOID_TURN_AROUND = 4;    // waiting for the 180-degree turn
+const byte AVOID_CORNER_TURN = 4;    // boxed in: turning 90 degrees ...
+const byte AVOID_TURN_TO_OPEN = 5;   // turning toward the open side until the way is clear
+const byte AVOID_CORNER_CHECK = 6;   // ... then checking straight ahead for an opening
+const byte MAX_CORNER_TURNS = 4;     // 4 x 90 = all the way round: then back up and look again
 
 bool searchMode = false;
 byte searchStep = AVOID_DRIVE;
 unsigned long avoidTimer = 0;
+bool searchTurnLeft = false;         // which way it is turning toward the open side
+int searchOpenTarget = 0;            // stop turning when this much is clear ahead (cm)
+byte turnSteps = 0;                  // how many small turning steps it has done toward the open side
+int stuckCheckDistance = 0;          // the distance ahead at the last "am I stuck?" check
+unsigned long stuckCheckAt = 0;      // and when that was
+byte noEchoChecks = 0;               // how many checks in a row saw nothing at all ahead
+byte sameChecks = 0;                 // how many checks in a row saw the same distance ahead
+byte cornerTurns = 0;                // how many 90-degree turns it has done while boxed in
 int leftDistance = NO_ECHO;
 int rightDistance = NO_ECHO;
 int centerDistance = NO_ECHO;
@@ -333,6 +681,8 @@ byte lastIRCommand = 0;            // which button that was
 
 // Bluetooth
 bool btGreeted = false;            // true once the phone has sent its first letter
+bool muted = false;                // phone X: all buzzer sounds off (press again: on)
+unsigned long muteToggledAt = 0;   // (so one press doesn't toggle twice)
 
 // Buzzer
 const uint16_t* tunePos = NULL;    // where we are in the current tune (NULL = silent)
@@ -351,6 +701,8 @@ char shownBottom[17] = "";
 unsigned long textDrawnAt[2] = {0, 0};
 byte nextText = 0;
 unsigned long surpriseUntil = 0;   // big surprised eyes until this time
+unsigned long dizzyUntil = 0;      // dizzy eyes + wobbly head until this time (after a donut)
+unsigned long dizzyWobbleAt = 0;   // when the head last wobbled
 unsigned long lastActiveAt = 0;    // last time the robot was doing something (sleepy eyes)
 
 // Motors: are we driving forward right now, and how fast? (for the brake jerk)
@@ -402,9 +754,21 @@ void setWheels(int leftDir, int rightDir)
 }
 
 // Spin speed: the dance uses a fixed speed, everything else 85 % of currentSpeed
+// The part of the song the dance is in (its name number + maybe POWER)
+byte dancePartByte()
+{
+    return pgm_read_byte(&SONG_MAP[min(dancePart, SONG_PARTS - 1)][2]);
+}
+
+// Dance speed right now: faster in the POWER parts (the explosive bits)
+int danceSpeedNow()
+{
+    return (dancePartByte() & POWER) ? DANCE_POWER_SPEED : DANCE_SPEED;
+}
+
 int turnSpeed()
 {
-    return danceMode ? DANCE_SPEED : percentOf(currentSpeed, TURN_SPEED_PERCENT);
+    return danceMode ? danceSpeedNow() : percentOf(currentSpeed, TURN_SPEED_PERCENT);
 }
 
 void stop()
@@ -595,7 +959,7 @@ ISR(TIMER2_COMPA_vect)
 // Play one note (frequency in Hz) until the next call; 0 = silence
 void buzzerNote(unsigned int frequency)
 {
-    if (frequency == 0 || buzzerTickHz == 0)
+    if (frequency == 0 || buzzerTickHz == 0 || muted)    // muted (phone X): every sound stays silent
     {
         noInterrupts();
         TIMSK2 &= ~_BV(OCIE2A);           // stop the tick interrupt
@@ -673,14 +1037,24 @@ const uint16_t TUNE_DEMO[] PROGMEM = {            // "ta-da-da-DAAA"
     END_OF_TUNE
 };
 
-// The dance song: one note for each of the 16 dance moves (REST = no note).
-// The moves are in updateDance() - each note plays exactly when its move starts.
-const byte DANCE_STEPS = 16;
-const uint16_t DANCE_NOTES[DANCE_STEPS] PROGMEM = {
-    NOTE_C5,  NOTE_C5, NOTE_EB5, NOTE_C5,     // forward, back, forward, back
-    NOTE_G5,  NOTE_F5, NOTE_EB5, NOTE_D5,     // spin left, left, spin right, right
-    NOTE_C6,  NOTE_G5, NOTE_EB5, REST,        // donut, donut, pose!, (hold)
-    NOTE_BB4, NOTE_C5, NOTE_EB5, NOTE_G5      // dash forward, back, left, right
+// Drum sounds for the dance (a passive buzzer can't do real drums, so these
+// are quick little pitch drops and clicks that sound like them)
+const uint16_t SOUND_KICK[] PROGMEM = {           // bass drum: a quick drop in pitch
+    330, 15,  196, 15,  110, 25,
+    END_OF_TUNE
+};
+const uint16_t SOUND_CLAP[] PROGMEM = {           // clap: three quick high bursts
+    NOTE_A6, 8,  REST, 6,  NOTE_G6, 8,  REST, 6,  NOTE_F6, 14,
+    END_OF_TUNE
+};
+const uint16_t SOUND_ZAP[] PROGMEM = {            // the special moment: an electric crackle (like Feedback's lightning)
+    1800, 12,  600, 12,  2200, 12,  500, 12,  2600, 12,  450, 12,  2000, 20,  700, 20,
+    2400, 30,  REST, 20,  3000, 40,  1500, 60,
+    END_OF_TUNE
+};
+const uint16_t SOUND_HIT[] PROGMEM = {            // big accent: "ta-daa"
+    NOTE_C6, 25,  NOTE_G6, 25,  NOTE_C7, 60,
+    END_OF_TUNE
 };
 
 // Single beeps (used by the parking sensor and the dance)
@@ -754,15 +1128,17 @@ void updateSound()
     startNote();
 }
 
-void updateDance();                 // (it's further down - this line just lets yield() use it)
+void updateDance();                 // (they're further down - these lines just let yield() use them)
+void update180();
 
 // Arduino calls yield() again and again while delay() is waiting.
-// We use that spare time to keep the music playing in time, and the
-// dance moves exactly on the beat.
+// We use that spare time to keep the music playing in time, the dance
+// moves exactly on the beat, and to stop the 180 turn at exactly the right moment.
 void yield()
 {
     updateSound();
     updateDance();
+    update180();
 }
 
 
@@ -805,8 +1181,9 @@ const byte E_HAPPY = 4;              // bottom cut away by an arch: ^ ^
 const byte E_ANGRY = 5;              // inner top corners cut away: frowning
 const byte E_TIRED = 6;              // outer top corners droop: sad / sleepy
 const byte E_OPEN = 7;               // 100 = open, 0 = closed (blink)
-const byte EYE_VALUES = 8;
-int eyeNow[EYE_VALUES] = {EYE_W, EYE_H, 0, 0, 0, 0, 0, 100};
+const byte E_WOBBLE = 8;             // dizzy: left eye this many pixels down, right eye up
+const byte EYE_VALUES = 9;
+int eyeNow[EYE_VALUES] = {EYE_W, EYE_H, 0, 0, 0, 0, 0, 100, 0};
 int eyeTarget[EYE_VALUES];
 
 bool eyesDrawn = false;
@@ -872,6 +1249,8 @@ const char* actionName()
         if (searchStep == AVOID_LOOK_LEFT)   return PSTR("LOOK L");
         if (searchStep == AVOID_LOOK_RIGHT)  return PSTR("LOOK R");
         if (searchStep == AVOID_LOOK_CENTER) return PSTR("LOOK C");
+        if (searchStep == AVOID_TURN_TO_OPEN) return searchTurnLeft ? PSTR("TURN L") : PSTR("TURN R");
+        if (searchStep == AVOID_CORNER_TURN || searchStep == AVOID_CORNER_CHECK) return PSTR("BOXED IN");
         return PSTR("SEARCH");
     }
 
@@ -898,6 +1277,60 @@ void distanceText(char* buf)
     strcat_P(buf, PSTR(" cm "));
 }
 
+// The song name, 16 letters wide. A longer name scrolls along like a news ticker.
+// The special moment's text (SONG_SHOUT), in the middle of the top row
+void shoutText(char* buf)
+{
+    byte length = min(strlen_P(SONG_SHOUT), 16);
+    memset(buf, ' ', 16);
+    memcpy_P(buf + (16 - length) / 2, SONG_SHOUT, length);
+    buf[16] = '\0';
+}
+
+void songNameText(char* buf)
+{
+    byte length = strlen_P(SONG_NAME);
+
+    if (length <= 16)
+    {
+        byte left = (16 - length) / 2;             // centre it
+        memset(buf, ' ', 16);
+        memcpy_P(buf + left, SONG_NAME, length);
+        buf[16] = '\0';
+        return;
+    }
+
+    byte loopLength = length + 4;                  // 4 spaces between the end and the start again
+    byte start = ((millis() - danceStartMs) / SONG_NAME_SCROLL_MS) % loopLength;   // starts with the first letter
+
+    for (byte i = 0; i < 16; i++)
+    {
+        byte n = (start + i) % loopLength;
+        buf[i] = (n < length) ? pgm_read_byte(SONG_NAME + n) : ' ';
+    }
+    buf[16] = '\0';
+}
+
+// Bottom row while dancing: the part of the song + where we are in the song,
+// for example "CHORUS    1:23  " (it should match the time on your music player)
+void danceInfoText(char* buf)
+{
+    byte part = dancePartByte() & ~POWER;
+    flashText(buf, PART_NAMES[part], 8);
+
+    unsigned int seconds = (millis() - danceStartMs + SONG_FIRST_BEAT_MS) / 1000;
+    char clock[8];
+    itoa(seconds / 60, clock, 10);
+    strcat_P(clock, (seconds % 60 < 10) ? PSTR(":0") : PSTR(":"));
+    itoa(seconds % 60, clock + strlen(clock), 10);
+
+    byte i = 8;
+    while (i + strlen(clock) < 14)                 // right-align the clock
+        buf[i++] = ' ';
+    strcpy(buf + i, clock);
+    strcat_P(buf, PSTR("  "));
+}
+
 // What the top row (area 0) or bottom row (area 1) should show
 void wantedText(byte area, char* buf)
 {
@@ -910,10 +1343,24 @@ void wantedText(byte area, char* buf)
         return;
     }
 
+    if (danceMode)
+    {
+        if (area == 0 && (long)(shoutUntil - millis()) > 0)
+            shoutText(buf);                    // the special moment, e.g. "FEEDBACK!"
+        else if (area == 0)
+            songNameText(buf);
+        else
+            danceInfoText(buf);
+        return;
+    }
+
     if (area == 0)
     {
         flashText(buf, btGreeted ? PSTR("BT:OK") : PSTR("BT:--"), 5);
-        strcat_P(buf, slowMode ? PSTR(" SPEED:SLOW") : PSTR(" SPEED:FULL"));
+        if (muted)
+            strcat_P(buf, slowMode ? PSTR(" MUTED SLOW") : PSTR(" MUTED FULL"));
+        else
+            strcat_P(buf, slowMode ? PSTR(" SPEED:SLOW") : PSTR(" SPEED:FULL"));
     }
     else
     {
@@ -943,6 +1390,9 @@ int servoLook(int toLeft)
 {
     int angle = scanner.read() - SERVO_CENTER;    // + = the sensor looks to the robot's left
 
+    if (SERVO_LEFT < SERVO_CENTER)                // (unless SERVO_LEFT and SERVO_RIGHT were swapped)
+        angle = -angle;
+
     if (abs(angle) < 30)
         return 0;
 
@@ -966,6 +1416,7 @@ void setEyeTargets()
     eyeTarget[E_ANGRY] = 0;
     eyeTarget[E_TIRED] = 0;
     eyeTarget[E_OPEN] = 100;
+    eyeTarget[E_WOBBLE] = 0;
 
     if (robotState != IDLE)
         lastActiveAt = now;
@@ -974,6 +1425,15 @@ void setEyeTargets()
     {
         eyeTarget[E_W] = EYE_W - 8;
         eyeTarget[E_H] = EYE_H + 10;
+    }
+    else if (robotState == IDLE && (long)(dizzyUntil - now) > 0)   // just stopped a donut: very dizzy
+    {
+        byte spot = (now / 90) % 4;                // eyes roll round fast, one up and one down
+        eyeTarget[E_X] = (spot == 0) ? toLeft : (spot == 2) ? -toLeft : 0;
+        eyeTarget[E_Y] = (spot == 1) ? -LOOK_Y : (spot == 3) ? LOOK_Y : 0;
+        eyeTarget[E_WOBBLE] = (spot < 2) ? 6 : -6;
+        eyeTarget[E_TIRED] = 8;
+        eyeTarget[E_OPEN] = 75;
     }
     else if (greetingOnScreen)                     // hello: happy, looking around with the servo
     {
@@ -1027,27 +1487,53 @@ void setEyeTargets()
 
         case MANUAL_RIGHT:
         case DRIFT_RIGHT:
-        case TURN180:                                   // the 180 spins to the right
             eyeTarget[E_X] = -toLeft;
             break;
 
-        case DONUT:                                     // dizzy: the eyes go round and round
+        case TURN180:                                   // focused, on a mission: narrowed eyes, firm brow,
+            eyeTarget[E_X] = -toLeft;                   // looking where it spins (to the right)
+            eyeTarget[E_H] = EYE_H - 12;
+            eyeTarget[E_W] = EYE_W + 4;
+            eyeTarget[E_ANGRY] = 7;
+            break;
+
+        case DONUT:                                     // dizzy: the eyes go round and round, wobbling
         {
-            byte spot = (now / 120) % 4;
+            byte spot = (now / 100) % 4;
             eyeTarget[E_X] = (spot == 0) ? toLeft : (spot == 2) ? -toLeft : 0;
             eyeTarget[E_Y] = (spot == 1) ? -LOOK_Y : (spot == 3) ? LOOK_Y : 0;
+            eyeTarget[E_WOBBLE] = (spot == 0 || spot == 2) ? 5 : -5;
+            eyeTarget[E_TIRED] = 5;
+            eyeTarget[E_OPEN] = 85;
             break;
         }
 
         case DANCE:                                     // happy, bouncing to the beat
         {
-            byte move = (danceStep + DANCE_STEPS - 1) % DANCE_STEPS;   // the move playing now
             eyeTarget[E_HAPPY] = 24;
-            eyeTarget[E_Y] = (move % 2) ? -4 : 3;
-            if (move == 4 || move == 5 || move == 14)
+            eyeTarget[E_Y] = (danceStep % 2) ? 3 : -4;  // up and down on every step
+
+            if (danceMove == SPIN_L || danceMove == TWIST_L || danceMove == SWAY_L || danceMove == LOOK_L)
                 eyeTarget[E_X] = toLeft;
-            else if (move == 6 || move == 7 || move == 15)
+            else if (danceMove == SPIN_R || danceMove == TWIST_R || danceMove == SWAY_R || danceMove == LOOK_R)
                 eyeTarget[E_X] = -toLeft;
+
+            if ((long)(shoutUntil - now) > 0)              // the special moment: wide, fierce, electric eyes
+            {
+                eyeTarget[E_HAPPY] = 0;
+                eyeTarget[E_ANGRY] = 10;
+                eyeTarget[E_W] = EYE_W - 6;
+                eyeTarget[E_H] = EYE_H + 10;
+                eyeTarget[E_X] = ((now / 80) % 2) ? 3 : -3;   // crackling
+                break;
+            }
+
+            byte part = dancePartByte() & ~POWER;
+            if (part == CHORUS || part == DROP || part == HOOK || (dancePartByte() & POWER))   // the best bits: big excited eyes
+            {
+                eyeTarget[E_W] = EYE_W + 4;
+                eyeTarget[E_H] = EYE_H + 6;
+            }
             break;
         }
 
@@ -1055,17 +1541,19 @@ void setEyeTargets()
             eyeTarget[E_HAPPY] = 22;
             break;
 
-        case CHAOS:                                     // mischievous!
-            eyeTarget[E_ANGRY] = 12;
+        case CHAOS:                                     // mad and serious: deep frown, narrowed eyes,
+            eyeTarget[E_ANGRY] = 18;                    // a steady glare (no silly darting around)
+            eyeTarget[E_H] = EYE_H - 6;
+            eyeTarget[E_Y] = 2;
             if (chaosStep == CHAOS_TURN)
-                eyeTarget[E_X] = chaosTurnLeft ? toLeft : -toLeft;
-            else if (chaosStep == CHAOS_BACKUP)
-                eyeTarget[E_Y] = LOOK_Y;
+                eyeTarget[E_X] = (chaosTurnLeft ? toLeft : -toLeft) / 2;
             break;
 
         case SEARCH:                                    // focused, looking where the sensor looks
             eyeTarget[E_ANGRY] = 5;
             eyeTarget[E_X] = servoLook(toLeft);
+            if (searchStep == AVOID_TURN_TO_OPEN || searchStep == AVOID_CORNER_TURN)   // ... or where it is turning
+                eyeTarget[E_X] = searchTurnLeft ? toLeft : -toLeft;
             break;
 
         case BRAKING:                                   // slowing down: squinting
@@ -1137,10 +1625,15 @@ void drawEyes()
         int cx = 64 + (eye == 0 ? -EYE_GAP_CENTER : EYE_GAP_CENTER) + eyeNow[E_X];
         x0[eye] = cx - half;
 
+        // dizzy: one eye a bit lower, the other a bit higher
+        int dy = (eye == 0) ? eyeNow[E_WOBBLE] : -eyeNow[E_WOBBLE];
+        int ey0 = y0 + dy;
+        int ey1 = y1 + dy;
+
         for (int i = 0; i < w; i++)
         {
-            int t = y0;
-            int b = y1;
+            int t = ey0;
+            int b = ey1;
 
             int edge = min(i, w - 1 - i);        // rounded corners
             if (edge < r)
@@ -1153,7 +1646,7 @@ void drawEyes()
             if (happy > 0)                       // happy: arch-shaped bottom -> ◠ ◠
             {
                 long dx = i - half;
-                int cut = y1 - happy + happy * dx * dx / ((long)half * half);
+                int cut = ey1 - happy + happy * dx * dx / ((long)half * half);
                 if (b > cut)
                     b = cut;
             }
@@ -1161,7 +1654,7 @@ void drawEyes()
             if (angry > 0)                       // angry: inner top corner cut away
             {
                 int fromInner = (eye == 0) ? (w - 1 - i) : i;
-                int cut = y0 + (long)angry * (w - fromInner) / w;
+                int cut = ey0 + (long)angry * (w - fromInner) / w;
                 if (t < cut)
                     t = cut;
             }
@@ -1169,7 +1662,7 @@ void drawEyes()
             if (tired > 0)                       // tired: outer top corner droops
             {
                 int fromOuter = (eye == 0) ? i : (w - 1 - i);
-                int cut = y0 + (long)tired * (w - fromOuter) / w;
+                int cut = ey0 + (long)tired * (w - fromOuter) / w;
                 if (t < cut)
                     t = cut;
             }
@@ -1279,6 +1772,11 @@ void drawEyesNow()
 void updateDisplay()
 {
     if (!oledFound || turning180)
+        return;
+
+    // While dancing, don't start drawing just before the next step: a picture
+    // can take up to 60 ms, and the step would come late (off the beat)
+    if (danceMode && (long)(danceNextUs - micros()) < (long)DANCE_DRAW_GUARD_US)
         return;
 
     setEyeTargets();
@@ -1531,6 +2029,29 @@ void startGreeting(bool fromPhone)
     Serial.println(fromPhone ? F("HELLO PHONE") : F("HELLO"));
 }
 
+// Called from loop(): after a donut, the head wobbles left and right while
+// the robot stands still and is dizzy, then looks straight again
+void updateDizzy()
+{
+    if (dizzyUntil == 0)
+        return;
+
+    if (robotState != IDLE || (long)(millis() - dizzyUntil) >= 0)
+    {
+        dizzyUntil = 0;                  // over (or a new command came): head straight again
+        if (robotState == IDLE)
+            lookCenter();
+        return;
+    }
+
+    if (millis() - dizzyWobbleAt < DIZZY_WOBBLE_MS)
+        return;
+
+    dizzyWobbleAt = millis();
+    bool toLeft = scanner.read() <= SERVO_CENTER;
+    scanner.write(SERVO_CENTER + (toLeft ? DIZZY_WOBBLE_DEGREES : -DIZZY_WOBBLE_DEGREES));
+}
+
 // Called from loop(): moves the wave along and ends the hello screen
 void updateGreeting()
 {
@@ -1570,8 +2091,12 @@ void updateGreeting()
 //     loop() finishes it when the time is up (no waiting around).
 //======================================================
 
+void cancelAutoModes();             // (it's further down, in section 13 - this line just lets us use it here)
+
+// Smooth brake: slows the car down to a stop (any self-driving mode stops too)
 void beginBrake()
 {
+    cancelAutoModes();
     braking = true;
     brakePWM = currentSpeed;
     robotState = BRAKING;
@@ -1640,9 +2165,20 @@ void update180()
 // 13. STOP / START HELPERS
 //======================================================
 
+// Stopping a donut makes the robot dizzy for a moment (eyes + wobbly head)
+void dizzyIfDonut()
+{
+    if (donutMode)
+    {
+        dizzyUntil = millis() + DIZZY_AFTER_DONUT_MS;
+        dizzyWobbleAt = millis();
+    }
+}
+
 // Stops every mode and the motors, and centres the sensor
 void emergencyStop()
 {
+    dizzyIfDonut();
     autoForward = false;
     autoBackward = false;
     donutMode = false;
@@ -1672,48 +2208,88 @@ void emergencyStop()
     Serial.println(F("STOP"));
 }
 
-// Switches off the three simple driving modes
+// Switches off every mode that drives by itself (auto forward/backward, donut,
+// dance, demo, chaos, search) without stopping the motors - the button that
+// called this decides what the motors do next. Used by the IR remote buttons
+// and the smooth brake, so a running dance or search can't fight with them.
 void cancelAutoModes()
 {
+    dizzyIfDonut();
     autoForward = false;
     autoBackward = false;
     donutMode = false;
+
+    if (danceMode || searchMode)
+        lookCenter();                  // the sensor head may be turned
+
+    danceMode = false;
+    demoMode = false;
+    chaosMode = false;
+    searchMode = false;
 }
 
 void setAutoForward()
 {
+    cancelAutoModes();
     autoForward = true;
-    autoBackward = false;
-    donutMode = false;
     robotState = AUTO_FORWARD;
     playSound(TUNE_AUTO_FORWARD);
 }
 
 void setAutoBackward()
 {
-    autoForward = false;
+    cancelAutoModes();
     autoBackward = true;
-    donutMode = false;
     robotState = AUTO_BACKWARD;
     playSound(TUNE_AUTO_BACKWARD);
 }
 
 void setDonut()
 {
-    autoForward = false;
-    autoBackward = false;
+    cancelAutoModes();
     donutMode = true;
     robotState = DONUT;
     playSound(TUNE_DONUT);
 }
 
+// Press dance on the first beat of the song: the first move starts right away
 void startDance()
 {
     emergencyStop();
     danceMode = true;
+    dancePart = 0;
+    danceBar = 0;
     danceStep = 0;
-    danceTimer = millis() - DANCE_STEP_MS;   // first move (and note) right away
+    danceSectionBar = 0;
+    danceStepCount = 0;
+    shoutUntil = 0;
+    danceMove = POSE;
+    danceNextUs = micros();
+    danceBeatUs = danceNextUs;
+    danceStartMs = millis();
     robotState = DANCE;
+
+    Serial.print(F("DANCE to: "));
+    Serial.print((const __FlashStringHelper*)SONG_NAME);
+    Serial.print(F("  BPM "));
+    Serial.println((int)(SONG_BPM + 0.5));
+}
+
+// Dance button tapped again while dancing: you tapped ON a beat, so move the
+// robot's beat to your tap (fixes it drifting off the music over a long song)
+void danceTap()
+{
+    long beatUs = DANCE_STEP_US * 2;
+    long sinceBeat = (long)(micros() - danceBeatUs);
+
+    // Was the tap just after one of our beats, or just before the next one?
+    long shift = (sinceBeat < beatUs / 2) ? sinceBeat : sinceBeat - beatUs;
+
+    danceNextUs += shift;
+    danceBeatUs += shift;
+
+    Serial.print(F("DANCE beat moved by ms: "));
+    Serial.println(shift / 1000);
 }
 
 void startDemo()
@@ -1737,11 +2313,13 @@ void startChaos()
     playSound(TUNE_CHAOS);
 }
 
+void searchDriveOn();                // (it's further down, in section 16 - this line just lets us use it here)
+
 void startSearch()
 {
     emergencyStop();
     searchMode = true;
-    searchStep = AVOID_DRIVE;
+    searchDriveOn();
     robotState = SEARCH;
     playSound(TUNE_SEARCH);
 }
@@ -1820,9 +2398,12 @@ void handleRemote(byte cmd)
         setDonut();
         break;
 
-    case CMD_1:                        // 180-degree turn
+    case CMD_1:                        // 180-degree turn (stops any other mode first, like the phone's U)
         if (!turning180)
+        {
+            emergencyStop();
             start180();
+        }
         break;
 
     case CMD_3:                        // smooth brake
@@ -1833,8 +2414,11 @@ void handleRemote(byte cmd)
         startDemo();
         break;
 
-    case CMD_5:                        // dance
-        startDance();
+    case CMD_5:                        // dance (pressed while dancing: line up with the beat)
+        if (danceMode)
+            danceTap();
+        else
+            startDance();
         break;
 
     case CMD_6:                        // chaos
@@ -1941,10 +2525,15 @@ void handleBluetooth()
     //    Any other button (or 'S' later, or OK on the remote) stops it.
     if (isModeLetter(c))
     {
+        bool newTap = millis() - modeLetterAt >= DANCE_TAP_GAP_MS;   // not just the button being held
         modeLetterAt = millis();
 
         if (modeAlreadyRunning(c))
+        {
+            if (c == '4' && newTap)        // dance tapped again on a beat: line up with it
+                danceTap();
             return;
+        }
     }
     else if (c == 'S' && modeLetterAt != 0 && millis() - modeLetterAt < BUTTON_RELEASE_IGNORE_MS)
     {
@@ -2007,6 +2596,18 @@ void handleBluetooth()
         case 'W':                          // full speed
             setSlowMode(false);
             Serial.println(F("Full Speed"));
+            break;
+
+        case 'X':                          // the "!" button: mute / unmute all sounds
+        case 'x':                          // (apps send X and x in turn - each press flips it)
+            if (millis() - muteToggledAt >= MUTE_PRESS_GAP_MS)
+            {
+                muted = !muted;
+                muteToggledAt = millis();
+                if (muted)
+                    stopSound();
+                Serial.println(muted ? F("MUTED") : F("SOUND ON"));
+            }
             break;
 
         case '2':                          // auto forward
@@ -2116,48 +2717,245 @@ void updateDriving()
     }
 }
 
-// Dance: 16 moves to a little riff, repeated. Each move plays its own
-// note (DANCE_NOTES, in the buzzer section), so music and moves stay together.
-// This also runs from yield(), so the beat stays steady.
+// DANCE: follows the song (SONG_MAP) bar by bar, one step every half beat.
+// The steps sit on a fixed grid measured in microseconds from the start,
+// so the robot never slowly drifts behind the music. This also runs from
+// yield(), so the beat stays steady even while the sensor is measuring.
+
+// Both sides of the car: speed and direction (for the curve moves)
+void danceWheels(int leftSpeed, int rightSpeed, int dir)
+{
+    setSpeed(leftSpeed, rightSpeed);
+    setWheels(dir, dir);
+    goingForward = false;
+}
+
+// Does one dance move (and turns the sensor head with it)
+void doDanceMove(byte move)
+{
+    if (move == HOLD)                          // keep doing the last move
+        return;
+
+    // never dance forward into something
+    bool goesForward = (move == FWD || move == DASH || move == SWAY_L || move == SWAY_R);
+    if (goesForward && lastDistance <= STOP_DISTANCE)
+        move = POSE;
+
+    danceMove = move;
+
+    int speed = danceSpeedNow();               // faster in the POWER parts
+    int twist = percentOf(speed, DANCE_TWIST_PERCENT);
+    int inner = percentOf(speed, DANCE_CURVE_PERCENT);
+    int head = SERVO_CENTER;
+
+    switch (move)
+    {
+    case FWD:     forward(speed);         break;
+    case BACK:    backward(speed);        break;
+    case DASH:    forward(FULL_SPEED);    break;
+    case SPIN_L:  left();   head = SERVO_LEFT;   break;    // spins use the dance speed while dancing
+    case SPIN_R:  right();  head = SERVO_RIGHT;  break;
+    case TWIST_L: setSpeed(twist, twist);  setWheels(DIR_BACKWARD, DIR_FORWARD);  goingForward = false;  head = SERVO_LEFT;   break;
+    case TWIST_R: setSpeed(twist, twist);  setWheels(DIR_FORWARD, DIR_BACKWARD);  goingForward = false;  head = SERVO_RIGHT;  break;
+    case SWAY_L:  danceWheels(inner, speed, DIR_FORWARD);         head = SERVO_LEFT;   break;
+    case SWAY_R:  danceWheels(speed, inner, DIR_FORWARD);         head = SERVO_RIGHT;  break;
+    case BACK_L:  danceWheels(inner, speed, DIR_BACKWARD);        break;
+    case BACK_R:  danceWheels(speed, inner, DIR_BACKWARD);        break;
+    case LOOK_L:  stop();   head = SERVO_LEFT;   break;
+    case LOOK_R:  stop();   head = SERVO_RIGHT;  break;
+    default:      stop();                 break;            // POSE
+    }
+
+    // Head bob: on the straight moves the head turns a bit left, then right
+    if (DANCE_HEAD_BOB && head == SERVO_CENTER)
+    {
+        danceHeadBobLeft = !danceHeadBobLeft;
+        head = (danceHeadBobLeft == (SERVO_LEFT > SERVO_CENTER)) ? SERVO_CENTER + DANCE_HEAD_BOB_DEGREES
+                                                                 : SERVO_CENTER - DANCE_HEAD_BOB_DEGREES;
+    }
+
+    if (DANCE_HEAD)
+        scanner.write(head);
+}
+
+// The frequency of a note (MIDI number: 60 = middle C, +1 = one semitone higher)
+unsigned int noteFrequency(byte midi)
+{
+    static const uint16_t TOP_OCTAVE[12] PROGMEM = {          // C8 .. B8
+        4186, 4435, 4699, 4978, 5274, 5588, 5920, 6272, 6645, 7040, 7459, 7902
+    };
+    return pgm_read_word(&TOP_OCTAVE[midi % 12]) >> (9 - midi / 12);
+}
+
+// Plays the tune's note for this step: it follows the chord of this bar.
+// A note lasts until the next note (TIE steps keep it going), so it sounds
+// like music instead of separate beeps.
+void playTuneStep(byte tunePattern, byte chord)
+{
+    byte code = pgm_read_byte(&TUNE_PATTERNS[tunePattern][danceStep]);
+
+    if (code == TIE)
+        return;                                // the last note keeps going
+
+    if (code == SIL)
+    {
+        buzzerNote(0);
+        tunePos = NULL;
+        beepPlaying = false;
+        return;
+    }
+
+    // how many steps this note lasts (itself + the TIE steps after it)
+    byte steps = 1;
+    while (danceStep + steps < STEPS_PER_BAR
+           && pgm_read_byte(&TUNE_PATTERNS[tunePattern][danceStep + steps]) == TIE)
+        steps++;
+
+    // the note: count up the scale from the chord's root
+    bool bass = (code & 0xF0) == BASS;
+    byte scaleSteps = (chord - 1) + (code & 0x0F);
+    const byte* scale = SONG_MINOR ? MINOR_SCALE : MAJOR_SCALE;
+    byte midi = 60 + SONG_KEY % 12 + 12 * (scaleSteps / 7) + pgm_read_byte(&scale[scaleSteps % 7]);
+
+    midi += bass ? DANCE_BASS_OCTAVES * 12 : DANCE_TUNE_OCTAVES * 12;
+    while (midi > DANCE_TUNE_HIGHEST)          // keep the tune in the range the buzzer sounds best
+        midi -= 12;
+
+    unsigned long ms = steps * (DANCE_STEP_US / 1000) - DANCE_NOTE_GAP_MS;
+    if (bass && ms > DANCE_BASS_MAX_MS)        // bass notes are short and punchy
+        ms = DANCE_BASS_MAX_MS;
+
+    playBeep(noteFrequency(midi), ms);
+}
+
+// Plays one drum sound
+void playDrum(byte sound)
+{
+    switch (sound)
+    {
+    case TICK:  playBeep(NOTE_BEEP, 12);    break;
+    case TAP:   playBeep(NOTE_A5, 30);      break;
+    case KICK:  playSound(SOUND_KICK);      break;
+    case CLAP:  playSound(SOUND_CLAP);      break;
+    case HIT:   playSound(SOUND_HIT);       break;
+    }
+}
+
+// Moves on to the next step. Returns false when the song is over.
+bool nextDanceStep()
+{
+    danceStepCount++;
+
+    if (++danceStep < STEPS_PER_BAR)
+        return true;
+
+    danceStep = 0;
+
+    if (++danceBar < pgm_read_byte(&SONG_MAP[dancePart][1]))
+    {
+        danceSectionBar++;
+        return true;
+    }
+
+    danceBar = 0;
+
+    if (++dancePart < SONG_PARTS)
+    {
+        // a new song part (or new chords) starts its chord progression from the top
+        if ((pgm_read_byte(&SONG_MAP[dancePart][2]) & ~POWER) != (pgm_read_byte(&SONG_MAP[dancePart - 1][2]) & ~POWER)
+            || pgm_read_byte(&SONG_MAP[dancePart][3]) != pgm_read_byte(&SONG_MAP[dancePart - 1][3]))
+            danceSectionBar = 0;
+        else
+            danceSectionBar++;
+
+        Serial.print(F("DANCE part "));
+        Serial.println(dancePart);
+        return true;
+    }
+
+    return false;
+}
+
+// The song is over: final pose, a "ta-da" and back to normal
+void endDance()
+{
+    danceMode = false;
+    dancePart = 0;
+    stop();
+    lookCenter();
+    robotState = IDLE;
+    playSound(TUNE_DEMO);
+    Serial.println(F("DANCE finished"));
+}
+
 void updateDance()
 {
     if (!danceMode)
         return;
 
-    if (millis() - danceTimer < DANCE_STEP_MS)
+    long late = (long)(micros() - danceNextUs);
+
+    if (late < 0)                              // not time for the next step yet
         return;
 
-    danceTimer += DANCE_STEP_MS;               // keeps a steady beat
-
-    if (millis() - danceTimer > DANCE_STEP_MS) // fell behind (something was busy): catch up
-        danceTimer = millis();
-
-    switch (danceStep)
+    if (dancePart >= SONG_PARTS)               // the last step has had its time: the end
     {
-        case 0:  forward(DANCE_SPEED);   break;   // shuffle: forward ...
-        case 1:  backward(DANCE_SPEED);  break;   // ... back
-        case 2:  forward(DANCE_SPEED);   break;   // ... forward
-        case 3:  backward(DANCE_SPEED);  break;   // ... back
-        case 4:  left();                 break;   // wiggle left
-        case 5:  left();                 break;
-        case 6:  right();                break;   // wiggle right
-        case 7:  right();                break;
-        case 8:  donut();                break;   // big spin
-        case 9:  donut();                break;
-        case 10: stop();                 break;   // pose!
-        case 11: stop();                 break;   // (hold the pose)
-        case 12: forward(currentSpeed);  break;   // dash forward
-        case 13: backward(DANCE_SPEED);  break;   // back
-        case 14: left();                 break;   // little left
-        case 15: right();                break;   // little right
+        endDance();
+        return;
     }
 
-    unsigned int note = pgm_read_word(&DANCE_NOTES[danceStep]);
+    // If something kept the Arduino busy for longer than a whole step,
+    // skip the steps we missed so we stay on the song's beat
+    while (late >= (long)DANCE_STEP_US)
+    {
+        late -= DANCE_STEP_US;
+        danceNextUs += DANCE_STEP_US;
 
-    if (note != REST)
-        playBeep(note, DANCE_NOTE_MS);
+        if (!nextDanceStep())
+        {
+            endDance();
+            return;
+        }
+    }
 
-    danceStep = (danceStep + 1) % DANCE_STEPS;
+    if (danceStep % 2 == 0)                    // this step is on a beat
+        danceBeatUs = danceNextUs;
+
+    danceNextUs += DANCE_STEP_US;
+
+    byte pattern = pgm_read_byte(&SONG_MAP[dancePart][0]);
+    byte code = pgm_read_byte(&DANCE_PATTERNS[pattern][danceStep]);
+
+    doDanceMove(code & 0x0F);
+
+    // the song's special moment (e.g. "FEEDBACK!"): text on the screen + a zap
+    bool shoutNow = false;
+    for (byte i = 0; i < 3; i++)
+        if (SONG_SHOUT_STEPS[i] >= 0 && danceStepCount == (unsigned int)SONG_SHOUT_STEPS[i])
+            shoutNow = true;
+
+    if (shoutNow)
+    {
+        shoutUntil = millis() + SHOUT_MS;
+        playSound(SOUND_ZAP);
+        Serial.println((const __FlashStringHelper*)SONG_SHOUT);
+    }
+
+    bool shouting = (long)(shoutUntil - millis()) > (long)(SHOUT_MS - SHOUT_SOUND_MS);   // let the zap play
+
+    if (DANCE_SOUND == DANCE_SOUND_TUNE && !shouting)
+    {
+        byte chords = pgm_read_byte(&SONG_MAP[dancePart][3]);
+        byte chord = pgm_read_byte(&SONG_CHORDS[chords][danceSectionBar % 4]);
+        playTuneStep(pgm_read_byte(&SONG_MAP[dancePart][4]), chord);
+    }
+    else if (DANCE_SOUND == DANCE_SOUND_DRUMS)
+    {
+        playDrum(code & 0xF0);
+    }
+
+    if (!nextDanceStep())
+        dancePart = SONG_PARTS;                // the end comes after this last step
 }
 
 // Demo: forward, pause, reverse, spin, 180 turn, final launch
@@ -2319,40 +3117,110 @@ void updateChaos()
     }
 }
 
-// After looking left, right and ahead: go the clearest way
+// Drive on (forward, sensor looking ahead). Also starts the "am I stuck?" checks.
+void searchDriveOn()
+{
+    searchStep = AVOID_DRIVE;
+    stuckCheckDistance = lastDistance;
+    stuckCheckAt = millis();
+    noEchoChecks = 0;
+    sameChecks = 0;
+    cornerTurns = 0;
+}
+
+// Something in the way (or stuck): back up a little, then look around
+void searchLookAround(bool stuck)
+{
+    stop();
+    backward(currentSpeed);
+    delay(stuck ? SEARCH_STUCK_BACKUP_MS : SEARCH_BACKUP_MS);
+    stop();
+
+    lookLeft();
+    avoidTimer = millis();
+    searchStep = AVOID_LOOK_LEFT;
+}
+
+// Start turning toward the open side, in small steps, with the sensor looking
+// straight ahead, until it sees open space (see AVOID_TURN_TO_OPEN below).
+// "Open" means about as much room as it saw when it looked that way
+// (3/4 of it, and more than straight ahead had; at least SAFE_DISTANCE, at
+// most SEARCH_OPEN_ENOUGH), so it really points into the open space, not
+// just past the edge of the obstacle.
+void startTurnToOpen(bool toLeft)
+{
+    Serial.println(toLeft ? F("SEARCH -> turn left until open") : F("SEARCH -> turn right until open"));
+
+    int seen = toLeft ? leftDistance : rightDistance;
+    searchOpenTarget = constrain(max(seen / 4 * 3, centerDistance + 10), SAFE_DISTANCE, SEARCH_OPEN_ENOUGH);
+
+    searchTurnLeft = toLeft;
+    turnSteps = 0;
+    searchStep = AVOID_TURN_TO_OPEN;
+}
+
+// One small turning step toward the open side (an exact short move: delay()
+// keeps the time precise, and the buzzer keeps playing during it)
+void turnStep()
+{
+    if (searchTurnLeft)
+        left();
+    else
+        right();
+
+    delay(SEARCH_TURN_STEP_MS);
+    stop();
+}
+
+// Boxed in: spin 90 degrees (at full speed, timed like the 180 turn),
+// then check straight ahead (see AVOID_CORNER_TURN / AVOID_CORNER_CHECK below)
+void startCornerTurn(bool toLeft)
+{
+    Serial.println(toLeft ? F("SEARCH boxed in -> 90 left") : F("SEARCH boxed in -> 90 right"));
+
+    searchTurnLeft = toLeft;
+    cornerTurns++;
+    searchStep = AVOID_CORNER_TURN;
+
+    // a short exact move: delay() keeps the time precise (the buzzer keeps playing)
+    setSpeed(currentSpeed, currentSpeed);
+    setWheels(toLeft ? DIR_BACKWARD : DIR_FORWARD, toLeft ? DIR_FORWARD : DIR_BACKWARD);
+    goingForward = false;
+    delay(TURN90_TIME);
+    stop();
+
+    avoidTimer = millis();
+    searchStep = AVOID_CORNER_CHECK;
+}
+
+// After looking left and right: it NEVER goes straight on (the obstacle was
+// right there a moment ago). It turns toward the side with more room:
+//  - that side is open: turn until the sensor sees the open space, then drive
+//  - both sides blocked (boxed in): turn 90 degrees that way, look ahead,
+//    and keep turning 90 degrees until it finds an opening
 void chooseClearestWay()
 {
-    if (centerDistance >= SAFE_DISTANCE && centerDistance >= leftDistance && centerDistance >= rightDistance)
+    bool toLeft = leftDistance >= rightDistance;
+    int side = toLeft ? leftDistance : rightDistance;
+
+    if (side >= SAFE_DISTANCE)
     {
-        searchStep = AVOID_DRIVE;              // straight ahead is the clearest
-    }
-    else if (leftDistance >= SAFE_DISTANCE && leftDistance >= rightDistance)
-    {
-        // Turn about 50 degrees left. Short exact moves use delay();
-        // the buzzer keeps playing during it.
-        left();
-        delay((SERVO_LEFT - SERVO_CENTER) * SEARCH_MS_PER_DEGREE);
-        stop();
-        searchStep = AVOID_DRIVE;
-    }
-    else if (rightDistance >= SAFE_DISTANCE)
-    {
-        right();                               // turn about 50 degrees right
-        delay((SERVO_CENTER - SERVO_RIGHT) * SEARCH_MS_PER_DEGREE);
-        stop();
-        searchStep = AVOID_DRIVE;
+        startTurnToOpen(toLeft);
     }
     else
     {
-        start180();                            // blocked everywhere: turn around
-        searchStep = AVOID_TURN_AROUND;
+        cornerTurns = 0;
+        startCornerTurn(toLeft);
     }
 }
 
 // SEARCH (obstacle avoidance) keeps going until another command stops it.
 // It drives forward with the sensor looking straight ahead. At an obstacle
-// it backs up, looks left, right and ahead with the servo, then goes the
-// clearest way. If everything is blocked, it does the 180-degree turn.
+// it backs up, looks left, right and ahead with the servo, then turns toward
+// the side with the most room until the sensor sees open space, and drives
+// on (never straight back at the obstacle). If it is boxed in, it turns 90
+// degrees at a time until it finds an opening. If it gets stuck on something
+// the sensor can't see, it notices and backs out.
 void runObstacleAvoidance()
 {
     if (!searchMode)
@@ -2361,24 +3229,53 @@ void runObstacleAvoidance()
     switch (searchStep)
     {
     case AVOID_DRIVE:                          // drive forward, looking straight ahead
+    {
         lookCenter();
 
-        if (filteredDistance() > STOP_DISTANCE)
-        {
-            forward(currentSpeed);
-        }
-        else
-        {
-            stop();                            // something in the way: back up a little
-            backward(currentSpeed);
-            delay(SEARCH_BACKUP_MS);
-            stop();
+        int ahead = filteredDistance();
 
-            lookLeft();                        // then start looking around
-            avoidTimer = millis();
-            searchStep = AVOID_LOOK_LEFT;
+        static unsigned long lastReport = 0;   // debug: what it sees, twice a second
+        if (millis() - lastReport >= 500)
+        {
+            lastReport = millis();
+            Serial.print(F("SEARCH ahead: "));
+            Serial.println(ahead);
+        }
+
+        if (ahead <= STOP_DISTANCE)
+        {
+            Serial.print(F("SEARCH blocked at "));
+            Serial.println(ahead);
+            searchLookAround(false);           // something in the way
+            break;
+        }
+
+        forward(currentSpeed);
+
+        // Stuck? Driving forward should change the distance ahead. If it
+        // hasn't changed for a while, a wheel or corner is caught on something.
+        // (Seeing nothing at all ahead for a long time also counts: no room
+        //  is that big, so it is probably pushing against something.)
+        if (millis() - stuckCheckAt >= SEARCH_STUCK_MS)
+        {
+            noEchoChecks = (ahead >= NO_ECHO) ? noEchoChecks + 1 : 0;
+            bool same = ahead < NO_ECHO && abs(ahead - stuckCheckDistance) < SEARCH_STUCK_CM;
+            sameChecks = same ? sameChecks + 1 : 0;
+
+            bool stuck = (same && ahead < SEARCH_STUCK_NEAR_CM)
+                      || sameChecks >= SEARCH_STUCK_FAR_CHECKS
+                      || noEchoChecks >= SEARCH_NO_ECHO_CHECKS;
+            stuckCheckDistance = ahead;
+            stuckCheckAt = millis();
+
+            if (stuck)
+            {
+                Serial.println(F("SEARCH stuck - backing out"));
+                searchLookAround(true);
+            }
         }
         break;
+    }
 
     case AVOID_LOOK_LEFT:                      // wait for the servo, then measure
         if (millis() - avoidTimer >= SERVO_SETTLE_MS)
@@ -2404,17 +3301,67 @@ void runObstacleAvoidance()
         if (millis() - avoidTimer >= SERVO_SETTLE_MS)
         {
             centerDistance = filteredDistance();
+
+            Serial.print(F("SEARCH looked  L="));   // debug: what it saw around it
+            Serial.print(leftDistance);
+            Serial.print(F("  C="));
+            Serial.print(centerDistance);
+            Serial.print(F("  R="));
+            Serial.println(rightDistance);
+
             chooseClearestWay();
         }
         break;
 
-    case AVOID_TURN_AROUND:                    // wait for the 180-degree turn to finish
-        if (!turning180)
+    case AVOID_CORNER_CHECK:                   // ... stand still a moment, then look straight ahead
+        if (millis() - avoidTimer >= SERVO_SETTLE_MS)
         {
-            robotState = SEARCH;               // the turn is done: keep searching
-            searchStep = AVOID_DRIVE;
+            int ahead = filteredDistance();
+
+            if (ahead >= SAFE_DISTANCE)
+            {
+                Serial.print(F("SEARCH opening found: "));
+                Serial.println(ahead);
+                searchDriveOn();               // an opening: go that way
+            }
+            else if (cornerTurns < MAX_CORNER_TURNS)
+            {
+                startCornerTurn(searchTurnLeft);   // still blocked: another 90 degrees
+            }
+            else
+            {
+                Serial.println(F("SEARCH turned all the way round - looking again"));
+                searchLookAround(false);
+            }
         }
         break;
+
+    case AVOID_TURN_TO_OPEN:                   // turn a small step, stop, look straight ahead
+    {
+        turnStep();
+        turnSteps++;
+
+        int ahead = filteredDistance();        // measured standing still: accurate
+
+        if (ahead >= searchOpenTarget)
+        {
+            Serial.print(F("SEARCH open way found: "));
+            Serial.println(ahead);
+
+            for (byte i = 0; i < SEARCH_TURN_EXTRA_STEPS; i++)
+                turnStep();                    // a little more, so the whole car gets past the edge
+
+            searchDriveOn();                   // the way is open: drive on
+        }
+        else if (turnSteps >= SEARCH_TURN_MAX_STEPS)
+        {
+            Serial.println(F("SEARCH no open way yet - looking again"));
+            lookLeft();
+            avoidTimer = millis();
+            searchStep = AVOID_LOOK_LEFT;
+        }
+        break;
+    }
     }
 }
 
@@ -2501,6 +3448,8 @@ void loop()
     updateParkingBeeps();      // beep-beep-beep when getting close
 
     updateGreeting();          // hello screen timer + servo wave
+
+    updateDizzy();             // dizzy head wobble after a donut
 
     updateDisplay();           // OLED: one small part per pass
 

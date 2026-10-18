@@ -1,0 +1,4604 @@
+[
+ {
+  "id": "save_me",
+  "alternatives": [],
+  "sources": [],
+  "track": {
+   "title": "Save Me",
+   "artist": "Remy Zero",
+   "version": "normal speed - the 4:01 radio edit (the Smallville theme version)",
+   "reason": "User asked for the normal-speed song."
+  },
+  "duration_s": 241.3,
+  "bpm": 96,
+  "bpm_confidence": "high",
+  "time_signature": "4/4",
+  "first_beat_s": 1.04,
+  "structure_confidence": "medium",
+  "mood": "emotional alt-rock anthem, heroic (Smallville / Superman)",
+  "best_part": "final chorus 3:11-3:56",
+  "sections": [
+   {
+    "label": "intro",
+    "start_s": 0,
+    "end_s": 21,
+    "energy": 2
+   },
+   {
+    "label": "verse",
+    "start_s": 21,
+    "end_s": 41,
+    "energy": 2
+   },
+   {
+    "label": "prechorus",
+    "start_s": 41,
+    "end_s": 61,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 61,
+    "end_s": 101,
+    "energy": 4
+   },
+   {
+    "label": "instrumental",
+    "start_s": 101,
+    "end_s": 106,
+    "energy": 3
+   },
+   {
+    "label": "verse",
+    "start_s": 106,
+    "end_s": 126,
+    "energy": 2
+   },
+   {
+    "label": "prechorus",
+    "start_s": 126,
+    "end_s": 146,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 146,
+    "end_s": 186,
+    "energy": 4
+   },
+   {
+    "label": "instrumental",
+    "start_s": 186,
+    "end_s": 191,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 191,
+    "end_s": 236,
+    "energy": 5
+   },
+   {
+    "label": "outro",
+    "start_s": 236,
+    "end_s": 241.3,
+    "energy": 2
+   }
+  ],
+  "notes": "Timings from synced-lyric timestamps of the 4:01 radio edit. The album version (4:44) has a longer ending.",
+  "key": 64,
+  "minor": false,
+  "chords": {
+   "verse": [
+    1,
+    4,
+    6,
+    5
+   ],
+   "chorus": [
+    4,
+    1,
+    5,
+    6
+   ],
+   "bridge": [
+    6,
+    4,
+    1,
+    5
+   ]
+  },
+  "keySure": "checked (E major)"
+ },
+ {
+  "id": "national_treasure",
+  "alternatives": [],
+  "sources": [],
+  "track": {
+   "title": "National Treasures",
+   "artist": "Drake",
+   "version": "album version (ICEMAN, 2026), 3:20",
+   "reason": "User asked for the Drake song."
+  },
+  "duration_s": 200,
+  "bpm": 129.5,
+  "bpm_confidence": "medium",
+  "time_signature": "4/4",
+  "first_beat_s": 0.9,
+  "structure_confidence": "medium",
+  "mood": "eerie trap, then a beat switch to industrial sounds",
+  "best_part": "the hook after the beat switch (1:38) and again at 2:40",
+  "sections": [
+   {
+    "label": "intro",
+    "start_s": 0,
+    "end_s": 23,
+    "energy": 3
+   },
+   {
+    "label": "verse",
+    "start_s": 23,
+    "end_s": 97,
+    "energy": 4
+   },
+   {
+    "label": "hook",
+    "start_s": 97,
+    "end_s": 112,
+    "energy": 5
+   },
+   {
+    "label": "verse",
+    "start_s": 112,
+    "end_s": 158,
+    "energy": 3
+   },
+   {
+    "label": "hook",
+    "start_s": 158,
+    "end_s": 174,
+    "energy": 5
+   },
+   {
+    "label": "outro",
+    "start_s": 174,
+    "end_s": 200,
+    "energy": 4
+   }
+  ],
+  "notes": "Tempo worked out from the synced-lyric line spacing (1.84 s per bar = about 130 BPM; one site says 193, which is 1.5x that). Parts from synced lyrics.",
+  "key": 68,
+  "minor": true,
+  "chords": {
+   "verse": [
+    1,
+    1,
+    6,
+    7
+   ],
+   "chorus": [
+    1,
+    6,
+    7,
+    1
+   ],
+   "bridge": [
+    1,
+    1,
+    1,
+    1
+   ]
+  },
+  "keySure": "one source (B major / G# minor)"
+ },
+ {
+  "id": "mentalist",
+  "track": {
+   "title": "Main Title Theme (The Mentalist) [Extended Version]",
+   "artist": "Blake Neely",
+   "version": "Official extended version of the TV opening theme, from 'The Mentalist: Seasons 1-2 (Original Television Soundtrack)', 1:08 (68.08 s)",
+   "reason": "Both researchers chose this track and I confirmed it. It is the only official release of the Mentalist intro music, so searching 'The Mentalist intro' on Spotify, Apple Music, Deezer or YouTube Music finds it. At just over a minute it is still a 'small' song, so the robot can dance the whole intro beat from start to finish, as the user asked. The intro aired in episodes is only a 7-14 s title sting (see alternatives), which is too short for a real dance."
+  },
+  "alternatives": [
+   "On-air opening title sting, Seasons 2-7: about 11-12 s on YouTube (e.g. 'The Mentalist - Intro/Theme Song - Season 2+3 - HD', 0:12)",
+   "Season 1 on-air title card: about 7-8 s on YouTube",
+   "Season 6 FBI-era intro: about 13-14 s on YouTube",
+   "'The Mentalist opening credits' on YouTube, 0:33 (title sting plus cast credits over the first scene)",
+   "Fan-made extended loops on YouTube (e.g. 'The Mentalist - Main Theme Extended', 2:32)",
+   "Believe (Jane's Theme) - Blake Neely, 3:27: the show's emotional piano theme, not the intro",
+   "Aphex Twin - 180db_[130] (slowed): a popular 'Patrick Jane edit' audio on TikTok/Shorts, not the real intro (reported by one researcher only)"
+  ],
+  "duration_s": 68.08,
+  "bpm": 105,
+  "bpm_confidence": "high",
+  "time_signature": "4/4",
+  "first_beat_s": 0.59,
+  "sections": [
+   {
+    "label": "intro",
+    "start_s": 0,
+    "end_s": 9.8,
+    "energy": 2
+   },
+   {
+    "label": "verse",
+    "start_s": 9.8,
+    "end_s": 18.94,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 18.94,
+    "end_s": 37.22,
+    "energy": 4
+   },
+   {
+    "label": "build",
+    "start_s": 37.22,
+    "end_s": 46.36,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 46.36,
+    "end_s": 64.62,
+    "energy": 5
+   },
+   {
+    "label": "outro",
+    "start_s": 64.62,
+    "end_s": 68.08,
+    "energy": 2
+   }
+  ],
+  "structure_confidence": "low",
+  "mood": "mysterious, sly crime-drama theme in D minor with a steady pulsing groove; short and punchy",
+  "best_part": "final full statement of the theme, about 0:46-1:05 (estimated), ending on the closing hit",
+  "sources": [
+   "https://api.deezer.com/track/647861942",
+   "https://songbpm.com/@blake-neely/main-title-theme-the-mentalist---extended-version",
+   "https://itunes.apple.com/search?term=mentalist+main+title+theme+blake+neely&entity=song&limit=10",
+   "https://musicbrainz.org/ws/2/recording/?query=recording:%22Main%20Title%20Theme%22%20AND%20artist:%22Blake%20Neely%22&fmt=json&limit=10",
+   "https://acousticbrainz.org/api/v1/e7243108-1483-49d8-a7ed-9289581b9f93/low-level",
+   "https://www.youtube.com/results?search_query=the+mentalist+intro"
+  ],
+  "notes": "CONFIRMED (checked myself):\n- Track: both researchers picked the same one. Deezer, Apple/iTunes and MusicBrainz all list 'Main Title Theme (The Mentalist) [Extended Version]' by Blake Neely.\n- Duration: 68.08 s. Apple lists 68,080 ms, the AcousticBrainz analysis gives 68.08 s, and Deezer and SongBPM give 68 s / 1:08.\n- Tempo: 105 BPM. Deezer 104.93, SongBPM 105 (it also offers half/double 53/210, which don't fit the feel), AcousticBrainz beat tracker 104.95 with its histogram peak at 105. Key D minor (SongBPM and AcousticBrainz).\n- Beat grid: AcousticBrainz (MusicBrainz recording e7243108-1483-49d8-a7ed-9289581b9f93) found 118 beats, steady from 0.59 s to 67.52 s, about 0.572 s apart. This settles first_beat_s at 0.59 s: A guessed 0 and B guessed 0.5. One bar of 4 beats is about 2.288 s.\n\nESTIMATED (low confidence):\n- Section labels and boundaries. This is an instrumental, so there are no synced lyrics. I found no structure write-up and could not listen to the audio, and YouTube pages would not load.\n- The two researchers' guesses differed (A: chorus from 27.4 s; B: chorus from 18.3 s). Both agreed on a final big statement from about 46 s to 64 s and a short ring-out after about 64 s. I kept that shared part and moved every boundary onto real beat-tracker bar lines, assuming the first detected beat (0.59 s) is a downbeat.\n- The layout is: lead-in plus 4 bars, 4 bars, 8 bars, 4 bars, 8 bars, then about 1.5 bars of final hit and tail. The beat numbers at the boundaries are beat 16 = 9.80 s, 32 = 18.94 s, 64 = 37.22 s, 80 = 46.36 s, 112 = 64.62 s.\n- The real musical edges could be a bar or more away from these times.\n- Another possibility: the music may start with a 2-beat pickup, so the downbeats would fall on 1.79 s + n*2.288 s, and every boundary would move about 1.1 s later. Tune by ear if moves feel off.\n\nIF THE USER'S FILE IS THE SHORT TV INTRO (about 12 s, or about 7 s for Season 1, or about 14 s for the FBI version):\n- These YouTube lengths come from both researchers' search listings. YouTube would not load for me, so I could not check them again.\n- Use the same 105 BPM. Plan roughly 0-2 s rising lead-in (energy 3), about 2-10 s pulsing hook (energy 5), then the closing hit and fade to the end (energy 2).\n- The TV stings are probably cut from the closing bars of this same theme. That is an assumption.",
+  "key": 62,
+  "minor": true,
+  "chords": {
+   "verse": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "chorus": [
+    1,
+    6,
+    7,
+    1
+   ],
+   "bridge": [
+    1,
+    1,
+    6,
+    7
+   ]
+  },
+  "keySure": "D minor (one source)"
+ },
+ {
+  "id": "my_destiny",
+  "alternatives": [],
+  "sources": [
+   "https://api.deezer.com/search?q=My%20Destiny%20slowed",
+   "https://api.deezer.com/track/3995127291",
+   "https://lrclib.net/api/search?track_name=My%20Destiny&artist_name=Delinquent",
+   "https://lrclib.net/api/get/35636382",
+   "https://lrclib.net/api/get/35261706",
+   "https://lrclib.net/api/search?track_name=My%20Destiny&artist_name=Lyn",
+   "https://tunebat.com/Info/My-Destiny-Original-Mix-Delinquent-KCAT-Mike-Delinquent-Project/3S2u6LcfsHHSzUJlPYl6Ih",
+   "https://tunebat.com/Info/My-Destiny-Radio-Edit-Delinquent-KCAT/4CmaMil4pUdPpSevL8FTuh",
+   "https://www.youtube.com/watch?v=36iQ5npl2FY",
+   "https://prescriptionmusicpruk.com/press-releases/2012/12/4/new-single-from-mike-delinquent-project-featuring-kcat-and-m.html",
+   "https://lrclib.net/api/search?track_name=My%20Destiny&artist_name=LYn",
+   "https://lrclib.net/api/get/24818514",
+   "https://songbpm.com/@lyn/my-destiny",
+   "https://api.deezer.com/track/3702776532",
+   "https://api.deezer.com/search?q=my%20destiny%20lyn",
+   "https://open.spotify.com/track/6twIQpsbIo77nR0VyCVwN6",
+   "https://noembed.com/embed?url=https://www.youtube.com/watch?v=pisQsfgkCmM",
+   "https://en.wikipedia.org/wiki/Lyn_(singer)"
+  ],
+  "track": {
+   "title": "My Destiny (Slowed)",
+   "artist": "Delinquent feat. KCAT",
+   "version": "official slowed release (about 0.8x of the 3:44 original)",
+   "reason": "Exact title match with the official slowed release; the dominant \"My Destiny slowed\" edit audio."
+  },
+  "duration_s": 279,
+  "bpm": 106,
+  "bpm_confidence": "high",
+  "time_signature": "4/4",
+  "first_beat_s": 0,
+  "structure_confidence": "medium",
+  "mood": "dreamy, nostalgic slowed UK garage with a female vocal",
+  "best_part": "final chorus into the closing hook, 3:56-4:32",
+  "sections": [
+   {
+    "label": "intro",
+    "start_s": 0,
+    "end_s": 18.1,
+    "energy": 2
+   },
+   {
+    "label": "verse",
+    "start_s": 18.1,
+    "end_s": 54.4,
+    "energy": 3
+   },
+   {
+    "label": "instrumental",
+    "start_s": 54.4,
+    "end_s": 72.5,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 72.5,
+    "end_s": 108.8,
+    "energy": 4
+   },
+   {
+    "label": "postchorus",
+    "start_s": 108.8,
+    "end_s": 127,
+    "energy": 4
+   },
+   {
+    "label": "verse",
+    "start_s": 127,
+    "end_s": 163.3,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 163.3,
+    "end_s": 199.5,
+    "energy": 4
+   },
+   {
+    "label": "postchorus",
+    "start_s": 199.5,
+    "end_s": 217.7,
+    "energy": 4
+   },
+   {
+    "label": "bridge",
+    "start_s": 217.7,
+    "end_s": 235.8,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 235.8,
+    "end_s": 254,
+    "energy": 5
+   },
+   {
+    "label": "postchorus",
+    "start_s": 254,
+    "end_s": 272.1,
+    "energy": 5
+   },
+   {
+    "label": "outro",
+    "start_s": 272.1,
+    "end_s": 279,
+    "energy": 2
+   }
+  ],
+  "notes": "The researchers disagreed (Delinquent ft. KCAT vs LYn K-drama ballad). Chose the exact-title official slowed release. If you meant LYn, this timeline does not apply.",
+  "key": 69,
+  "minor": true,
+  "chords": {
+   "verse": [
+    1,
+    6,
+    3,
+    7
+   ],
+   "chorus": [
+    1,
+    6,
+    3,
+    7
+   ],
+   "bridge": [
+    6,
+    7,
+    1,
+    1
+   ]
+  },
+  "keySure": "GUESS - no source found"
+ },
+ {
+  "id": "confidence",
+  "track": {
+   "title": "Confidence",
+   "artist": "Kim (Kim Almarcha, French zouk / R&B singer)",
+   "version": "original (album Premiers pas, 2009), 3:44",
+   "reason": "The user wrote 'Confidence by Kim', and a song with exactly that title and artist exists: Kim's French zouk love song. It is the clear top Deezer result for 'kim confidence' and has about 20 synced-lyrics copies on LRCLIB. It fits the French part of the playlist. Her label released official Slowed and Sped Up edits on 13 Apr 2026, so this is also the song behind the current short-video audio. The user did not write 'slowed', so the original is used here; the slowed conversion is in the notes."
+  },
+  "alternatives": [
+   "Kim - Confidence (Slowed), official release 2026-04-13, 249 s, about 79 BPM (multiply every timestamp by about 1.112)",
+   "Kim - Confidence (Sped Up), official release 2026, 195 s, about 101 BPM (multiply every timestamp by about 0.87)",
+   "Ocean Alley - Confidence (2018 Australian rock)",
+   "Jean Schultheis - Confidence pour confidence (1981 French hit)",
+   "Demi Lovato - Confident (2015)"
+  ],
+  "duration_s": 224,
+  "bpm": 88,
+  "bpm_confidence": "high",
+  "time_signature": "4/4",
+  "first_beat_s": 0.7,
+  "sections": [
+   {
+    "label": "intro",
+    "start_s": 0,
+    "end_s": 11.6,
+    "energy": 2
+   },
+   {
+    "label": "verse",
+    "start_s": 11.6,
+    "end_s": 33.4,
+    "energy": 2
+   },
+   {
+    "label": "verse",
+    "start_s": 33.4,
+    "end_s": 55.3,
+    "energy": 3
+   },
+   {
+    "label": "prechorus",
+    "start_s": 55.3,
+    "end_s": 77.1,
+    "energy": 3
+   },
+   {
+    "label": "instrumental",
+    "start_s": 77.1,
+    "end_s": 88,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 88,
+    "end_s": 109.8,
+    "energy": 4
+   },
+   {
+    "label": "prechorus",
+    "start_s": 109.8,
+    "end_s": 131.6,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 131.6,
+    "end_s": 153.4,
+    "energy": 4
+   },
+   {
+    "label": "bridge",
+    "start_s": 153.4,
+    "end_s": 175.3,
+    "energy": 4
+   },
+   {
+    "label": "chorus",
+    "start_s": 175.3,
+    "end_s": 197.1,
+    "energy": 5
+   },
+   {
+    "label": "outro",
+    "start_s": 197.1,
+    "end_s": 208,
+    "energy": 3
+   },
+   {
+    "label": "outro",
+    "start_s": 208,
+    "end_s": 224,
+    "energy": 2
+   }
+  ],
+  "structure_confidence": "high",
+  "mood": "romantic French-Caribbean zouk love song: smooth, mid-tempo, swaying",
+  "best_part": "The final chorus at 2:55-3:17 (175.3-197.1 s) is the peak. Lead into it with the call-and-response bridge at 2:33-2:55 (153.4-175.3 s), which suits back-and-forth moves. The other choruses are at 1:28 and 2:12. To cover most of the song including all the best parts, use 1:28-3:28 (88.0-208.0 s): all three choruses, the bridge and the call-out outro, 44 bars in total. Or play the whole song from 0 s.",
+  "sources": [
+   "https://lrclib.net/api/get/9885042",
+   "https://lrclib.net/api/search?track_name=Confidence&artist_name=Kim",
+   "https://api.deezer.com/track/96485040",
+   "https://api.deezer.com/track/3949532951",
+   "https://api.deezer.com/search?q=kim%20confidence"
+  ],
+  "notes": "CONFIRMED by me:\n- Deezer track 96485040 is 'Confidence' by Kim, album Premiers pas, 2009, ISRC FRYAS0967256, 224 s, listed at 175.9 BPM.\n- LRCLIB id 9885042 is 224.0 s. I used only its timestamps; no lyric text was copied.\n- The official 'Confidence (Slowed)' (Deezer 3949532951, released 2026-04-13) is 249 s.\n\nTEMPO: Deezer's 175.9 BPM is double time. The clap-along feel is 88 BPM. The chorus vocal entries confirm it: 87.99 s, 131.52 s and 175.27 s are exactly 16 and 32 bars apart. That gives a bar of about 2.7275 s and a beat of about 0.682 s, which is 88.0 BPM.\n\nBEAT GRID / first_beat_s: The section starts fit one downbeat grid of 0.7 + n x 2.7275 s very closely: 33.4, 88.0, 109.8, 131.6 and 175.3 s all land on it within about 0.1 s. So I set the first downbeat at about 0.7 s. If the music starts at once, beat 1 may be audible at about 0.03 s, but the grid stays in phase either way. Researcher A's 1.4 s and B's 0.5 s were both a bit off this grid. I did not check the intro drums by listening.\n\nSECTIONS: All boundaries are snapped to that bar grid, in 8-bar blocks plus a 4-bar intro and a 4-bar break.\n- The intro is 4 bars. The first vocal comes at 12.3 s, about a beat after the 11.6 s downbeat.\n- 33.4-55.3 is a 4-line block sung twice that never comes back.\n- 55.3-77.1 and 109.8-131.6 both come right before a chorus and share some lines, so I labelled them prechorus. Researcher B called them verses; that is equally valid, and the energy values are what matter for the robot.\n- There are no vocals from 77.9 to 88.0, so 77.1-88.0 is an instrumental break.\n- The choruses (a 4-line block sung twice) are at 88.0, 131.6 and 175.3 s.\n- The bridge is a one-word call-and-response. The first call comes at 154.2 s, a beat after the 153.4 s downbeat. Researcher A put the bridge start at 154.2 s, the vocal time, not the bar line.\n- From 197.1 s the call-out word repeats until about 3:26. Splitting the outro at 208.0 s (4 bars later) is an estimate of where the fade begins. The fade to 224 s was not checked by listening.\nBoundaries are probably accurate to within about 0.3-0.5 s. The labels (verse, prechorus, hook) are judgment calls, but the timings and repeats are confirmed.\n\nSLOWED VERSION (if that is the audio the user has): use the official Slowed release, 249 s. The factor is 224/249 = 0.90, so the tempo is about 79 BPM and every timestamp above is multiplied by 1.112: final chorus about 195-219 s, first downbeat about 0.8 s. The Sped Up release is 195 s, factor about 1.149, about 101 BPM, timestamps multiplied by about 0.87.",
+  "key": 61,
+  "minor": false,
+  "chords": {
+   "verse": [
+    6,
+    1,
+    5,
+    4
+   ],
+   "chorus": [
+    6,
+    1,
+    5,
+    4
+   ],
+   "bridge": [
+    6,
+    1,
+    5,
+    4
+   ]
+  },
+  "keySure": "from the chords (Db major: Bbm Db Ab Gb)"
+ },
+ {
+  "id": "distractions",
+  "alternatives": [],
+  "sources": [
+   "https://songbpm.com/@haiti-babii/distractions-BY0NwoiPlI",
+   "https://lrclib.net/api/search?track_name=Distractions&artist_name=Haiti%20Babii",
+   "https://lrclib.net/api/get/30537625",
+   "https://api.deezer.com/track/662230902",
+   "https://api.deezer.com/track/4341531892",
+   "https://api.deezer.com/search/track?q=distractions&order=RANKING&limit=40",
+   "https://api.deezer.com/search/track?q=distraction&order=RANKING&limit=40",
+   "https://www.tiktok.com/tag/distractions",
+   "https://lrclib.net/api/search?track_name=Distraction&artist_name=Kehlani",
+   "https://lrclib.net/api/get/22893970",
+   "https://lrclib.net/api/search?q=distraction",
+   "https://lrclib.net/api/search?q=distractions",
+   "https://songbpm.com/@kehlani/distraction",
+   "https://cs.uwaterloo.ca/~dtompkin/music/artist/K/K313.html",
+   "https://chordu.com/chords-tabs-distraction-id_exmlEgDZxjo",
+   "https://itunes.apple.com/search?term=kehlani+distraction&entity=song&limit=10",
+   "https://en.wikipedia.org/wiki/Distraction_(Kehlani_song)",
+   "https://en.wikipedia.org/wiki/Distraction_(Polo_G_song)"
+  ],
+  "track": {
+   "title": "Distractions",
+   "artist": "Haiti Babii",
+   "version": "original (album 'Warrior', 2019)",
+   "reason": "Exact plural title; the audio TikTok anime edits credit."
+  },
+  "duration_s": 152,
+  "bpm": 101,
+  "bpm_confidence": "high",
+  "time_signature": "4/4",
+  "first_beat_s": 0.4,
+  "structure_confidence": "medium",
+  "mood": "melancholic melodic rap / slow trap, moody anime-edit vibe",
+  "best_part": "second hook 1:26-1:45",
+  "sections": [
+   {
+    "label": "intro",
+    "start_s": 0,
+    "end_s": 19.4,
+    "energy": 2
+   },
+   {
+    "label": "chorus",
+    "start_s": 19.4,
+    "end_s": 38.4,
+    "energy": 4
+   },
+   {
+    "label": "verse",
+    "start_s": 38.4,
+    "end_s": 85.9,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 85.9,
+    "end_s": 104.9,
+    "energy": 5
+   },
+   {
+    "label": "verse",
+    "start_s": 104.9,
+    "end_s": 124,
+    "energy": 3
+   },
+   {
+    "label": "outro",
+    "start_s": 124,
+    "end_s": 152,
+    "energy": 2
+   }
+  ],
+  "notes": "The researchers disagreed (Haiti Babii \"Distractions\" vs Kehlani \"Distraction\"). Chose the exact plural title.",
+  "key": 62,
+  "minor": false,
+  "chords": {
+   "verse": [
+    6,
+    4,
+    1,
+    5
+   ],
+   "chorus": [
+    6,
+    4,
+    1,
+    5
+   ],
+   "bridge": [
+    6,
+    4,
+    1,
+    5
+   ]
+  },
+  "keySure": "one source (D major)"
+ },
+ {
+  "id": "ambarsariya",
+  "alternatives": [],
+  "sources": [
+   "https://songbpm.com/@sona-mohapatra/ambarsariya",
+   "https://songbpm.com/@sona-mohapatra",
+   "https://songbpm.com/@rabiul-rhmn/ambarsariya-slowed-reverb-1-teFOS9EQ",
+   "https://acousticbrainz.org/api/v1/e2609ce2-ad27-4236-a72e-514716df7c30/low-level",
+   "https://acousticbrainz.org/api/v1/e2609ce2-ad27-4236-a72e-514716df7c30/high-level",
+   "https://musicbrainz.org/ws/2/recording/?query=recording:Ambarsariya%20AND%20artist:%22Sona%20Mohapatra%22&fmt=json",
+   "https://lrclib.net/api/search?track_name=Ambarsariya",
+   "https://lrclib.net/api/get/21676713",
+   "https://en.wikipedia.org/wiki/Fukrey",
+   "https://www.bollywoodhungama.com/?p=339022",
+   "https://lrclib.net/api/search?track_name=Ambarsariya&artist_name=Sona%20Mohapatra"
+  ],
+  "track": {
+   "title": "Ambarsariya",
+   "artist": "Sona Mohapatra (music Ram Sampath)",
+   "version": "original Fukrey (2013) soundtrack version",
+   "reason": "Both researchers agree."
+  },
+  "duration_s": 248,
+  "bpm": 90,
+  "bpm_confidence": "high",
+  "time_signature": "4/4",
+  "first_beat_s": 0.63,
+  "structure_confidence": "medium",
+  "mood": "romantic Punjabi folk-pop, lilting acoustic-guitar groove",
+  "best_part": "final chorus 3:19-3:50",
+  "sections": [
+   {
+    "label": "intro",
+    "start_s": 0,
+    "end_s": 12,
+    "energy": 2
+   },
+   {
+    "label": "verse",
+    "start_s": 12,
+    "end_s": 33.3,
+    "energy": 2
+   },
+   {
+    "label": "chorus",
+    "start_s": 33.3,
+    "end_s": 55.3,
+    "energy": 4
+   },
+   {
+    "label": "postchorus",
+    "start_s": 55.3,
+    "end_s": 66,
+    "energy": 3
+   },
+   {
+    "label": "instrumental",
+    "start_s": 66,
+    "end_s": 77.2,
+    "energy": 3
+   },
+   {
+    "label": "verse",
+    "start_s": 77.2,
+    "end_s": 100,
+    "energy": 3
+   },
+   {
+    "label": "prechorus",
+    "start_s": 100,
+    "end_s": 116.3,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 116.3,
+    "end_s": 137.8,
+    "energy": 4
+   },
+   {
+    "label": "postchorus",
+    "start_s": 137.8,
+    "end_s": 148.5,
+    "energy": 3
+   },
+   {
+    "label": "instrumental",
+    "start_s": 148.5,
+    "end_s": 160,
+    "energy": 3
+   },
+   {
+    "label": "bridge",
+    "start_s": 160,
+    "end_s": 181.5,
+    "energy": 3
+   },
+   {
+    "label": "prechorus",
+    "start_s": 181.5,
+    "end_s": 199,
+    "energy": 4
+   },
+   {
+    "label": "chorus",
+    "start_s": 199,
+    "end_s": 220.5,
+    "energy": 5
+   },
+   {
+    "label": "postchorus",
+    "start_s": 220.5,
+    "end_s": 230.4,
+    "energy": 4
+   },
+   {
+    "label": "outro",
+    "start_s": 230.4,
+    "end_s": 248,
+    "energy": 2
+   }
+  ],
+  "notes": "Played live, so the tempo drifts a little - tap dance on a beat at each chorus to keep it lined up.",
+  "key": 64,
+  "minor": true,
+  "chords": {
+   "verse": [
+    1,
+    7,
+    4,
+    5
+   ],
+   "chorus": [
+    1,
+    7,
+    4,
+    5
+   ],
+   "bridge": [
+    1,
+    7,
+    1,
+    7
+   ]
+  },
+  "keySure": "from the chords (E minor: Em D Am Bm)"
+ },
+ {
+  "id": "night_shine",
+  "alternatives": [],
+  "sources": [
+   "https://en.wikipedia.org/wiki/The_Night_Begins_to_Shine",
+   "https://tunebat.com/Info/The-Night-Begins-to-Shine-B-E-R-/3eX2JOSwcPjVEe2zbVZ2GH",
+   "https://songbpm.com/@ceelo-green/the-night-begins-to-shine",
+   "https://lrclib.net/api/search?track_name=The%20Night%20Begins%20to%20Shine&artist_name=B.E.R.",
+   "https://lrclib.net/api/get/17928273",
+   "https://lrclib.net/api/get/880375",
+   "https://lrclib.net/api/get/17642477",
+   "https://acousticbrainz.org/api/v1/688b9bfe-cf26-4197-a0cb-6cb474e16818/low-level",
+   "https://musicbrainz.org/ws/2/recording?query=%22night%20begins%20to%20shine%22%20AND%20artist:B.E.R.&fmt=json"
+  ],
+  "track": {
+   "title": "The Night Begins to Shine",
+   "artist": "B.E.R.",
+   "version": "original 2015 single (the Teen Titans Go! version)",
+   "reason": "Both researchers agree."
+  },
+  "duration_s": 210.6,
+  "bpm": 130,
+  "bpm_confidence": "high",
+  "time_signature": "4/4",
+  "first_beat_s": 0.5,
+  "structure_confidence": "high",
+  "mood": "80s synthwave / dance-rock anthem, upbeat and triumphant",
+  "best_part": "final extended chorus 2:27-3:17",
+  "sections": [
+   {
+    "label": "intro",
+    "start_s": 0,
+    "end_s": 16.2,
+    "energy": 3
+   },
+   {
+    "label": "verse",
+    "start_s": 16.2,
+    "end_s": 36.5,
+    "energy": 2
+   },
+   {
+    "label": "prechorus",
+    "start_s": 36.5,
+    "end_s": 43.9,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 43.9,
+    "end_s": 67.9,
+    "energy": 4
+   },
+   {
+    "label": "verse",
+    "start_s": 67.9,
+    "end_s": 82.7,
+    "energy": 2
+   },
+   {
+    "label": "prechorus",
+    "start_s": 82.7,
+    "end_s": 95.6,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 95.6,
+    "end_s": 119.6,
+    "energy": 4
+   },
+   {
+    "label": "instrumental",
+    "start_s": 119.6,
+    "end_s": 134.4,
+    "energy": 3
+   },
+   {
+    "label": "build",
+    "start_s": 134.4,
+    "end_s": 147.3,
+    "energy": 4
+   },
+   {
+    "label": "chorus",
+    "start_s": 147.3,
+    "end_s": 197.1,
+    "energy": 5
+   },
+   {
+    "label": "outro",
+    "start_s": 197.1,
+    "end_s": 210.6,
+    "energy": 3
+   }
+  ],
+  "notes": "Tempo measured at 130.01 BPM over the whole track; sections from two synced-lyric sets.",
+  "key": 64,
+  "minor": true,
+  "chords": {
+   "verse": [
+    1,
+    7,
+    1,
+    7
+   ],
+   "chorus": [
+    1,
+    7,
+    1,
+    7
+   ],
+   "bridge": [
+    6,
+    5,
+    6,
+    5
+   ]
+  },
+  "keySure": "from the chords (E minor: Em D, bridge C Bm)"
+ },
+ {
+  "id": "love_me",
+  "alternatives": [],
+  "sources": [],
+  "track": {
+   "title": "Love Me",
+   "artist": "JMSN",
+   "version": "album version (Soft Spot, 2023), 4:33",
+   "reason": "User asked for the JMSN song."
+  },
+  "duration_s": 273,
+  "bpm": 81,
+  "bpm_confidence": "high",
+  "time_signature": "4/4",
+  "first_beat_s": 0.3,
+  "structure_confidence": "low",
+  "mood": "slow, smooth R&B love song (the \"Drake intro\" meme song)",
+  "best_part": "the choruses",
+  "sections": [
+   {
+    "label": "intro",
+    "start_s": 0,
+    "end_s": 23.7,
+    "energy": 2
+   },
+   {
+    "label": "verse",
+    "start_s": 23.7,
+    "end_s": 71.1,
+    "energy": 2
+   },
+   {
+    "label": "chorus",
+    "start_s": 71.1,
+    "end_s": 118.5,
+    "energy": 3
+   },
+   {
+    "label": "verse",
+    "start_s": 118.5,
+    "end_s": 165.9,
+    "energy": 2
+   },
+   {
+    "label": "chorus",
+    "start_s": 165.9,
+    "end_s": 213.3,
+    "energy": 4
+   },
+   {
+    "label": "bridge",
+    "start_s": 213.3,
+    "end_s": 237,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 237,
+    "end_s": 260.7,
+    "energy": 4
+   },
+   {
+    "label": "outro",
+    "start_s": 260.7,
+    "end_s": 273,
+    "energy": 2
+   }
+  ],
+  "notes": "81 BPM and B-flat minor from several sites. No timed lyrics exist for it, so the song parts are an estimate (8/16-bar blocks).",
+  "key": 70,
+  "minor": true,
+  "chords": {
+   "verse": [
+    1,
+    6,
+    5,
+    5
+   ],
+   "chorus": [
+    6,
+    5,
+    1,
+    1
+   ],
+   "bridge": [
+    6,
+    6,
+    5,
+    5
+   ]
+  },
+  "keySure": "checked (Bb minor: Bbm Gbmaj7 F)"
+ },
+ {
+  "id": "loverboy",
+  "alternatives": [],
+  "sources": [
+   "https://songbpm.com/@a-wall/loverboy",
+   "https://lrclib.net/api/search?track_name=Loverboy&artist_name=A-Wall",
+   "https://api.deezer.com/search?q=loverboy%20a-wall",
+   "https://api.deezer.com/track/3037945501",
+   "https://lrclib.net/api/get/1008912",
+   "https://lrclib.net/api/get/21521366"
+  ],
+  "track": {
+   "title": "Loverboy",
+   "artist": "A-Wall",
+   "version": "original (2019 single)",
+   "reason": "Both researchers agree."
+  },
+  "duration_s": 225,
+  "bpm": 120,
+  "bpm_confidence": "high",
+  "time_signature": "4/4",
+  "first_beat_s": 0.4,
+  "structure_confidence": "medium",
+  "mood": "dreamy bedroom-pop with a funky, swaying groove",
+  "best_part": "back-to-back final choruses 2:38-3:40",
+  "sections": [
+   {
+    "label": "intro",
+    "start_s": 0,
+    "end_s": 14.4,
+    "energy": 2
+   },
+   {
+    "label": "verse",
+    "start_s": 14.4,
+    "end_s": 46.4,
+    "energy": 2
+   },
+   {
+    "label": "chorus",
+    "start_s": 46.4,
+    "end_s": 64.4,
+    "energy": 4
+   },
+   {
+    "label": "postchorus",
+    "start_s": 64.4,
+    "end_s": 78.4,
+    "energy": 3
+   },
+   {
+    "label": "verse",
+    "start_s": 78.4,
+    "end_s": 110.4,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 110.4,
+    "end_s": 128.4,
+    "energy": 4
+   },
+   {
+    "label": "postchorus",
+    "start_s": 128.4,
+    "end_s": 144.4,
+    "energy": 3
+   },
+   {
+    "label": "instrumental",
+    "start_s": 144.4,
+    "end_s": 158.4,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 158.4,
+    "end_s": 176.4,
+    "energy": 5
+   },
+   {
+    "label": "postchorus",
+    "start_s": 176.4,
+    "end_s": 190.4,
+    "energy": 4
+   },
+   {
+    "label": "chorus",
+    "start_s": 190.4,
+    "end_s": 208.4,
+    "energy": 5
+   },
+   {
+    "label": "postchorus",
+    "start_s": 208.4,
+    "end_s": 220.4,
+    "energy": 4
+   },
+   {
+    "label": "outro",
+    "start_s": 220.4,
+    "end_s": 225,
+    "energy": 2
+   }
+  ],
+  "notes": "Bar grid 0.4 + 2n s from synced-lyric timing.",
+  "key": 60,
+  "minor": false,
+  "chords": {
+   "verse": [
+    1,
+    1,
+    4,
+    2
+   ],
+   "chorus": [
+    1,
+    4,
+    2,
+    1
+   ],
+   "bridge": [
+    4,
+    4,
+    1,
+    1
+   ]
+  },
+  "keySure": "checked (C major: C Cmaj7 F Dm)"
+ },
+ {
+  "alternatives": [],
+  "sources": [],
+  "id": "the_kill2",
+  "track": {
+   "title": "the kill 2",
+   "artist": "Lex Amarni & 2muchmotion",
+   "version": "single (2025), 2:01",
+   "reason": "From the user's Instagram Saved + YouTube link."
+  },
+  "duration_s": 121,
+  "bpm": 103,
+  "bpm_confidence": "high",
+  "time_signature": "4/4",
+  "first_beat_s": 0.1,
+  "structure_confidence": "medium",
+  "mood": "UK cloud rap / electropop, catchy and bouncy",
+  "best_part": "the hook coming back at 0:56",
+  "sections": [
+   {
+    "label": "intro",
+    "start_s": 0,
+    "end_s": 9.1,
+    "energy": 3
+   },
+   {
+    "label": "hook",
+    "start_s": 9.1,
+    "end_s": 27.7,
+    "energy": 4
+   },
+   {
+    "label": "verse",
+    "start_s": 27.7,
+    "end_s": 56.2,
+    "energy": 3
+   },
+   {
+    "label": "hook",
+    "start_s": 56.2,
+    "end_s": 88.2,
+    "energy": 5
+   },
+   {
+    "label": "bridge",
+    "start_s": 88.2,
+    "end_s": 92.8,
+    "energy": 4
+   },
+   {
+    "label": "hook",
+    "start_s": 92.8,
+    "end_s": 98.3,
+    "energy": 5
+   },
+   {
+    "label": "outro",
+    "start_s": 98.3,
+    "end_s": 121,
+    "energy": 3
+   }
+  ],
+  "key": 62,
+  "minor": true,
+  "chords": {
+   "verse": [
+    1,
+    1,
+    6,
+    7
+   ],
+   "chorus": [
+    1,
+    6,
+    3,
+    7
+   ],
+   "bridge": [
+    6,
+    7,
+    1,
+    1
+   ]
+  },
+  "keySure": "D minor (Chordify)",
+  "notes": "103 BPM and D minor from Shazam + Chordify; parts from timed lyrics (one line per bar)."
+ },
+ {
+  "alternatives": [],
+  "sources": [],
+  "id": "gods_plan",
+  "track": {
+   "title": "God's Plan",
+   "artist": "Drake",
+   "version": "original (Scary Hours, 2018), 3:19",
+   "reason": "From the user's Instagram Saved."
+  },
+  "duration_s": 199,
+  "bpm": 77,
+  "bpm_confidence": "high",
+  "time_signature": "4/4",
+  "first_beat_s": 0,
+  "structure_confidence": "medium",
+  "mood": "smooth trap with a piano loop, laid-back but bouncy",
+  "best_part": "the hook at 1:16 and the double hook at 2:15",
+  "sections": [
+   {
+    "label": "intro",
+    "start_s": 0,
+    "end_s": 12.5,
+    "energy": 2
+   },
+   {
+    "label": "verse",
+    "start_s": 12.5,
+    "end_s": 75.3,
+    "energy": 3
+   },
+   {
+    "label": "hook",
+    "start_s": 75.3,
+    "end_s": 84.5,
+    "energy": 4
+   },
+   {
+    "label": "verse",
+    "start_s": 84.5,
+    "end_s": 134.7,
+    "energy": 3
+   },
+   {
+    "label": "hook",
+    "start_s": 134.7,
+    "end_s": 159,
+    "energy": 5
+   },
+   {
+    "label": "outro",
+    "start_s": 159,
+    "end_s": 199,
+    "energy": 2
+   }
+  ],
+  "key": 64,
+  "minor": true,
+  "chords": {
+   "verse": [
+    1,
+    1,
+    4,
+    5
+   ],
+   "chorus": [
+    1,
+    4,
+    5,
+    1
+   ],
+   "bridge": [
+    4,
+    4,
+    5,
+    5
+   ]
+  },
+  "keySure": "E minor (Hooktheory + sheet music)",
+  "notes": "77 BPM; parts from timed lyrics (one line per bar). The last 40 s is the instrumental outro."
+ },
+ {
+  "alternatives": [],
+  "sources": [],
+  "id": "oh_yeah",
+  "track": {
+   "title": "oh yeah?",
+   "artist": "Steve Lacy",
+   "version": "title track of the album Oh yeah? (2026), 2:51",
+   "reason": "From the user's Instagram Saved."
+  },
+  "duration_s": 171,
+  "bpm": 73,
+  "bpm_confidence": "medium",
+  "time_signature": "4/4",
+  "first_beat_s": 0.3,
+  "structure_confidence": "low",
+  "mood": "laid-back neo-soul / indie groove",
+  "best_part": "the last chorus from about 1:58",
+  "sections": [
+   {
+    "label": "intro",
+    "start_s": 0,
+    "end_s": 11.5,
+    "energy": 2
+   },
+   {
+    "label": "chorus",
+    "start_s": 11.5,
+    "end_s": 41,
+    "energy": 3
+   },
+   {
+    "label": "instrumental",
+    "start_s": 41,
+    "end_s": 54,
+    "energy": 2
+   },
+   {
+    "label": "verse",
+    "start_s": 54,
+    "end_s": 95,
+    "energy": 3
+   },
+   {
+    "label": "bridge",
+    "start_s": 95,
+    "end_s": 118,
+    "energy": 2
+   },
+   {
+    "label": "chorus",
+    "start_s": 118,
+    "end_s": 149,
+    "energy": 4
+   },
+   {
+    "label": "outro",
+    "start_s": 149,
+    "end_s": 171,
+    "energy": 2
+   }
+  ],
+  "key": 61,
+  "minor": false,
+  "chords": {
+   "verse": [
+    2,
+    1,
+    5,
+    4
+   ],
+   "chorus": [
+    2,
+    1,
+    5,
+    4
+   ],
+   "bridge": [
+    4,
+    4,
+    1,
+    1
+   ]
+  },
+  "keySure": "Db major, chorus ii-I-V-IV (Hooktheory)",
+  "notes": "72-73 BPM (Shazam, Hooktheory). Parts estimated from timed lyrics."
+ },
+ {
+  "alternatives": [],
+  "sources": [],
+  "id": "loser",
+  "track": {
+   "title": "Loser",
+   "artist": "Tame Impala",
+   "version": "album version (Deadbeat, 2025), 3:43",
+   "reason": "From the user's Instagram Saved."
+  },
+  "duration_s": 224,
+  "bpm": 83,
+  "bpm_confidence": "high",
+  "time_signature": "4/4",
+  "first_beat_s": 0.9,
+  "structure_confidence": "medium",
+  "mood": "funky psych-pop with a steady trot",
+  "best_part": "the second chorus from about 2:02",
+  "sections": [
+   {
+    "label": "intro",
+    "start_s": 0,
+    "end_s": 12.5,
+    "energy": 2
+   },
+   {
+    "label": "verse",
+    "start_s": 12.5,
+    "end_s": 41.5,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 41.5,
+    "end_s": 82,
+    "energy": 4
+   },
+   {
+    "label": "verse",
+    "start_s": 82,
+    "end_s": 122,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 122,
+    "end_s": 168,
+    "energy": 5
+   },
+   {
+    "label": "bridge",
+    "start_s": 168,
+    "end_s": 196,
+    "energy": 3
+   },
+   {
+    "label": "outro",
+    "start_s": 196,
+    "end_s": 224,
+    "energy": 2
+   }
+  ],
+  "key": 70,
+  "minor": true,
+  "chords": {
+   "verse": [
+    1,
+    6,
+    4,
+    5
+   ],
+   "chorus": [
+    1,
+    6,
+    4,
+    5
+   ],
+   "bridge": [
+    6,
+    6,
+    1,
+    1
+   ]
+  },
+  "keySure": "Bb minor (SongBPM + Tunebat)",
+  "notes": "83 BPM, B-flat minor (SongBPM, Tunebat). Parts from timed lyrics (a line every 2 bars)."
+ },
+ {
+  "id": "all_is_well",
+  "track": {
+   "title": "Aal Izz Well",
+   "artist": "Sonu Nigam, Shaan & Swanand Kirkire (3 Idiots, music Shantanu Moitra)",
+   "version": "original film version (2009), 4:36",
+   "reason": "User request."
+  },
+  "duration_s": 276,
+  "bpm": 120,
+  "bpm_confidence": "medium",
+  "time_signature": "4/4",
+  "first_beat_s": 1.8,
+  "structure_confidence": "medium",
+  "mood": "happy, bouncy Bollywood whistle song",
+  "best_part": "the big \"aal izz well\" choruses",
+  "sections": [
+   {
+    "label": "intro",
+    "start_s": 0,
+    "end_s": 49.1,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 49.1,
+    "end_s": 71.9,
+    "energy": 4
+   },
+   {
+    "label": "verse",
+    "start_s": 71.9,
+    "end_s": 98.5,
+    "energy": 3
+   },
+   {
+    "label": "hook",
+    "start_s": 98.5,
+    "end_s": 114.7,
+    "energy": 5
+   },
+   {
+    "label": "verse",
+    "start_s": 114.7,
+    "end_s": 134.4,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 134.4,
+    "end_s": 162.2,
+    "energy": 5
+   },
+   {
+    "label": "verse",
+    "start_s": 162.2,
+    "end_s": 183.7,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 183.7,
+    "end_s": 203.4,
+    "energy": 5
+   },
+   {
+    "label": "hook",
+    "start_s": 203.4,
+    "end_s": 229.2,
+    "energy": 4
+   },
+   {
+    "label": "chorus",
+    "start_s": 229.2,
+    "end_s": 248.4,
+    "energy": 5
+   },
+   {
+    "label": "outro",
+    "start_s": 248.4,
+    "end_s": 276,
+    "energy": 4
+   }
+  ],
+  "key": 63,
+  "minor": false,
+  "chords": {
+   "verse": [
+    1,
+    5,
+    6,
+    4
+   ],
+   "chorus": [
+    1,
+    4,
+    5,
+    1
+   ],
+   "bridge": [
+    6,
+    4,
+    1,
+    5
+   ]
+  },
+  "keySure": "Eb major (one chord site; Cm sheet = same notes)",
+  "alternatives": [],
+  "sources": []
+ },
+ {
+  "id": "chammak_challo",
+  "track": {
+   "title": "Chammak Challo",
+   "artist": "Akon & Hamsika Iyer (Ra.One, music Vishal-Shekhar)",
+   "version": "original film version (2011), 3:47",
+   "reason": "User request."
+  },
+  "duration_s": 227,
+  "bpm": 134.3,
+  "bpm_confidence": "medium",
+  "time_signature": "4/4",
+  "first_beat_s": 0.35,
+  "structure_confidence": "medium",
+  "mood": "Bollywood R&B party song with a big dhol groove",
+  "best_part": "the \"chammak challo\" choruses (0:56, 1:50, 2:43)",
+  "sections": [
+   {
+    "label": "intro",
+    "start_s": 0,
+    "end_s": 16.6,
+    "energy": 4
+   },
+   {
+    "label": "verse",
+    "start_s": 16.6,
+    "end_s": 55.8,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 55.8,
+    "end_s": 66.5,
+    "energy": 5
+   },
+   {
+    "label": "verse",
+    "start_s": 66.5,
+    "end_s": 109.6,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 109.6,
+    "end_s": 123.9,
+    "energy": 5
+   },
+   {
+    "label": "bridge",
+    "start_s": 123.9,
+    "end_s": 138.2,
+    "energy": 4
+   },
+   {
+    "label": "verse",
+    "start_s": 138.2,
+    "end_s": 163.4,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 163.4,
+    "end_s": 195.5,
+    "energy": 5
+   },
+   {
+    "label": "hook",
+    "start_s": 195.5,
+    "end_s": 210,
+    "energy": 4
+   },
+   {
+    "label": "outro",
+    "start_s": 210,
+    "end_s": 227,
+    "energy": 4
+   }
+  ],
+  "key": 71,
+  "minor": true,
+  "chords": {
+   "verse": [
+    1,
+    6,
+    7,
+    1
+   ],
+   "chorus": [
+    1,
+    6,
+    3,
+    7
+   ],
+   "bridge": [
+    6,
+    7,
+    1,
+    1
+   ]
+  },
+  "keySure": "B minor (one chord site)",
+  "alternatives": [],
+  "sources": []
+ },
+ {
+  "id": "feet_dont_fail",
+  "track": {
+   "title": "Feet Don't Fail Me Now",
+   "artist": "Joy Crookes",
+   "version": "Original 2021 single / album version (Skin), 3:18 (Deezer 198 s, ISRC GBARL2100616)",
+   "reason": "The user asked for the original version at about 3:18. Deezer lists the original single at 198 s, and the lrclib synced entries at 198-199 s match it. Part 2 (with Ravyn Lenae), the live acoustic version (206 s), the Paul Woolford remix (222 s) and the sped-up and slowed edits were excluded."
+  },
+  "duration_s": 198,
+  "bpm": 113,
+  "bpm_confidence": "high",
+  "time_signature": "4/4",
+  "first_beat_s": 0,
+  "structure_confidence": "medium",
+  "mood": "Upbeat, defiant 70s-style funk and neo-soul groove. A strutting, propulsive bass line in a sassy minor key gives it high energy and makes it very danceable.",
+  "best_part": "The final chorus, about 146.5 to 176.3 s (bars 69-83). It brings back the hook with extra lines on top and is the peak of the song. The second chorus plus its post-chorus (95.6 to 125.3 s) is the next best.",
+  "sections": [
+   {
+    "label": "intro",
+    "start_s": 0,
+    "end_s": 8.5,
+    "energy": 2
+   },
+   {
+    "label": "verse",
+    "start_s": 8.5,
+    "end_s": 38.2,
+    "energy": 3
+   },
+   {
+    "label": "prechorus",
+    "start_s": 38.2,
+    "end_s": 44.6,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 44.6,
+    "end_s": 76.5,
+    "energy": 4
+   },
+   {
+    "label": "verse",
+    "start_s": 76.5,
+    "end_s": 89.2,
+    "energy": 3
+   },
+   {
+    "label": "prechorus",
+    "start_s": 89.2,
+    "end_s": 95.6,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 95.6,
+    "end_s": 112.6,
+    "energy": 4
+   },
+   {
+    "label": "postchorus",
+    "start_s": 112.6,
+    "end_s": 125.3,
+    "energy": 4
+   },
+   {
+    "label": "bridge",
+    "start_s": 125.3,
+    "end_s": 146.5,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 146.5,
+    "end_s": 176.3,
+    "energy": 5
+   },
+   {
+    "label": "outro",
+    "start_s": 176.3,
+    "end_s": 198,
+    "energy": 3
+   }
+  ],
+  "key": 70,
+  "minor": true,
+  "chords": {
+   "verse": [
+    1,
+    7,
+    1,
+    7
+   ],
+   "chorus": [
+    1,
+    6,
+    4,
+    5
+   ],
+   "bridge": [
+    3,
+    5,
+    4,
+    5
+   ]
+  },
+  "keySure": "A# minor (fairly sure)",
+  "alternatives": [],
+  "sources": [
+   "https://songbpm.com/@joy-crookes/feet-dont-fail-me-now-liz33 (113 BPM, 3:19, high energy and very danceable, 4/4; lists the key as F#/Gb major, an algorithmic guess)",
+   "https://lrclib.net/api/search?track_name=Feet%20Don%27t%20Fail%20Me%20Now&artist_name=Joy%20Crookes (synced timestamps from entries 17402849, 36858141 and 37474282, 198-199 s; only timestamps and line-repeat patterns were used)",
+   "https://api.deezer.com/track/1394585212 (original single, 198 s, released 2021-06-16)",
+   "https://ukutabs.com/j/joy-crookes/feet-dont-fail-me-now/ (chord names only: Bb minor; verse Bbm-Ab then Gb-Gbmaj7-Ebm-F7; chorus Bbm-Gb-Ebm-F7; bridge Db-F-Ebm-F7)",
+   "https://www.cifraclub.com/joy-crookes/feet-dont-fail-me-now/partituras/ (search snippet only: opens on A#m and uses A#m/Bbm, Ab, C#, D#m, F#, Fm, which also fits A#/Bb minor)"
+  ],
+  "notes": "BPM: songbpm gives 113. A least-squares fit of the five chorus-start timestamps (44.65, 61.47, 95.59, 146.51, 163.75 s) to bars 21, 29, 45, 69 and 77 gives 112.86 BPM (2.1265 s per bar), so 113 is solid. Over the whole song the drift between 113 and 112.86 is only about 0.25 s. Vocal lines fall about every 4.2 s, which is 2 bars.\n\nFirst downbeat: projecting that bar grid back from the chorus entries puts bar 0 at about -0.1 to 0.0 s, so the song starts on a downbeat at about 0.0 s. Downbeats then fall at 2.124*n s. This phase comes from lyric timing only, so it may be off by a beat or two. The bar counts are slightly irregular (verse 1 runs 17 bars, chorus 1 runs 15), so section starts may be off by about 1 bar.\n\nKey: two chord transcriptions agree on Bb (A#) minor. songbpm's 'F#/Gb major' is likely an automatic misread, since Gb is the VI chord here.\n\nChord degrees, Bb minor = 1: Bbm=1, Db=3, Ebm=4, F/F7=5 (played as a MAJOR or dominant V, harmonic minor), Gb=6, Ab=7.\n- Verse: a Bbm-Ab riff [1,7,1,7], with a turnaround Gb-Gbmaj7-Ebm-F7 [6,6,4,5] at the end of each 8-bar half.\n- Chorus: Bbm-Gb-Ebm-F7 [1,6,4,5], each chord held about 2 bars, so the cycle is 8 bars.\n- Bridge: Db-F-Ebm-F7 [3,5,4,5].\n- Outro: back to the Bbm-Ab riff.\nFor the buzzer tune, use the Bb harmonic minor flavour (A natural over the F7 chord).\n\nSections: from lrclib line timings and which lines repeat.\n- Intro: 4 bars of the bass groove.\n- Prechorus: a short 3-bar lead-in. The same lead-in line comes 1.7 bars before each chorus.\n- Chorus 2 runs into new lines (112.6 to 125.3 s), labelled postchorus.\n- Bridge: about 125.3 to 146.5 s; one of its lines repeats 8 bars apart.\n- Final chorus: about 146.5 to 176.3 s, with extra lines.\n- Outro: an instrumental groove from about 176 s with one short vocal line at about 194 s, ending at 198 s."
+ },
+ {
+  "id": "kabhi_kabhi_aditi",
+  "track": {
+   "title": "Kabhi Kabhi Aditi",
+   "artist": "Rashid Ali (music: A.R. Rahman)",
+   "version": "Original film soundtrack, Jaane Tu... Ya Jaane Na (2008), about 3:39 (218.9 s)",
+   "reason": "This is the original OST version the user asked for. Spotify track 3APdIdF8H0jsxSuGOqXedS runs 3:39, and the lrclib synced entries for the OST album are 218 to 219 s long (one decoded file is 218.857 s). The remix is a different track (106 BPM, C major, 3:51), so it was excluded."
+  },
+  "duration_s": 218.86,
+  "bpm": 95,
+  "bpm_confidence": "high",
+  "time_signature": "4/4",
+  "first_beat_s": 2.2,
+  "structure_confidence": "medium",
+  "mood": "Breezy, upbeat, feel-good acoustic pop-rock in a minor key. It has a carefree college-friends feel, with strummed guitar and a sing-along refrain.",
+  "best_part": "The final hook from about 166.4 s to 216.9 s. The tag after the chorus repeats five times (20 bars) as a full-band sing-along climax, so the robot should save its best moves for it. The choruses at 85.6 s and 156.3 s, with the short tag at 95.7 s, are the next best places for big moves.",
+  "sections": [
+   {
+    "label": "intro",
+    "start_s": 0,
+    "end_s": 9.78,
+    "energy": 2
+   },
+   {
+    "label": "chorus",
+    "start_s": 9.78,
+    "end_s": 24.94,
+    "energy": 3
+   },
+   {
+    "label": "verse",
+    "start_s": 24.94,
+    "end_s": 60.3,
+    "energy": 2
+   },
+   {
+    "label": "prechorus",
+    "start_s": 60.3,
+    "end_s": 85.57,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 85.57,
+    "end_s": 95.67,
+    "energy": 4
+   },
+   {
+    "label": "hook",
+    "start_s": 95.67,
+    "end_s": 105.78,
+    "energy": 4
+   },
+   {
+    "label": "instrumental",
+    "start_s": 105.78,
+    "end_s": 131.04,
+    "energy": 3
+   },
+   {
+    "label": "verse",
+    "start_s": 131.04,
+    "end_s": 156.3,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 156.3,
+    "end_s": 166.41,
+    "energy": 4
+   },
+   {
+    "label": "hook",
+    "start_s": 166.41,
+    "end_s": 216.93,
+    "energy": 5
+   },
+   {
+    "label": "outro",
+    "start_s": 216.93,
+    "end_s": 218.86,
+    "energy": 2
+   }
+  ],
+  "key": 67,
+  "minor": true,
+  "chords": {
+   "verse": [
+    1,
+    4,
+    1,
+    4
+   ],
+   "chorus": [
+    1,
+    6,
+    7,
+    1
+   ],
+   "bridge": [
+    3,
+    7,
+    1,
+    1
+   ]
+  },
+  "keySure": "G minor (checked)",
+  "alternatives": [],
+  "sources": [
+   "https://songbpm.com/@rashid-ali/kabhi-kabhi-aditi (95 BPM, G minor, 3:39, Spotify data; Spotify track 3APdIdF8H0jsxSuGOqXedS)",
+   "https://lrclib.net/api/search?track_name=Kabhi%20Kabhi%20Aditi&artist_name=Rashid%20Ali (synced timestamps only, entries 513558/20149231/19150895 etc., duration 218-221 s)",
+   "https://www.songsterr.com/a/wsa/misc-unsigned-bands-a-r-rehman-jaane-tu-yaa-jaane-naa-kabhi-kabhi-aditi-chords-s225737 (chord names only: Gm, Cm, Bb, F, D, Eb; capo off)",
+   "https://www.songsterr.com/a/wsa/misc-unsigned-bands-a-r-rehman-kabhi-kabhi-aditi-chords-s223275 (chord names only, G minor)",
+   "https://www.guitartabsexplorer.com/misc-soundtrack/jaane-tu-ya-jaane-na---kabhi-kabhi-aditi-chords (same progression transposed to Em shapes: Em Am C D G)",
+   "https://songbpm.com/@rashid-ali/kabhi-kabhi-aditi-remix (remix only, 106 BPM C major, excluded)"
+  ],
+  "notes": "BPM: Spotify (via songbpm) gives 95. The lyric timestamps agree. The same line comes back 58 bars later after about 146.3 s (95.0 to 95.15 BPM). The tag lines at the end repeat every 2 bars, about 5.06 s apart. One bar is 2.526 s.\n\nBar grid: downbeats at 2.2 + 2.526*n, so bar 3 = 9.78 s, bar 33 = 85.57 s, bar 61 = 156.30 s and bar 65 = 166.41 s. Extended backwards, the grid gives a partial bar at about -0.33 s, so the opening guitar strum probably starts slightly inside a bar. The phase was estimated on the assumption that the chorus lines start with a short pickup and the tag lines start one beat early. If the robot's moves look half a beat off, try a first downbeat of about 1.6 s instead.\n\nStructure, read from the timestamps: the song opens with the refrain at about 9.8 s. That refrain comes back at 85 s and 156 s. The first time it ends with a one-off tag. Verse 1 runs 24.9 to 60.3 s: two stanzas, with what looks like an instrumental fill between about 50 and 60 s. Next is a 10-bar build (60.3 to 85.6 s), then the chorus and a 4-bar tag. A 10-bar instrumental interlude (105.8 to 131 s) has no vocals. The 10-bar section at 131 to 156 s uses the same chords as the 60 to 85 s build; it is labelled as the second verse. After the last chorus, the tag repeats five times as the outro climax, and the vocals end at about 216.8 s.\n\nKey: G minor, from Spotify data and two Songsterr chord sheets with capo off (Gm, Cm, Bb, F, Eb, D). GuitarTabsExplorer has the same chords in Em shapes (3 semitones lower).\n\nChords as scale degrees (Gm=1, Cm=4, Eb=6, F=7, Bb=3, D=5):\n- Refrain: Gm Cm Gm Cm, then Gm Eb F Gm. That is 1 4 1 4 then 1 6 7 1, at about 2 chords per bar.\n- Verses: mostly Gm/Cm alternation (1 4 1 4, sometimes 1 1 4 1).\n- Build section (60 to 85 s and 131 to 156 s): Bb F Gm | Bb F Gm | Gm Cm Gm Eb | F F Bb Eb Cm. This was given as chords_bridge [3,7,1,1].\n\nThe 4-bar loops are simplified from crowd-sourced chord sheets."
+ },
+ {
+  "id": "bolve",
+  "track": {
+   "title": "Bolve",
+   "artist": "Madan Maddi & Sukshinder Shinda",
+   "version": "Original album version from 'Moving & Grooving' (Moviebox Birmingham, released 2000-01-01). Spotify ID 6Cropg224Nfp3jNWjKuQjy, Deezer 1770452, ISRC USA560653413, 5:12 (312.47 s)",
+   "reason": "This is the only release of 'Bolve' credited to Madan Maddi & Sukshinder Shinda on Spotify, Deezer and Shazam. Spotify popularity is 62, which is high for a 2000 bhangra track and fits the Instagram trend. Shazam uses the same credits and lists 114 BPM. Every lrclib entry matching it is 312-313 s long."
+  },
+  "duration_s": 312.47,
+  "bpm": 114,
+  "bpm_confidence": "high",
+  "time_signature": "4/4",
+  "first_beat_s": 0.3,
+  "structure_confidence": "medium",
+  "mood": "Joyful, bouncy Punjabi bhangra with a pleading, romantic vocal over a driving dhol groove. Spotify scores it high on energy (0.84) and danceability (0.82), and fairly happy (valence 0.65). It never gets truly calm: the verses are lighter, while the opening hook and the dhol/tumbi breaks are party peaks.",
+  "best_part": "The opening chorus block, about 0:17-1:08, is the best part. Its peak is the second hook phrase at about 0:34-0:51. Shazam's most-matched point is 0:40, which is most likely the Instagram snippet, so the robot's best moves go there. The final refrain at about 4:55-5:03 is the second-best moment.",
+  "sections": [
+   {
+    "label": "intro",
+    "start_s": 0,
+    "end_s": 17.14,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 17.14,
+    "end_s": 33.98,
+    "energy": 4
+   },
+   {
+    "label": "hook",
+    "start_s": 33.98,
+    "end_s": 50.83,
+    "energy": 5
+   },
+   {
+    "label": "chorus",
+    "start_s": 50.83,
+    "end_s": 67.67,
+    "energy": 4
+   },
+   {
+    "label": "instrumental",
+    "start_s": 67.67,
+    "end_s": 88.72,
+    "energy": 4
+   },
+   {
+    "label": "verse",
+    "start_s": 88.72,
+    "end_s": 118.19,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 118.19,
+    "end_s": 126.62,
+    "energy": 4
+   },
+   {
+    "label": "instrumental",
+    "start_s": 126.62,
+    "end_s": 147.67,
+    "energy": 4
+   },
+   {
+    "label": "verse",
+    "start_s": 147.67,
+    "end_s": 177.14,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 177.14,
+    "end_s": 185.56,
+    "energy": 4
+   },
+   {
+    "label": "instrumental",
+    "start_s": 185.56,
+    "end_s": 206.62,
+    "energy": 4
+   },
+   {
+    "label": "verse",
+    "start_s": 206.62,
+    "end_s": 236.09,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 236.09,
+    "end_s": 244.51,
+    "energy": 4
+   },
+   {
+    "label": "instrumental",
+    "start_s": 244.51,
+    "end_s": 265.56,
+    "energy": 4
+   },
+   {
+    "label": "verse",
+    "start_s": 265.56,
+    "end_s": 295.04,
+    "energy": 4
+   },
+   {
+    "label": "chorus",
+    "start_s": 295.04,
+    "end_s": 303.46,
+    "energy": 5
+   },
+   {
+    "label": "outro",
+    "start_s": 303.46,
+    "end_s": 312.47,
+    "energy": 3
+   }
+  ],
+  "key": 64,
+  "minor": true,
+  "chords": {
+   "verse": [
+    1,
+    4,
+    5,
+    1
+   ],
+   "chorus": [
+    5,
+    4,
+    1,
+    5
+   ],
+   "bridge": [
+    1,
+    5,
+    4,
+    1
+   ]
+  },
+  "keySure": "E minor (best guess)",
+  "alternatives": [],
+  "sources": [
+   "https://api.tunebat.com/api/tracks?trackId=6Cropg224Nfp3jNWjKuQjy (Spotify data: 114.0 BPM, G major, 312467 ms, energy 0.839, danceability 0.824, valence 0.649)",
+   "https://tunebat.com/Info/Bolve-Sukshinder-Shinda-Madan-Maddi/6Cropg224Nfp3jNWjKuQjy",
+   "https://api.deezer.com/track/1770452 (BPM 113.9, 312 s, ISRC USA560653413)",
+   "https://www.shazam.com/song/253647823/bolve (BPM 114, Moving & Grooving, Moviebox Birmingham, most-popular segment 00:40)",
+   "https://chordify.net/chords/madan-maddi-songs/has-bol-ve-chords (seen only through a search snippet; Cloudflare blocked direct access: 115 BPM, chords Bm7, Am7, Em7, Bm, plus G7/G9)",
+   "https://lrclib.net/api/search?q=Bolve (synced-line timestamps; all 312-313 s entries share one sync)"
+  ],
+  "notes": "TEMPO: The four tempo sources agree: Spotify/Tunebat 114.0, Deezer 113.9, Shazam 114, Chordify 115. Use 114 BPM, which gives 0.526 s per beat and 2.105 s per bar.\n\nLRCLIB TIMING NEEDED A FIX: All the lrclib entries use the same synced lyrics. That sync runs on a clock about 5.5% faster than the Spotify audio. On its own timestamps it fits 120.3 BPM very cleanly: the title refrain lands at bars 28, 56, 84, 112 and 140 (28-bar cycles, each within 0.5 bar). At 114 BPM the same timestamps fit badly. So the sync was most likely made against a sped-up copy. I converted every timestamp with t_spotify = 1.0553 x t_lrc, assuming no offset.\n\nChecks on that conversion: the first vocal lands right after an 8-bar intro, and the song works out to exactly 148 bars. Bar 148 = 0.3 + 148 x 2.105 = 311.9 s, against a 312.47 s track. The beat grid is: first downbeat about 0.3 s, then bars at 0.3 + 2.1053n. Section boundaries sit on bars 8/16/24/28/32/42/56/60/70/84/88/98/112/116/126/140/144. The first-beat estimate (0.3 s) and the exact break lengths are inferred and could be off by up to about 1 bar; if the robot drifts, check the first downbeat by ear.\n\nSTRUCTURE: 8-bar intro, then a 20-bar opening vocal block. It has the title hook x2 (bars 8-16), a second hook phrase x2 (bars 16-24; Shazam peak at 0:40), then a closing line plus the title refrain (bars 24-32). After that come 4 cycles, each with: a dhol/tumbi instrumental break (about 10 bars, ending in a held vocal pickup), a verse of 3 lines (about 14 bars), and the 4-bar title refrain (labelled chorus). The song ends with a 4-bar outro. The lyric file only writes the short refrain after each verse. The backing vocals may repeat the hook during the breaks, but I could not confirm that.\n\nKEY / CHORDS: Spotify/Tunebat say G major. Chordify's chord list is minor-seventh chords only: Bm7, Am7, Em7, Bm, in order of first appearance, plus some G7/G9. All of these use the G major / E minor note set (one sharp, F#). With no major triads detected and Em as the resting chord, I chose E minor (Em=1, Am=4, Bm=5). The tonic is uncertain: it could be G major (then Bm=3, Am=2, Em=6) or a Punjabi B-Phrygian/Bhairavi-style centre. Any original buzzer tune that stays on the notes G A B C D E F# fits either way.\n\nchords_chorus [5,4,1,5] is the Bm-Am-Em-Bm order Chordify shows at the start of the song. chords_verse [1,4,5,1] and chords_bridge [1,5,4,1] (the instrumental breaks) are plausible diatonic loops built from the same detected chords, not confirmed.\n\nNo lyrics or melody are reproduced here."
+ },
+ {
+  "id": "flashing_lights",
+  "track": {
+   "title": "Flashing Lights (feat. Dwele)",
+   "artist": "Kanye West",
+   "version": "Album version, Graduation (2007), about 3:57 (237.5 s)",
+   "reason": "The user asked for the Graduation album version at about 3:57. The AcousticBrainz analysis is tagged album 'Graduation' with a length of 237.56 s, and the lrclib entries at 237 s match it."
+  },
+  "duration_s": 237.5,
+  "bpm": 90.5,
+  "bpm_confidence": "high",
+  "time_signature": "4/4",
+  "first_beat_s": 0.04,
+  "structure_confidence": "medium",
+  "mood": "Moody, glossy night-drive hip-hop: a slow, swaggering groove under big synth chords and strings. It sounds cool and a bit sad, not party-hype.",
+  "best_part": "The second chorus straight into the bridge (about 148.6 s to 191.0 s). Dwele's chorus and Kanye's sung bridge stack the 'flashing lights' calls over the full beat and synths. Use the flashiest moves and lights here. The first chorus (84.9 to 106.1 s) is the second-best spot.",
+  "sections": [
+   {
+    "label": "intro",
+    "start_s": 0,
+    "end_s": 21.27,
+    "energy": 2
+   },
+   {
+    "label": "hook",
+    "start_s": 21.27,
+    "end_s": 42.48,
+    "energy": 3
+   },
+   {
+    "label": "verse",
+    "start_s": 42.48,
+    "end_s": 84.92,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 84.92,
+    "end_s": 106.14,
+    "energy": 4
+   },
+   {
+    "label": "verse",
+    "start_s": 106.14,
+    "end_s": 148.57,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 148.57,
+    "end_s": 169.78,
+    "energy": 5
+   },
+   {
+    "label": "bridge",
+    "start_s": 169.78,
+    "end_s": 191.01,
+    "energy": 5
+   },
+   {
+    "label": "instrumental",
+    "start_s": 191.01,
+    "end_s": 201.62,
+    "energy": 3
+   },
+   {
+    "label": "hook",
+    "start_s": 201.62,
+    "end_s": 212.21,
+    "energy": 3
+   },
+   {
+    "label": "outro",
+    "start_s": 212.21,
+    "end_s": 237.5,
+    "energy": 2
+   }
+  ],
+  "key": 66,
+  "minor": true,
+  "chords": {
+   "verse": [
+    1,
+    6,
+    4,
+    4
+   ],
+   "chorus": [
+    1,
+    6,
+    4,
+    4
+   ],
+   "bridge": [
+    1,
+    6,
+    4,
+    4
+   ]
+  },
+  "keySure": "F# minor (fairly sure)",
+  "alternatives": [],
+  "sources": [
+   "https://acousticbrainz.org/api/v1/078c6b81-8e6c-4403-accf-c634b742143c/low-level (album 'Graduation', length 237.56 s, BPM 90.44, 357 beat positions, key_key B minor / chords_key F# minor)",
+   "https://songbpm.com/@kanye-west/flashing-lights-zgcyw (91 BPM, F#/Gb minor, 4/4, 3:59)",
+   "https://www.guitartabsexplorer.com/west-kanye/flashing-lights-chords (chord names only: Em C Em C Am Am7 with capo 2, so it sounds as F#m D F#m D Bm Bm7, the same loop in every section)",
+   "https://cs.uwaterloo.ca/~dtompkin/music/track/CHRRADIO_156/CHRRADIO_156-08.html (DJ analysis: measured 90.5 BPM, key B minor; from search snippet)",
+   "https://lrclib.net/api/search?track_name=Flashing%20Lights&artist_name=Kanye%20West (synced line timestamps for the 237 s entries 34566226/34840518/34498552; only timestamps and repeat patterns used)"
+  ],
+  "notes": "Tempo and grid: AcousticBrainz's beat tracker gives 357 evenly spaced beats, about 0.6631 s apart (a linear fit gives 90.48 BPM). Its first detected beat is at 0.70 s, and running the grid back one beat puts beat 1 at about 0.04 s. One bar is about 2.653 s. Downbeats are assumed at beat indices 3, 7, 11 and so on. On that grid every section falls on a clean bar boundary: intro 8 bars, hook 8 bars, verse 16, chorus 8, verse 16, chorus 8, bridge 8, instrumental 4, hook 4, outro about 9.5 bars to the end. The lyric line timing also fits: verse rap lines come one per bar, and chorus lines are about 2 bars long and start roughly 1 to 2 beats before the chorus downbeats. Which beat counts as 'one' was inferred from that clean structure, not detected directly, so treat the bar phase as medium confidence. The tempo is high confidence.\n\nSections: these come from the lrclib timestamps. The same block of chorus lines repeats at 84.2 s and 148.1 s. The short 'Flashing lights' call lines sit at 22-34 s and again at about 203-208 s. A similar 2-bar-line block at 168.5-181 s was labelled the bridge (Kanye's sung part over the chorus groove, followed by hook calls until about 188 s). There are no vocals from about 188 s to 203 s (taken as an instrumental/strings part) or after about 211 s (a strings outro until the track ends at 237.5 s).\n\nKey: F# minor (songbpm, the chord site with capo 2, and AcousticBrainz chords_key). AcousticBrainz key_key and one DJ analysis say B minor instead, so confidence is medium. The chord loop is F#m, D, F#m, D, Bm, Bm7, Bm, Bm7, and it is the same in every section. It is written here as one chord per bar, [1,6,4,4] (F#m, D, Bm, Bm). If the real loop is 8 bars, it would be [1,6,1,6] followed by [4,4,4,4]. If you treat the key as B minor, the same loop is [5,3,1,1]. For a buzzer tune, F# natural minor notes over F#m, D and Bm will fit.\n\nNo lyrics or melody were copied."
+ },
+ {
+  "id": "touch_the_sky",
+  "track": {
+   "title": "Touch The Sky",
+   "artist": "Kanye West feat. Lupe Fiasco",
+   "version": "Album version, Late Registration (2005), about 3:57 (237 s)",
+   "reason": "The user asked for the album version (about 3:56). lrclib entry 37249376 (Late Registration) runs 237 s. That matches songbpm (3:57) and Wikipedia (album 3:57, radio edit 3:56)."
+  },
+  "duration_s": 237,
+  "bpm": 106.7,
+  "bpm_confidence": "high",
+  "time_signature": "4/4",
+  "first_beat_s": 0,
+  "structure_confidence": "high",
+  "mood": "Triumphant, brassy and celebratory. A big soul-horn fanfare over a strutting hip-hop groove, with an \"on top of the world\" party feel from start to finish.",
+  "best_part": "The final chorus at 182.2 s runs straight into the repeated one-bar \"sky high\" chant (200.2 to 218.2 s). That is the loudest, most anthemic stretch, so use the most explosive moves there. Second best is the sing-along Move On Up sample break after chorus 2 (74.2 to 92.2 s).",
+  "sections": [
+   {
+    "label": "intro",
+    "start_s": 0,
+    "end_s": 2.25,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 2.25,
+    "end_s": 20.24,
+    "energy": 4
+   },
+   {
+    "label": "verse",
+    "start_s": 20.24,
+    "end_s": 56.23,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 56.23,
+    "end_s": 74.22,
+    "energy": 4
+   },
+   {
+    "label": "postchorus",
+    "start_s": 74.22,
+    "end_s": 92.21,
+    "energy": 4
+   },
+   {
+    "label": "verse",
+    "start_s": 92.21,
+    "end_s": 128.19,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 128.19,
+    "end_s": 146.19,
+    "energy": 4
+   },
+   {
+    "label": "verse",
+    "start_s": 146.19,
+    "end_s": 182.17,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 182.17,
+    "end_s": 200.16,
+    "energy": 5
+   },
+   {
+    "label": "hook",
+    "start_s": 200.16,
+    "end_s": 218.15,
+    "energy": 5
+   },
+   {
+    "label": "outro",
+    "start_s": 218.15,
+    "end_s": 237,
+    "energy": 2
+   }
+  ],
+  "key": 71,
+  "minor": true,
+  "chords": {
+   "verse": [
+    5,
+    4,
+    5,
+    1
+   ],
+   "chorus": [
+    5,
+    4,
+    5,
+    1
+   ],
+   "bridge": [
+    5,
+    4,
+    5,
+    1
+   ]
+  },
+  "keySure": "B minor (fairly sure)",
+  "alternatives": [],
+  "sources": [
+   "https://lrclib.net/api/get/37249376 (synced-line timestamps only, album entry, 237 s)",
+   "https://www.hooktheory.com/theorytab/view/kanye-west/touch-the-sky (B minor, 107 BPM, 4/4, progression v(sus4) - iv(add11) - v7 - i)",
+   "https://songbpm.com/@kanye-west/touch-the-sky (107 BPM, 'A major', 3:57)",
+   "https://www.audiokeychain.com/track/FxJ/kanye-west-touch-the-sky (108 BPM, Dbm/12A)",
+   "https://cs.uwaterloo.ca/~dtompkin/music/track/CHRRADIO_109/CHRRADIO_109-10.html (published BPM 107)",
+   "https://en.wikipedia.org/wiki/Touch_the_Sky_(Kanye_West_song) (album 3:57, slowed 'Move On Up' sample plus Latin horns, Just Blaze production)",
+   "Musicnotes / AcousticBrainz via search: Curtis Mayfield 'Move On Up' originally in B minor"
+  ],
+  "notes": "BPM and beat grid: I fitted lines that land on the downbeat in the lrclib timestamps. These are the first chorus line at 4.46, 13.43, 58.44, 130.42 and 184.36 s, and the four one-bar \"sky high\" chant lines at 204.50, 206.85, 209.11 and 211.37 s. The fit gives a bar of 2.249 s, which is 106.7 BPM, with the grid at about 0.0 s, so bar n starts at n*2.249 s. Published sources agree: 107 BPM (Hooktheory, songbpm, 2006 radio promo) and 108 (audiokeychain). Rap lines are about 1 bar each. Verses often start with a pickup about 1 beat before the bar: Lupe at 145.5 s for bar 65 at 146.2, and the break at 73.6 s for bar 33 at 74.2. Tempo is steady (sampled loop), so use the fixed grid. If the robot drifts late, nudge first_beat_s by -0.05 to -0.1 s.\n\nStructure in bars: intro bar 0 (horn fanfare, 1 bar). Chorus bars 1-8, Kanye verse 1 bars 9-24, chorus bars 25-32. Bars 33-40 are an 8-bar break built on the 'Move On Up' sample, with a sung 'la-la' refrain repeated twice. Then Kanye verse 2 bars 41-56, chorus bars 57-64, Lupe Fiasco verse bars 65-80, final chorus bars 81-88. Bars 89-96 are a repeated one-bar 'sky high' chant. The outro (bar 97 to the end) is spoken ad-libs over the beat as it winds down. The song is high-energy throughout (horns never really stop). The 'calm' parts are relative: the verses are the steadier groove (energy 3), and the chorus, break and final chant are the party peaks.\n\nKey: B minor, from Hooktheory's human transcription. It matches the original key of the sampled Curtis Mayfield 'Move On Up' (B minor). Spotify-based songbpm says 'A major', which uses the same notes as B minor with a raised 6th (B dorian), so it fits B minor. audiokeychain's Dbm looks like an outlier. Chords: Hooktheory gives a 4-bar loop v(sus4) - iv(add11) - v7 - i, which in B minor is F#sus4 - Em(add11) - F#7 - Bm. So I used degrees [5,4,5,1] for verse and chorus. The v chord is played major (F#, with A#), so for buzzer melodies use B harmonic minor over the 5 chord. Hooktheory only charts one instrumental loop, and the track is one repeating sampled loop. So I used the same loop for the 'bridge' (the bars 33-40 break). That is the most plausible choice, not separately verified."
+ },
+ {
+  "id": "aankhen_milaney",
+  "track": {
+   "title": "Aankhen Milaney Waaley",
+   "artist": "Nazia Hassan & Zoheb Hassan",
+   "version": "Original album version from Young Tarang (1984), 3:34 (Deezer track 124186148, 214 s; the Spotify listing is 3:32)",
+   "reason": "The user asked for the original at about 3:34. The Young Tarang album track runs 214 s, and its tempo of 107.39 BPM matches the tempo implied by the lrclib timestamps."
+  },
+  "duration_s": 214,
+  "bpm": 107.4,
+  "bpm_confidence": "high",
+  "time_signature": "4/4",
+  "first_beat_s": 0.3,
+  "structure_confidence": "medium",
+  "mood": "Bright, breezy, romantic early-80s disco-pop: a bouncy four-on-the-floor groove with a sweet sing-along title hook. It feels playful and upbeat without being aggressive.",
+  "best_part": "The final full chorus and the hook repeat after it, from about 152 s to 190 s. Here the title hook and the refrain come back one last time, back to back, before the tag-line outro. This is where the robot should do its biggest, most explosive moves.",
+  "sections": [
+   {
+    "label": "intro",
+    "start_s": 0,
+    "end_s": 22.4,
+    "energy": 2
+   },
+   {
+    "label": "chorus",
+    "start_s": 22.4,
+    "end_s": 49.3,
+    "energy": 4
+   },
+   {
+    "label": "hook",
+    "start_s": 49.3,
+    "end_s": 64.5,
+    "energy": 4
+   },
+   {
+    "label": "verse",
+    "start_s": 64.5,
+    "end_s": 96.4,
+    "energy": 3
+   },
+   {
+    "label": "build",
+    "start_s": 96.4,
+    "end_s": 100.8,
+    "energy": 4
+   },
+   {
+    "label": "hook",
+    "start_s": 100.8,
+    "end_s": 114.3,
+    "energy": 4
+   },
+   {
+    "label": "verse",
+    "start_s": 114.3,
+    "end_s": 149,
+    "energy": 3
+   },
+   {
+    "label": "build",
+    "start_s": 149,
+    "end_s": 152.3,
+    "energy": 4
+   },
+   {
+    "label": "chorus",
+    "start_s": 152.3,
+    "end_s": 181,
+    "energy": 5
+   },
+   {
+    "label": "hook",
+    "start_s": 181,
+    "end_s": 190.2,
+    "energy": 5
+   },
+   {
+    "label": "outro",
+    "start_s": 190.2,
+    "end_s": 214,
+    "energy": 3
+   }
+  ],
+  "key": 66,
+  "minor": false,
+  "chords": {
+   "verse": [
+    1,
+    6,
+    4,
+    5
+   ],
+   "chorus": [
+    1,
+    6,
+    4,
+    5
+   ],
+   "bridge": [
+    3,
+    2,
+    4,
+    5
+   ]
+  },
+  "keySure": "F# major (checked)",
+  "alternatives": [],
+  "sources": [
+   "https://songbpm.com/@nazia-hassan/aankhen-milaney-waaley (107 BPM, F#/Gb major, 3:32)",
+   "https://api.deezer.com/track/124186148 (Young Tarang, 214 s, bpm 107.39)",
+   "https://lrclib.net/api/get/38402267 (synced timestamps only; ids 12911699, 33715144 and 37021176 carry the same timing)",
+   "https://tabs.ultimate-guitar.com/tab/nazia-hassan/aankhein-milane-wale-chords-5802887 (chord names only; tonality F#)"
+  ],
+  "notes": "TEMPO: Deezer gives 107.39 BPM for the exact 214 s Young Tarang track, and SongBPM gives 107. Fitting the intervals between repeated lyric lines in the lrclib timestamps gives 107.3 BPM as the best match, which shows the timestamps follow this tempo and this version. One bar is about 2.235 s.\n\nFIRST BEAT: About 0.3 s, with low-to-medium confidence. It comes from where the first full hook line falls in each chorus and hook (about 0.15-0.55 s after the grid start). The verse-2 opening line also lands near 0.45 s on the grid. The timestamps were tapped by hand and are off by about ±0.4 s, so the downbeat may be half a bar off. With this grid, chorus 1 starts on bar 10 (about 22.6 s), the hooks start around bars 22, 45 and 69, and the last hook starts on bar 81.\n\nSTRUCTURE (from which lyric lines repeat; no lyrics were copied):\n- Intro: about 22 s, instrumental apart from one short vocal word at about 7.6 s.\n- Chorus 1 (22-49 s): title hook plus refrain, 12 bars.\n- Hook repeat and tag line (49-64 s).\n- Verse 1 (64-96 s).\n- 2-bar break with quick vocal ad-libs (96-101 s), marked as a build.\n- Hook and tag line (101-114 s).\n- Verse 2 (114-149 s).\n- Ad-lib break (149-152 s).\n- Final full chorus (152-181 s).\n- Hook (181-190 s).\n- Outro (190 s to the end): the tag line sung 3 times about 2 bars apart, vocals end about 206.5 s, then the music fades out to 214 s.\n\nThe song has no real bridge.\n\nCHORDS: The song is in F# major (F#=1, G#m=2, A#m=3, B=4, C#=5, D#m=6).\n- Both the hook and the verse are built on I-vi-IV-V (F# D#m B C#).\n- The verse lifts in its second half with iii-ii-IV-V (A#m G#m B C#). That loop is given as chords_bridge because there is no real bridge.\n- The chorus refrain alternates iii-vi (A#m-D#m) twice, then resolves vi-IV-V.\n- The outro tag loops vi-IV-V (D#m B C#).\n- SongBPM's key detection (F#/Gb major) agrees with the chord chart's key (F#)."
+ },
+ {
+  "id": "we_are_the_people",
+  "track": {
+   "title": "We Are The People",
+   "artist": "Empire Of The Sun",
+   "version": "Album version (Walking On A Dream, 2008), 4:32",
+   "reason": "songbpm lists this track at 4:32. LRCLIB entry 3711729 is also 272 s, and its timestamps match the 267 s 'Walking On A Dream' entry (2600165) almost exactly, so both are the album cut the user has."
+  },
+  "duration_s": 272,
+  "bpm": 123.4,
+  "bpm_confidence": "high",
+  "time_signature": "4/4",
+  "first_beat_s": 0.93,
+  "structure_confidence": "high",
+  "mood": "Sunny, nostalgic electro-pop with a steady, easy groove. Warm and euphoric without getting aggressive; the big sing-along sections feel uplifting and the whole song is very danceable.",
+  "best_part": "The final run of the refrain at about 218.7 to 265.4 s. The 'I can't do well' refrain section plays three times in a row (24 bars, plus a fourth start at 265.4 s) right after the 'I know everything' bridge. The second refrain block at 156.5 to 187.6 s is the next best spot.",
+  "sections": [
+   {
+    "label": "intro",
+    "start_s": 0,
+    "end_s": 16.5,
+    "energy": 2
+   },
+   {
+    "label": "verse",
+    "start_s": 16.5,
+    "end_s": 47.6,
+    "energy": 2
+   },
+   {
+    "label": "prechorus",
+    "start_s": 47.6,
+    "end_s": 63.2,
+    "energy": 3
+   },
+   {
+    "label": "verse",
+    "start_s": 63.2,
+    "end_s": 94.3,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 94.3,
+    "end_s": 125.4,
+    "energy": 4
+   },
+   {
+    "label": "verse",
+    "start_s": 125.4,
+    "end_s": 141,
+    "energy": 3
+   },
+   {
+    "label": "prechorus",
+    "start_s": 141,
+    "end_s": 156.5,
+    "energy": 4
+   },
+   {
+    "label": "chorus",
+    "start_s": 156.5,
+    "end_s": 187.6,
+    "energy": 5
+   },
+   {
+    "label": "bridge",
+    "start_s": 187.6,
+    "end_s": 218.7,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 218.7,
+    "end_s": 265.4,
+    "energy": 5
+   },
+   {
+    "label": "outro",
+    "start_s": 265.4,
+    "end_s": 272,
+    "energy": 2
+   }
+  ],
+  "key": 64,
+  "minor": true,
+  "chords": {
+   "verse": [
+    1,
+    5,
+    6,
+    1
+   ],
+   "chorus": [
+    6,
+    1,
+    7,
+    6
+   ],
+   "bridge": [
+    6,
+    1,
+    7,
+    1
+   ]
+  },
+  "keySure": "E minor (checked)",
+  "alternatives": [],
+  "sources": [
+   "https://songbpm.com/@empire-of-the-sun/we-are-the-people (123 BPM, E minor, 4:32)",
+   "https://lrclib.net/api/get/3711729 (synced timestamps, 272 s entry; only timestamps and line-repeat pattern used)",
+   "https://lrclib.net/api/get/2600165 (album 'Walking On A Dream', 267 s, same timings)",
+   "https://lrclib.net/api/get/16137744 (275 s entry, cross-check)",
+   "https://www.chordie.com/chord.pere/www.guitaretab.com/e/empire-of-the-sun/335257.html (chord names: Em, Dsus2/B, Cmaj7, B7sus4; refrain Cmaj7, Em, Dadd9, A/D)",
+   "https://ukutabs.com/e/empire-of-the-sun/we-are-the-people (search snippet: intro Em Bm C Em Bm, key E minor)"
+  ],
+  "notes": "TEMPO/GRID: songbpm gives 123 BPM. I fitted a straight line to the 17 eight-bar section starts in the LRCLIB timestamps (16.33, 32.15, 47.65 ... 265.42 s) and got 1.9447 s per bar = 123.4 BPM, with residuals under 0.7 s, so 123.4 is used. The grid is bar k = 0.93 + 1.9447*k s, and every section is 8 bars = 15.56 s. Each lyric line lasts about 3.9 s = 2 bars. first_beat_s (0.93) is projected back 8 bars from the first vocal line, so it is accurate to roughly +/-0.3 s. If the robot uses a whole-number 123 BPM, the beat drifts about 0.9 s by the end; re-sync at section starts or use 123.4.\n\nSTRUCTURE (from which timestamp lines repeat): 8-bar intro, then verse 1 (16 bars). The 8-bar title-line section ('We are the people...') is labelled prechorus. Then verse 2 (16 bars). The refrain ('I can't do well...') is labelled chorus: it is the most-repeated block, always comes in 8-bar pairs, and is the big sing-along. After that: a short 8-bar third verse, the title section again, the refrain x2, and a 16-bar bridge (a different repeated 3-line block, 187.6-218.7 s). The final refrain runs about 3.5 times. The last refrain line starts at 265.4 s and the track ends at 4:32. The outro length is an estimate. I recall the bridge as groove-led and calmer, but that is not verified.\n\nKEY/CHORDS: E minor (songbpm, ukulele site and guitar transcriptions all agree). In E minor, Em=1, F#dim=2, G=3, Am=4, Bm=5, C=6, D=7.\n- Verse/intro loop: Em - Bm (Dsus2/B) - Cmaj7 - Em, with B7sus4 as the turnaround, so [1,5,6,1].\n- Title prechorus: Em - Bm - Cmaj7 - A major - Badd11. The A major is a Dorian IV, not the diatonic Am. Roughly [1,5,6,5] if it must stay diatonic.\n- Refrain (chorus): fan transcription gives Cmaj7, Em, Dadd9, Cmaj7, Em, A/D. I compressed it to [6,1,7,6]. The exact per-bar placement is my estimate.\n- Bridge: [6,1,7,1] is a plausible guess built from the song's own chords. I found no transcription for that section.\nThe transcriptions are fan-made and disagree slightly on the fourth chord (Bm vs B7sus4 vs Bmadd11/D). The roots Em/Bm/C/D are solid. User's note for this song: 'faster' dance."
+ },
+ {
+  "id": "get_lucky",
+  "track": {
+   "title": "Get Lucky (Drumless Edition)",
+   "artist": "Daft Punk feat. Pharrell Williams & Nile Rodgers",
+   "version": "Random Access Memories (Drumless Edition), 2023, track 8, 6:09.7",
+   "reason": "Apple/iTunes lists the Drumless Edition at 369.747 s, against 369.63 s for the original album version and about 4:07 for the radio edit. So it is the full 6:09 album arrangement with the drums muted. It is not the radio edit, so the album-version timeline applies."
+  },
+  "duration_s": 369.75,
+  "bpm": 116,
+  "bpm_confidence": "high",
+  "time_signature": "4/4",
+  "first_beat_s": 0,
+  "structure_confidence": "medium",
+  "mood": "Sunny, breezy disco-funk. Without drums the Drumless Edition feels lighter and floatier, carried by Nile Rodgers' choppy rhythm guitar, the bass and keys. It still grooves, and the robot-vocoder parts give it a playful party feel.",
+  "best_part": "From about 3:27 to 4:00 the Daft Punk robot-vocoder voices come in, chopped and repeating, and then Pharrell's big hook comes back over them (bridge then hook). Second choice is the last chorus plus hook, about 4:25 to 4:58, which is the biggest party moment before the long robot outro.",
+  "sections": [
+   {
+    "label": "intro",
+    "start_s": 0,
+    "end_s": 33.1,
+    "energy": 2
+   },
+   {
+    "label": "verse",
+    "start_s": 33.1,
+    "end_s": 49.66,
+    "energy": 2
+   },
+   {
+    "label": "prechorus",
+    "start_s": 49.66,
+    "end_s": 66.21,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 66.21,
+    "end_s": 82.76,
+    "energy": 4
+   },
+   {
+    "label": "postchorus",
+    "start_s": 82.76,
+    "end_s": 91.03,
+    "energy": 4
+   },
+   {
+    "label": "instrumental",
+    "start_s": 91.03,
+    "end_s": 99.31,
+    "energy": 3
+   },
+   {
+    "label": "verse",
+    "start_s": 99.31,
+    "end_s": 115.86,
+    "energy": 2
+   },
+   {
+    "label": "prechorus",
+    "start_s": 115.86,
+    "end_s": 132.41,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 132.41,
+    "end_s": 148.97,
+    "energy": 4
+   },
+   {
+    "label": "postchorus",
+    "start_s": 148.97,
+    "end_s": 157.24,
+    "energy": 4
+   },
+   {
+    "label": "instrumental",
+    "start_s": 157.24,
+    "end_s": 206.9,
+    "energy": 3
+   },
+   {
+    "label": "bridge",
+    "start_s": 206.9,
+    "end_s": 219.31,
+    "energy": 4
+   },
+   {
+    "label": "hook",
+    "start_s": 219.31,
+    "end_s": 240,
+    "energy": 5
+   },
+   {
+    "label": "build",
+    "start_s": 240,
+    "end_s": 248.28,
+    "energy": 4
+   },
+   {
+    "label": "prechorus",
+    "start_s": 248.28,
+    "end_s": 264.83,
+    "energy": 4
+   },
+   {
+    "label": "chorus",
+    "start_s": 264.83,
+    "end_s": 281.38,
+    "energy": 5
+   },
+   {
+    "label": "postchorus",
+    "start_s": 281.38,
+    "end_s": 297.93,
+    "energy": 5
+   },
+   {
+    "label": "breakdown",
+    "start_s": 297.93,
+    "end_s": 314.48,
+    "energy": 3
+   },
+   {
+    "label": "instrumental",
+    "start_s": 314.48,
+    "end_s": 347.59,
+    "energy": 4
+   },
+   {
+    "label": "outro",
+    "start_s": 347.59,
+    "end_s": 369.75,
+    "energy": 2
+   }
+  ],
+  "key": 66,
+  "minor": true,
+  "chords": {
+   "verse": [
+    4,
+    6,
+    1,
+    7
+   ],
+   "chorus": [
+    4,
+    6,
+    1,
+    7
+   ],
+   "bridge": [
+    4,
+    6,
+    1,
+    7
+   ]
+  },
+  "keySure": "F# minor (checked)",
+  "alternatives": [],
+  "sources": [
+   "https://itunes.apple.com/search?term=daft+punk+get+lucky+drumless&entity=song (Drumless Edition 369.747 s; album 369.629 s)",
+   "https://lrclib.net/api/get/37075924 (synced timestamps for the 370 s album version; only timestamps and repeat patterns used)",
+   "https://en.wikipedia.org/wiki/Get_Lucky_(Daft_Punk_song) (116 BPM, F# minor, Bm7-D-F#m7-E, album 6:09 vs radio 4:07, robo-breakdown and vocoder outro)",
+   "https://songbpm.com/@daft-punk/get-lucky (116 BPM, F# minor, 6:10)",
+   "https://reports.hitsongsdeconstructed.com/articles/get-lucky-deconstructed/ (full vs radio edit: 32 s intro, 50 s of instrumental choruses cut, bridge, breakdown chorus after the last chorus, synth outro)",
+   "https://www.cs.ubc.ca/~davet/music/track/CHRRADIO_285/CHRRADIO_285-01.html (Mixmeister 116.0 BPM, F#m)",
+   "https://www.karaoke-version.com/mp3-backingtrack/daft-punk/get-lucky.html (original tempo 116.05)"
+  ],
+  "notes": "VERSION: The Drumless Edition is 6:09.7, the same length (within 0.1 s) and arrangement as the 6:09 album version, with only the drums removed. It is NOT the 4:07 radio edit, so album-version timings apply. Without drums, all the energy levels are a little lower than the original; I set them relative to each other within this track.\n\nBEAT GRID: 116 BPM (Wikipedia, songbpm, Mixmeister 116.0, karaoke remake 116.05), so 1 bar = 2.069 s. The 16-bar intro starts at about 0 s. That fits the published 32 s full-version intro and the 8-bar (16 s) radio-edit intro. With that grid, vocal entrances land just before bar 24 (pre-chorus 1), bar 32 (chorus 1) and bar 40 (hook). Every section boundary sits on a bar line (bar n = 2.069*n s). The verses start with a long pickup: singing begins about 2 s before the verse downbeat (around 30.6 s and 97.5 s). The synced-lyric taps run slightly late by the second half of the song (they imply about 115.7 BPM). Other sources agree on 116, so I kept 116. If the robot drifts late near the end, try 115.8.\n\nSECTION EVIDENCE:\n- Vocal sections come from lrclib timestamps: verse lines about every 2 bars, chorus and hook lines 1 bar apart, and the repeated hook line marks the post-chorus.\n- 157-207 s has no vocals. This is the two instrumental chorus passes (about 24 bars) that the radio edit cuts (50 s), and they include a partial breakdown whose exact spot is unknown.\n- At about 3:27 (207 s) the chopped robot-vocoder lines start; a dance guide also puts the processed vocals at 3:27. This is the 'clipped robo-breakdown' bridge.\n- Pharrell's hook then repeats about 10 bars (219-238 s), followed by a 4-bar turnaround.\n- At 248 s the pre-chorus returns layered with the hook, then the final chorus and an 8-bar hook (265-298 s).\n- A 'breakdown chorus' follows (298-314 s); the last vocal timestamp is at 315.7 s.\n- The vocoder/funky-synth instrumental outro runs to the end. I assumed it fades in the last ~20 s, but that fade is not verified.\n- Instrumental and outro boundaries are inferred from the radio-edit cut analysis plus the bar grid, so they could be off by a few bars.\n\nKEY/CHORDS: F# minor (often described as B Dorian flavour). The whole song repeats one 4-bar loop, Bm7 - D - F#m7 - E, one chord per bar. In F# minor that is degrees 4-6-1-7, used for verse, chorus and bridge alike. Each loop starts on a bar that is a multiple of 4 from 0 s."
+ },
+ {
+  "id": "greenback_boogie",
+  "track": {
+   "title": "Greenback Boogie (Suits Main Title Edit)",
+   "artist": "Ima Robot",
+   "version": "Short TV main-title edit from Suits (Original Television Soundtrack), 2015. Apple lists it at 31.5 s and MusicBrainz at 31.9 s. It is cut from the 2010 album recording (297.7 s).",
+   "reason": "The user asked for the short Suits theme of about 0:31. This official 'Suits Main Title Edit' is the 31-second version used in the show's opening. Last.fm shows 0:31 and iTunes 31507 ms."
+  },
+  "duration_s": 31.5,
+  "bpm": 143,
+  "bpm_confidence": "high",
+  "time_signature": "4/4",
+  "first_beat_s": 1,
+  "structure_confidence": "medium",
+  "mood": "Cool, swaggering bluesy boogie-rock: a strutting shuffle groove with big-city confidence. It is slick and jazzy-cool rather than calm, and upbeat from the first second.",
+  "best_part": "The call-to-dance shout into the title hook, from about 21.1 to 29.5 s (bars 13-17). It is the climax: the last word sung is the song title, and then a final button hit lands at about 29.5 s with the SUITS logo. Use the biggest moves here and freeze in a pose on the hit.",
+  "sections": [
+   {
+    "label": "intro",
+    "start_s": 0,
+    "end_s": 1,
+    "energy": 3
+   },
+   {
+    "label": "verse",
+    "start_s": 1,
+    "end_s": 14.4,
+    "energy": 3
+   },
+   {
+    "label": "prechorus",
+    "start_s": 14.4,
+    "end_s": 21.1,
+    "energy": 4
+   },
+   {
+    "label": "chorus",
+    "start_s": 21.1,
+    "end_s": 29.5,
+    "energy": 5
+   },
+   {
+    "label": "outro",
+    "start_s": 29.5,
+    "end_s": 31.5,
+    "energy": 3
+   }
+  ],
+  "key": 65,
+  "minor": false,
+  "chords": {
+   "verse": [
+    1,
+    4,
+    1,
+    1
+   ],
+   "chorus": [
+    1,
+    1,
+    4,
+    5
+   ],
+   "bridge": [
+    5,
+    4,
+    1,
+    1
+   ]
+  },
+  "keySure": "F major (checked)",
+  "alternatives": [],
+  "sources": [
+   "https://songbpm.com/@ima-robot/greenback-boogie",
+   "https://acousticbrainz.org/api/v1/14573992-1675-446e-aa93-8d9c2159abe5/low-level?n=0",
+   "https://musicbrainz.org/ws/2/recording?query=recording:%22Greenback%20Boogie%22%20AND%20artist:%22Ima%20Robot%22&fmt=json",
+   "https://itunes.apple.com/search?term=greenback+boogie+suits+main+title&entity=song",
+   "https://www.last.fm/music/Ima+Robot/_/Greenback+Boogie+(Suits+Main+Title+Edit)",
+   "https://www.songsterr.com/a/wsa/ima-robot-greenback-boogie-chords-s198720",
+   "https://www.musicnotes.com/sheetmusic/suits/greenback-boogie/MN0198058",
+   "https://lrclib.net/api/search?track_name=Greenback%20Boogie&artist_name=Ima%20Robot",
+   "https://lrclib.net/api/get/36297954",
+   "https://lrclib.net/api/get/8984953",
+   "https://www.nbc.com/nbc-insider/suits-theme-song-greenback-boogie"
+  ],
+  "notes": "DURATION: iTunes lists 'Greenback Boogie (Suits Main Title Edit)' at 31.507 s, MusicBrainz at 31.946 s and Last.fm at 0:31. I used 31.5 s.\n\nTEMPO: 143 BPM.\n- AcousticBrainz analysis of the album recording gives 143.03 BPM, with a beat every 0.4185 s.\n- songbpm gives 143 (72 half-time), Songsterr's chord page tempo is 72 (half-time) and the Musicnotes sheet is about 144.\n- Synced-lyric lines in the album fall every 3.33-3.36 s, which is 2 bars of 143 BPM.\n- The TV edit is cut from the same recording, so the tempo is the same. The shuffle swing can make people clap at 72; use 143 for moves.\n\nFIRST BEAT: about 1.0 s, estimated and not measured from the edit audio.\n- No synced lyrics exist for the official edit. Its LRCLIB entry (8984953) has no sync and holds the full-song plain text, so it is unusable.\n- I used a faithful 33.9 s recreation by Dominik Hauser (LRCLIB 36297954), which matches the edit's layout. Its vocal lines fall at 1.06 / 4.37 / 7.81 / 11.18 / 14.25 / 17.71 / ~20.3 / 22.81 / 28.47 s. They sit almost exactly on bar downbeats of 1.0 s + n x 1.678 s, e.g. bar 14 = 22.81.\n- In the album the vocal also starts exactly on a downbeat (beat grid 0.476 + n x 0.4185; first vocal at 2.19 s = beat 4).\n- If the robot drifts, re-anchor bar 1 to the first sung word.\n\nSTRUCTURE: the timings come from the cover's timestamps plus NBC's description of the TV edit. NBC says it opens straight into the first verse, jumps to the end of a later verse, then goes into the call-to-dance and the title hook and stops. That gives about 18.5 bars:\n- intro 0-1.0 s: a quick lead-in.\n- verse 1.0-14.4 s: bars 1-8, the first 4 sung lines (2 bars each).\n- prechorus 14.4-21.1 s: bars 9-12, the 2 lines from the end of a later verse, then a shout pickup at about 20.3 s.\n- chorus 21.1-29.5 s: bars 13-17, the call-to-dance line at about 22.8 s and the title hook (last line at about 28.5 s).\n- outro 29.5-31.5 s: the final hit and SUITS logo, with the sound ringing out.\nThe edit is about 2 s shorter than the cover, which I assumed comes from the tail. Section edges could be off by about half a bar.\n\nKEY: F major. The Musicnotes published key is F major, AcousticBrainz's chord key is F major and Songsterr's chords are F, Bb, C and C#/Db. AcousticBrainz's main key estimate says Bb minor because of the bluesy flat-3/flat-7 notes in the melody. The F blues/major pentatonic sounds right for the buzzer.\n\nCHORDS: the song is a 12-bar blues in F, with each sung line lasting 2 bars.\n- Bars 1-12 of the edit form one full blues chorus: I I I I | IV IV I I | V IV I I. Songsterr's sequence shows the F...Bb Bb F...C Bb F pattern.\n- chords_verse [1,4,1,1] is the best 4-bar fit for bars 1-8. It is the standard 'quick-change' blues opening.\n- chords_bridge [5,4,1,1] is the actual blues turnaround for bars 9-12 (the prechorus here). The edit has no real bridge.\n- chords_chorus [1,1,4,5] approximates the hook (F ... Bb, Db, C). The real turnaround passes through a non-diatonic Db (flat-VI) before C, which I mapped to 4, then 5. This loop is a plausible approximation, not verified bar by bar.\n\nOTHER VERSIONS: the full album version is 297.7 s, with the first beat at 0.476 s, vocals from 2.15 s and the hook at about 50-61 s. There is also a 183 s 'Suits Version'.\n\nNo lyrics were copied; I used only timestamps and line-matching indices."
+ },
+ {
+  "id": "copacabana",
+  "track": {
+   "title": "Copacabana (At the Copa)",
+   "artist": "Barry Manilow",
+   "version": "Original 1978 studio cut (Even Now / single, about 4:01-4:08 on streaming), not the 5:46 extended disco version",
+   "reason": "The user asked for the original at about 4:05. Every lrclib entry between 236 and 249 s, and also the 342-347 s entries, carries the same synced timeline. The bar grid fits it tightly at about 116.6 BPM, so these timestamps belong to this recording. Songbpm lists the streaming track at 4:01, and album and single listings give 4:07-4:08."
+  },
+  "duration_s": 245,
+  "bpm": 116.6,
+  "bpm_confidence": "high",
+  "time_signature": "4/4",
+  "first_beat_s": 0.12,
+  "structure_confidence": "medium",
+  "mood": "A flashy Latin-disco nightclub song with a samba/mambo groove (congas, horns, strings, piano). It feels glitzy and theatrical, a bit dramatic and tragic in the story, but it is a party dance number all the way through.",
+  "best_part": "The wordless dance break after the second chorus (about 1:59 to 2:32, 16 bars of percussion and horns). The second best is the final vamp after the last chorus (about 3:22 to 3:57). Both are the party moments, so use the most explosive moves there. The third chorus (2:57) is also high energy.",
+  "sections": [
+   {
+    "label": "intro",
+    "start_s": 0,
+    "end_s": 16.6,
+    "energy": 2
+   },
+   {
+    "label": "verse",
+    "start_s": 16.6,
+    "end_s": 33,
+    "energy": 3
+   },
+   {
+    "label": "prechorus",
+    "start_s": 33,
+    "end_s": 41.3,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 41.3,
+    "end_s": 66,
+    "energy": 4
+   },
+   {
+    "label": "instrumental",
+    "start_s": 66,
+    "end_s": 70.1,
+    "energy": 3
+   },
+   {
+    "label": "verse",
+    "start_s": 70.1,
+    "end_s": 86.6,
+    "energy": 3
+   },
+   {
+    "label": "prechorus",
+    "start_s": 86.6,
+    "end_s": 94.8,
+    "energy": 4
+   },
+   {
+    "label": "chorus",
+    "start_s": 94.8,
+    "end_s": 119.5,
+    "energy": 4
+   },
+   {
+    "label": "instrumental",
+    "start_s": 119.5,
+    "end_s": 152.4,
+    "energy": 5
+   },
+   {
+    "label": "verse",
+    "start_s": 152.4,
+    "end_s": 168.9,
+    "energy": 3
+   },
+   {
+    "label": "prechorus",
+    "start_s": 168.9,
+    "end_s": 177.1,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 177.1,
+    "end_s": 201.8,
+    "energy": 4
+   },
+   {
+    "label": "outro",
+    "start_s": 201.8,
+    "end_s": 237,
+    "energy": 5
+   },
+   {
+    "label": "outro",
+    "start_s": 237,
+    "end_s": 245,
+    "energy": 2
+   }
+  ],
+  "key": 63,
+  "minor": false,
+  "chords": {
+   "verse": [
+    2,
+    5,
+    1,
+    7
+   ],
+   "chorus": [
+    2,
+    5,
+    1,
+    1
+   ],
+   "bridge": [
+    6,
+    7,
+    3,
+    3
+   ]
+  },
+  "keySure": "D# major (fairly sure)",
+  "alternatives": [],
+  "sources": [
+   "https://lrclib.net/api/search?track_name=Copacabana&artist_name=Barry%20Manilow (synced timestamps; all 236-249 s entries share the same timeline)",
+   "https://songbpm.com/@barry-manilow/copacabana-at-the-copa (duration 4:01; it says 108 BPM and A minor, which I treat as an analysis error)",
+   "https://www.hooktheory.com/theorytab/view/barry-manilow/copacabana-(at-the-copa) (115-117 BPM; intro and prechorus in G minor, verse and chorus in Eb major; roman-numeral progressions)",
+   "https://www.karaoke-version.com/mp3-backingtrack/barry-manilow/copacabana.html (Gm, variable tempo of about 117 BPM)",
+   "https://chordu.com/chords-tabs-copacabana-barry-manilow-lyrics-id_JI7kqYXoC04 (116.65 BPM)",
+   "https://www.musicnotes.com/sheetmusic/barry-manilow/copacabana/MN0074311 (about 120 BPM, Latin feel)",
+   "https://pg.zachmanson.com/tab/barry-manilow/copacabana-chords-1736030 (chord list only: Gm9, Fm9, Ab/Bb, Ebmaj7, Am7b5, D7, Cdim, and others)",
+   "https://en.wikipedia.org/wiki/Even_Now_(Barry_Manilow_album) (album cut 4:07)",
+   "https://en.wikipedia.org/wiki/Copacabana_(song) (5:46 album/disco version, 3:58 radio edit)"
+  ],
+  "notes": "BPM: I fitted a bar grid to all 32 lyric-line timestamps. The best fit was 116.6 BPM (2.058 s per bar), with every line landing on an even bar: verse 1 at bar 8, chorus 1 at bar 20, verse 2 at bar 34, chorus 2 at bar 46, verse 3 at bar 74, chorus 3 at bar 86. That matches ChordU (116.65), Karaoke-Version (about 117, \"variable\", since it was played live in 1978) and Hooktheory (115-117). Songbpm's 108 is an outlier. The tempo may drift by about 1 BPM, so the robot should re-sync at section starts if it can.\n\nfirst_beat_s: the grid puts bar 0 at about 0.12 s, so the 8-bar intro starts right at the beginning. This is estimated from lyric timing, not checked against the audio.\n\nStructure (bar numbers at 116.6 BPM):\n- Intro: 8 bars.\n- Each verse: 8 bars plus a 4-bar G-minor prechorus.\n- Chorus: about 12 bars.\n- Short 2-bar link before verse 2.\n- Verse 2 is the dramatic fight part; I gave its prechorus energy 4.\n- After chorus 2 there is a gap with no vocals from about 1:57 to 2:32. I modelled it as a 16-bar instrumental dance break (bars 58-74).\n- Verse 3 is the calmer \"years later\" part.\n- Chorus 3 is extended with a short tag line at about 3:21.\n- About 35 s of instrumental \"Copa\" party vamp follows. Lrclib marks the music ending at about 3:57 on the 241 s master, so I gave the last few seconds energy 2 in case it fades. The user's 4:05 copy probably has a few extra seconds of tail.\n- The break and outro contents are estimated from where the vocals stop, not confirmed by listening.\n\nKey: sources say G minor (Karaoke-Version, Mixmeister), but Hooktheory shows the verse and chorus are really in Eb major. The intro and prechorus centre on Gm, which is chord iii of Eb (G phrygian, same notes as Eb major). The chorus is ii-V-I in Eb (Fm7 - Bb11 - Ebmaj7). I chose Eb major as the key so a buzzer tune using the Eb major scale fits the whole song. Scale degrees: Fm=2, Bb=5, Eb=1, Gm=3, D7=7, C(dim)=6. Only the Am7b5-D7 turnaround uses notes outside the scale (A and F#). If the robot wants a minor-sounding tonic, use G minor (key_note 7), but use G phrygian notes (Ab, not A).\n\nChords:\n- Verse loop: Fm7 | Bb11 | Ebmaj7 | Am7b5-D7, written as 2-5-1-7, where 7 stands for the D7 that leads back to Gm. The verse and intro actually open on Gm9 and slide down chromatically (Gm9 - F#m9 - Fm9) into that ii-V.\n- Chorus: 2-5-1-1.\n- The song has no true bridge. The \"bridge\" field holds the G-minor prechorus loop Cdim - D7/C - Gm - Gm, written as 6-7-3-3.\n- UG chord names (Dbm9, Dm9, Eb/Db) hint at a later key lift, which I could not confirm. Treat the key as constant."
+ },
+ {
+  "id": "they_dont_care",
+  "track": {
+   "title": "They Don't Care About Us",
+   "artist": "Michael Jackson",
+   "version": "HIStory: Past, Present and Future, Book I album version, about 4:44 (284 s)",
+   "reason": "The user asked for the album version (about 4:44). Two separate lrclib syncs of the album version (ids 37498667 and 4616081, 284-285 s) give the section timing. The LP edit (4:11) starts its verse about 24 s earlier, so it was not used for the grid."
+  },
+  "duration_s": 284,
+  "bpm": 90,
+  "bpm_confidence": "high",
+  "time_signature": "4/4",
+  "first_beat_s": 1.9,
+  "structure_confidence": "medium",
+  "mood": "Defiant, stomping protest anthem. A heavy, military, dancehall-style drum groove runs the whole song in a dark D minor, and it builds to a distorted guitar climax with shouted ad-libs.",
+  "best_part": "The guitar solo climax at 183-205 s (Slash's distorted guitar and fast runs over the big drum loop). Then the final run of the hook with call-and-response ad-libs at 226-253 s. Save the most explosive moves for these two parts. The hooks at 55, 77, 119 and 172 s are the next-best spots for big moves.",
+  "sections": [
+   {
+    "label": "intro",
+    "start_s": 0,
+    "end_s": 33.9,
+    "energy": 2
+   },
+   {
+    "label": "intro",
+    "start_s": 33.9,
+    "end_s": 44.6,
+    "energy": 3
+   },
+   {
+    "label": "verse",
+    "start_s": 44.6,
+    "end_s": 55.3,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 55.3,
+    "end_s": 65.9,
+    "energy": 4
+   },
+   {
+    "label": "verse",
+    "start_s": 65.9,
+    "end_s": 76.6,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 76.6,
+    "end_s": 87.3,
+    "energy": 4
+   },
+   {
+    "label": "postchorus",
+    "start_s": 87.3,
+    "end_s": 108.6,
+    "energy": 3
+   },
+   {
+    "label": "verse",
+    "start_s": 108.6,
+    "end_s": 119.3,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 119.3,
+    "end_s": 129.9,
+    "energy": 4
+   },
+   {
+    "label": "postchorus",
+    "start_s": 129.9,
+    "end_s": 151.3,
+    "energy": 4
+   },
+   {
+    "label": "bridge",
+    "start_s": 151.3,
+    "end_s": 161.9,
+    "energy": 3
+   },
+   {
+    "label": "verse",
+    "start_s": 161.9,
+    "end_s": 172.5,
+    "energy": 4
+   },
+   {
+    "label": "chorus",
+    "start_s": 172.5,
+    "end_s": 183.2,
+    "energy": 4
+   },
+   {
+    "label": "solo",
+    "start_s": 183.2,
+    "end_s": 204.6,
+    "energy": 5
+   },
+   {
+    "label": "bridge",
+    "start_s": 204.6,
+    "end_s": 215.3,
+    "energy": 4
+   },
+   {
+    "label": "verse",
+    "start_s": 215.3,
+    "end_s": 225.9,
+    "energy": 4
+   },
+   {
+    "label": "chorus",
+    "start_s": 225.9,
+    "end_s": 252.6,
+    "energy": 5
+   },
+   {
+    "label": "outro",
+    "start_s": 252.6,
+    "end_s": 284,
+    "energy": 4
+   }
+  ],
+  "key": 62,
+  "minor": true,
+  "chords": {
+   "verse": [
+    1,
+    7,
+    1,
+    7
+   ],
+   "chorus": [
+    1,
+    6,
+    1,
+    7
+   ],
+   "bridge": [
+    6,
+    7,
+    4,
+    5
+   ]
+  },
+  "keySure": "D minor (checked)",
+  "alternatives": [],
+  "sources": [
+   "https://en.wikipedia.org/wiki/They_Don%27t_Care_About_Us (D minor, 4/4, 90 BPM, children's-choir intro, album 4:44 / LP edit 4:11)",
+   "https://flypaper.soundfly.com/discover/a-harmonic-analysis-of-michael-jacksons-protest-song-they-dont-care-about-us/ (D minor; chorus i-bVI-bVII; post-chorus ends on V7 (A7); bridge bVI-bVII-i then Gm7-A7; guitar climax at about 3:06; outro guitar figure over a D power chord)",
+   "https://www.hooktheory.com/theorytab/view/michael-jackson/they-dont-care-about-us-(brazil-version) (D minor, 90 BPM, i-VII)",
+   "https://tunebat.com/Info/They-Don-t-Care-About-Us-Michael-Jackson/3wuCCNCnBhJlwkIJTBZFiv and https://www.musicgateway.com/song-key-bpm/michael-jackson/they-dont-care-about-us (89.946 BPM; key given as C minor, an outlier)",
+   "https://lrclib.net/api/search?track_name=They%20Don%27t%20Care%20About%20Us&artist_name=Michael%20Jackson (album syncs 37498667 and 4616081; timestamps and repeat patterns only)",
+   "https://lrclib.net/api/search?q=michael%20jackson%20they%20dont%20care%20about%20us (LP edit sync 35623411: verse words land every 0.667 s, which is 90 BPM)"
+  ],
+  "notes": "BEAT GRID: 90 BPM, so 1 beat = 0.6667 s and 1 bar = 2.6667 s. Two independent album syncs put the first verse downbeat at about 44.6 s. Later bars land within about 0.1-0.3 s of the syncs (for example, bar 64 at 215.27 s against vocals at 215.28 and 215.32 s). Counting back 16 bars gives first_beat_s of about 1.9 s. The kids' chant intro probably starts with a pickup just before that. Downbeats are at 1.9 + 2.6667n. Every section is 4, 8 or 12 bars on this grid (verse = 4 bars, chorus = the 2-bar hook played twice = 4 bars).\n\nKEY: D minor, from Wikipedia, Soundfly, Hooktheory and audiokeychain. Tunebat and Spotify say C minor and Mixmeister says G or G# minor; I treated these as detection errors.\n\nCHORDS (degrees of D minor: Dm=1, Gm=4, A7=5, Bb=6, C=7). The verse has little real harmony; the melody implies Dm and C, so I gave [1,7,1,7]. The chorus is a 2-bar Dm | Bb-C pattern repeated, simplified to one chord per bar as [1,6,1,7]. The post-chorus sections use a variation of the chorus chords ending on A7 (5), the major V borrowed from D major. The bridge is Bb-C-Dm, then Gm7 to A7; [6,7,4,5] is its 4-bar summary. The outro is a static D power chord drone (degree 1). No full chords play until about 1:44, when synth strings come in.\n\nSTRUCTURE: Children's choir sings the hook, with spoken kid lines -> verse/hook x2 -> post-chorus B-melody (8 bars) -> verse/hook -> second B-melody with choir harmony (8 bars) -> Roosevelt bridge (4 bars) -> verse/hook -> guitar solo climax (8 bars, no vocals 183-205 s) -> Martin Luther bridge (4 bars) -> last verse -> repeated hooks with ad-libs to about 252 s -> outro with screamed ad-libs over a guitar figure on a D drone until 284 s.\n\nUNCERTAIN: The intro split at 33.9 s (chant and spoken lines, then about 4 bars of drum groove before the verse) is a guess based on the LP edit, which has the same 4-bar gap before its verse. The exact spot where the drums enter in the album intro was not confirmed, and the drums may already be there from the start. The end of the last chorus (252.6 s) and how the outro ends are estimates.\n\nFor the user's choreography request: play the intro and B-melody sections at normal or calm intensity. Use the most explosive moves in the solo (183-205 s) and the final chorus (226-253 s)."
+ },
+ {
+  "id": "upside_down",
+  "track": {
+   "title": "Upside Down",
+   "artist": "Diana Ross",
+   "version": "Original album version from 'diana' (1980), about 4:05 (245 s). This is also the length of the 12-inch release",
+   "reason": "The user asked for the album/single version, about 4:15. The closest real release is the 4:05 album version. lrclib has many synced entries at 245-248 s and they share identical timestamps. The 7-inch single edit is about 3:37, so it is too short."
+  },
+  "duration_s": 245,
+  "bpm": 108.5,
+  "bpm_confidence": "high",
+  "time_signature": "4/4",
+  "first_beat_s": 1.41,
+  "structure_confidence": "high",
+  "mood": "Joyful, sassy disco-funk (produced by Chic). It has a bouncy, choppy guitar groove with swirling strings and keeps a steady party feel the whole way through.",
+  "best_part": "The final chorus run from 125.2 s to 160.6 s, which is four chorus cycles back to back. It goes straight into the call-and-response vamp with ad-libs from 160.6 s to about 198 s. This is the 'party explosion' stretch and the right place for the biggest moves. The earlier choruses (19.1, 54.5 and 89.8 s) are also high energy.",
+  "sections": [
+   {
+    "label": "intro",
+    "start_s": 0,
+    "end_s": 10.25,
+    "energy": 2
+   },
+   {
+    "label": "hook",
+    "start_s": 10.25,
+    "end_s": 19.1,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 19.1,
+    "end_s": 36.78,
+    "energy": 4
+   },
+   {
+    "label": "verse",
+    "start_s": 36.78,
+    "end_s": 54.47,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 54.47,
+    "end_s": 72.16,
+    "energy": 4
+   },
+   {
+    "label": "verse",
+    "start_s": 72.16,
+    "end_s": 89.84,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 89.84,
+    "end_s": 107.53,
+    "energy": 4
+   },
+   {
+    "label": "verse",
+    "start_s": 107.53,
+    "end_s": 125.22,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 125.22,
+    "end_s": 160.59,
+    "energy": 5
+   },
+   {
+    "label": "hook",
+    "start_s": 160.59,
+    "end_s": 198.17,
+    "energy": 5
+   },
+   {
+    "label": "instrumental",
+    "start_s": 198.17,
+    "end_s": 231.33,
+    "energy": 3
+   },
+   {
+    "label": "outro",
+    "start_s": 231.33,
+    "end_s": 245,
+    "energy": 2
+   }
+  ],
+  "key": 67,
+  "minor": true,
+  "chords": {
+   "verse": [
+    1,
+    1,
+    2,
+    3
+   ],
+   "chorus": [
+    1,
+    3,
+    4,
+    7
+   ],
+   "bridge": [
+    1,
+    7,
+    1,
+    4
+   ]
+  },
+  "keySure": "G minor (fairly sure)",
+  "alternatives": [],
+  "sources": [
+   "https://lrclib.net/api/search?q=Upside%20Down%20Diana%20Ross (synced entries 25931384, 21795368, 20484619, 11750329; durations 245-248 s; timestamps used only)",
+   "https://hooktheory.com/theorytab/view/diana-ross/upside-down (108 BPM; chorus in G Dorian i-III-IV-VII; verse chromatic climb)",
+   "https://www.guitartabsexplorer.com/ross-diana/upside-down-chords (chord names: Gm7, C, F, Bb, Bbm7)",
+   "https://ja.chordwiki.org/wiki/Upside+Down (search snippet: key Gm, about 108 BPM)",
+   "https://cs.uwaterloo.ca/~dtompkin/music/track/DSCOFEVR_01B/DSCOFEVR_01B-01.html (search snippet: Mixmeister 108.3 BPM, key Gm)",
+   "https://acousticbrainz.org/2b697adc-4ab1-49ea-a5ab-eb8714b8d3f6 (automated analysis: 108 BPM)",
+   "https://www.audiokeychain.com/track/rTh/diana-ross-upside-down (109 BPM)"
+  ],
+  "notes": "BPM: published values are 108-109 (Hooktheory 108, Mixmeister 108.3, AcousticBrainz 108, audiokeychain 109). I fitted a line through 10 chorus-line timestamps from lrclib and got 2.2108 s per bar, which is 108.5 BPM. The grid is bar n = 1.41 + 2.2108*n seconds. The chorus cycle (4 bars, about 8.84 s) and the vamp cycle (also 4 bars) both line up with this grid. The vamp lines start about 0.2-0.5 s before the bar line, which fits a pickup lead-in, so the grid is self-consistent. The absolute downbeat phase is less certain (roughly +/-0.3 s) because no audio was analysed. The first 1.4 s is a lead-in or pickup before bar 0. Structure from the repeat pattern of the lyric timestamps: intro of about 4 bars (instrumental, the strings/guitar groove); 4-bar opening vocal vamp (labelled hook); chorus of 2 cycles = 8 bars; 8-bar verse; chorus x2; verse 2 (different lines); chorus x2; verse 3 (verse 1 lines, new ending); final chorus x4 = 16 bars; 16-bar outro vamp built on the opening hook with ad-libs, where vocals end at about 197.5 s; then instrumental groove to the end (album version, about 47 s with no lyrics, fading). Key: G minor in Dorian flavour (Hooktheory, chordwiki, chord sheet and Mixmeister). Some automated detectors say F major or C major, so confidence is medium. Degree mapping in G minor: Gm=1, A=2, Bb=3, C=4 (major chord, Dorian IV), F=7. Chorus chords: Hooktheory gives i-III-IV-VII = Gm-Bb-C-F. Verse chords: Hooktheory shows a chromatic climb Gm7 - G#m7(#5) - Am7 - Bbm7 (it labels the verse 'Bb Dorian'). That cannot be written exactly as diatonic degrees, so it is approximated as 1-1-2-3 (a G-G-A-Bb root climb); a buzzer tune should lean on the G and Bb tones there. The song has no true bridge. chords_bridge holds the opening and outro vamp loop instead, approximated from the chord sheet's intro (Gm7-F-Gm7-C = 1-7-1-4). Use it for the hook sections at 10.25 s and 160.6 s. Suggested robot plan: normal or calm moves for the intro, hook and verses; big moves for the choruses; the most explosive moves from 125.2 s to 198.2 s; easing down in the instrumental fade."
+ },
+ {
+  "id": "my_type",
+  "track": {
+   "title": "My Type",
+   "artist": "Saint Motel",
+   "version": "Original studio version from the My Type EP (2014), 3:26",
+   "reason": "The lrclib synced entry 34638951 (album 'My Type (EP)', 206 s) and two other 206 s entries match the user's 3:26 version. Wikipedia lists the EP version at 3:26."
+  },
+  "duration_s": 206,
+  "bpm": 118,
+  "bpm_confidence": "high",
+  "time_signature": "4/4",
+  "first_beat_s": 0.67,
+  "structure_confidence": "medium",
+  "mood": "Upbeat, flirty retro disco-funk indie pop with punchy horns and a strutting groove. It feels swaggering and playful.",
+  "best_part": "The final chorus (about 173.6 to 193.9 s) is the best part. The full band and horn hook are there, so use the robot's biggest party moves. The instrumental solo just before it (about 153.2 to 169.5 s) is a close second.",
+  "sections": [
+   {
+    "label": "intro",
+    "start_s": 0,
+    "end_s": 35.25,
+    "energy": 3
+   },
+   {
+    "label": "verse",
+    "start_s": 35.25,
+    "end_s": 51.52,
+    "energy": 2
+   },
+   {
+    "label": "prechorus",
+    "start_s": 51.52,
+    "end_s": 59.66,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 59.66,
+    "end_s": 80,
+    "energy": 4
+   },
+   {
+    "label": "postchorus",
+    "start_s": 80,
+    "end_s": 84.06,
+    "energy": 3
+   },
+   {
+    "label": "verse",
+    "start_s": 84.06,
+    "end_s": 100.34,
+    "energy": 2
+   },
+   {
+    "label": "prechorus",
+    "start_s": 100.34,
+    "end_s": 108.47,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 108.47,
+    "end_s": 128.81,
+    "energy": 4
+   },
+   {
+    "label": "bridge",
+    "start_s": 128.81,
+    "end_s": 153.22,
+    "energy": 3
+   },
+   {
+    "label": "solo",
+    "start_s": 153.22,
+    "end_s": 169.49,
+    "energy": 4
+   },
+   {
+    "label": "build",
+    "start_s": 169.49,
+    "end_s": 173.56,
+    "energy": 4
+   },
+   {
+    "label": "chorus",
+    "start_s": 173.56,
+    "end_s": 193.89,
+    "energy": 5
+   },
+   {
+    "label": "outro",
+    "start_s": 193.89,
+    "end_s": 206,
+    "energy": 3
+   }
+  ],
+  "key": 60,
+  "minor": true,
+  "chords": {
+   "verse": [
+    1,
+    4,
+    1,
+    7
+   ],
+   "chorus": [
+    1,
+    4,
+    1,
+    4
+   ],
+   "bridge": [
+    4,
+    1,
+    4,
+    3
+   ]
+  },
+  "keySure": "C minor (fairly sure)",
+  "alternatives": [],
+  "sources": [
+   "https://en.wikipedia.org/wiki/My_Type_(Saint_Motel_song)",
+   "https://songbpm.com/@saint-motel/my-type",
+   "https://www.musicnotes.com/sheetmusic/saint-motel/my-type/MN0187740",
+   "https://acordesweb.com/cancion/saint-motel/my-type",
+   "https://ukutabs.com/?p=232717",
+   "https://lrclib.net/api/get/34638951",
+   "https://lrclib.net/api/get/18527282",
+   "https://lrclib.net/api/get/34851593"
+  ],
+  "notes": "BPM: 118 from Wikipedia, Musicnotes and songbpm. The lyric timing agrees: lines repeat every 4.03-4.1 s (2 bars at 118 BPM), and 68 bars across the song come out to 117.96 BPM.\n\nBar grid: bar start = 0.674 + 2.0339*n s. It was fitted from verse-line timestamps in two independent 206 s lrclib entries, which land within about 0.05 s of the grid; chorus-entry lines sometimes come up to 0.3 s early, as pickups. Bar 17 is about 35.25 s (verse 1), bar 29 is about 59.66 s (chorus 1) and bar 85 is about 173.56 s (final chorus). first_beat_s 0.67 is projected back from this grid, so the exact start of the intro is an estimate.\n\nKey: C minor according to Wikipedia and Musicnotes. songbpm reports Bb major, which has the same notes, so the song is really C Dorian. The chords used are Cm, F (major), Eb and Bb. For the buzzer, use the C Dorian scale (C D Eb F G A Bb), with A natural, not Ab. Degrees: Cm=1, Eb=3, F=4 (major chord), Bb=7.\n\nChord loops (from a user-submitted chord sheet, so medium confidence). Each chord lasts about 2 bars, so each 4-slot loop actually covers 8 bars:\n- Verse: Cm-F-Cm-Bb [1,4,1,7].\n- Pre-chorus (4 bars): F-Eb-F [4,3,4].\n- Chorus (10 bars): Cm-F-Cm-F [1,4,1,4], then a 2-bar Eb-Bb [3,7] turnaround.\n- Bridge and solo: F-Cm-F-Eb [4,1,4,3].\n- The 2-bar 'ooh' vocal hook that leads into each section: Bb-F [7,4].\n\nStructure: worked out from lyric-line timestamps and repeat patterns (no lyrics used), plus the chord sheet's section order. Sections run 0-35.25 intro, which includes a 2-bar ooh lead-in at about 31.2 s; then verse (8 bars), pre-chorus (4), chorus (10) and post-chorus ooh hook (2); then verse 2, pre-chorus and chorus 2. After that comes a bridge of ooh vocals (about 128.8-153.2 s, 12 bars). The solo (about 153.2-169.5 s, 8 bars) is the blank gap in the synced lyrics. Then a 2-bar ooh build-up, the final chorus (10 bars) and about 12 s of outro. Section edges are snapped to the bar grid.\n\nThe user asked for this song played 'faster', so the dance code may scale the tempo. The original beat grid above is at 118 BPM."
+ },
+ {
+  "id": "baba_bandook",
+  "track": {
+   "title": "Baba Bandook",
+   "artist": "Ali Azmat & Haroon",
+   "version": "Baba Bandook - Single (Burka Avenger OST), 3:53 / 233.1 s on Spotify, Apple Music and Deezer",
+   "reason": "The Instagram clip is about 3:53. That matches the streaming single exactly (Spotify 233.105 s, Apple 233.105 s, Deezer 233 s). The official YouTube video on Haroon's channel runs 3:57, probably because it has a few extra seconds of video intro or outro."
+  },
+  "duration_s": 233.1,
+  "bpm": 88.5,
+  "bpm_confidence": "medium",
+  "time_signature": "4/4",
+  "first_beat_s": 0.3,
+  "structure_confidence": "low",
+  "mood": "Lively, cheeky villain rock anthem. It is the comic-menace theme for Baba Bandook, the bad guy in the Burka Avenger cartoon. Spotify-derived data calls it exuberant, high energy and very danceable, in a bright major key.",
+  "best_part": "This is a guess. The final double chorus, about 173.9 to 217.2 s (bars 64 to 80 at 88.5 BPM), should be the most fun part for the robot's best moves. The guitar/instrumental break just before it, about 152 to 174 s, is a good run-up.",
+  "sections": [
+   {
+    "label": "intro",
+    "start_s": 0,
+    "end_s": 11.2,
+    "energy": 2
+   },
+   {
+    "label": "verse",
+    "start_s": 11.2,
+    "end_s": 32.8,
+    "energy": 3
+   },
+   {
+    "label": "prechorus",
+    "start_s": 32.8,
+    "end_s": 43.7,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 43.7,
+    "end_s": 65.4,
+    "energy": 4
+   },
+   {
+    "label": "instrumental",
+    "start_s": 65.4,
+    "end_s": 76.2,
+    "energy": 3
+   },
+   {
+    "label": "verse",
+    "start_s": 76.2,
+    "end_s": 97.9,
+    "energy": 3
+   },
+   {
+    "label": "prechorus",
+    "start_s": 97.9,
+    "end_s": 108.8,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 108.8,
+    "end_s": 130.5,
+    "energy": 4
+   },
+   {
+    "label": "bridge",
+    "start_s": 130.5,
+    "end_s": 152.2,
+    "energy": 2
+   },
+   {
+    "label": "solo",
+    "start_s": 152.2,
+    "end_s": 173.9,
+    "energy": 4
+   },
+   {
+    "label": "chorus",
+    "start_s": 173.9,
+    "end_s": 195.6,
+    "energy": 5
+   },
+   {
+    "label": "chorus",
+    "start_s": 195.6,
+    "end_s": 217.2,
+    "energy": 5
+   },
+   {
+    "label": "outro",
+    "start_s": 217.2,
+    "end_s": 233.1,
+    "energy": 3
+   }
+  ],
+  "key": 62,
+  "minor": false,
+  "chords": {
+   "verse": [
+    1,
+    4,
+    1,
+    5
+   ],
+   "chorus": [
+    1,
+    4,
+    5,
+    4
+   ],
+   "bridge": [
+    6,
+    4,
+    1,
+    5
+   ]
+  },
+  "keySure": "D major (fairly sure)",
+  "alternatives": [],
+  "sources": [
+   "https://songbpm.com/@ali-azmat/baba-bandook-gyiet (Spotify data: 177 BPM, half-time 89, key D, major mode, 4/4, 3:53, high energy, very danceable)",
+   "https://itunes.apple.com/lookup?id=1631614614 (Apple Music: Baba Bandook - Single, Ali Azmat & Haroon, 233.105 s)",
+   "https://api.deezer.com/track/1803440447 (Deezer: 233 s, contributors Ali Azmat and Haroon, ISRC QZK6K2284883; Deezer BPM field empty)",
+   "https://open.spotify.com/embed/track/7C6pIsrdHP51ozwUuBUvuL (Spotify: duration 233105 ms)",
+   "https://www.youtube.com/results?search_query=baba+bandook+burka+avenger (official video 'Ali Azmat & Haroon - Baba Bandook (Burka Avenger OST)' on Haroon's channel, 3:57)",
+   "https://en.wikipedia.org/wiki/Burka_Avenger (song listed as a 2013 Ali Azmat & Haroon track from the show)",
+   "https://propakistani.pk/lens/haroon-shares-an-iconic-picture-with-ali-azmat-and-the-late-junaid-jamshed/ (Haroon confirms the Baba Bandook collaboration for Burka Avenger)"
+  ],
+  "notes": "TEMPO: Spotify (via songbpm) gives 177 BPM and says it also works half-time at 89. I chose 88.5 (half of 177) as the clap-along tempo because it matches the user's preferred pace of about 90. Every half-time beat still lands on a real beat, so the grid stays in sync. If the dance looks lazy, set SONG_BPM to 177 and keep the same first beat. KEY: D major comes from Spotify's analysis through songbpm. No chord site, Chordify, Hooktheory or tab page exists for this song (Chordify, Tunebat, Musicstax, Songdata and GetSongBPM all blocked automated access or had no entry). So all three chord loops (verse I-IV-I-V, chorus I-IV-V-IV, bridge vi-IV-I-V in D) are plausible diatonic rock loops, NOT transcribed. They will fit the key for an original buzzer tune. STRUCTURE: lrclib has no synced lyrics for this song (several searches tried, including by artist and duration 233). YouTube blocked automated access with a bot check, which I did not try to get around. So the section timeline is ESTIMATED: a standard pop/rock layout on an 88.5 BPM bar grid (bar = 2.712 s, 86 bars total), with boundaries at bars 0/4/12/16/24/28/36/40/48/56/64/72/80. first_beat_s = 0.3 is also an estimate (no timing data). Nudge SONG_FIRST_BEAT_MS if the moves are off the beat. A Shazam page I fetched earlier showed 83 BPM, but it turned out to be a fallback page for a different song (Tame Impala 'Loser'), so I threw that number out. This research is for the earlier song batch (Baba Bandook re-research). It is separate from the user's Ben 10 intro request."
+ },
+ {
+  "id": "iraaday",
+  "track": {
+   "title": "Iraaday",
+   "artist": "Rovalio & Abdul Hannan",
+   "version": "Original single, 'Iraaday - Single' (2022), 2:13 (133.3 s)",
+   "reason": "This is the one release that runs 2:13. iTunes lists the track at 133,306 ms, and the matching lrclib synced entries are 133 s long. The other lrclib entries are covers or shorter edits (106 s, 114 s, 122 s, 161 s, 187 s and 195 s)."
+  },
+  "duration_s": 133.3,
+  "bpm": 90,
+  "bpm_confidence": "high",
+  "time_signature": "4/4",
+  "first_beat_s": 0,
+  "structure_confidence": "medium",
+  "mood": "Warm, dreamy, romantic Pakistani indie-pop. Laid-back mid-tempo groove with a soft, hopeful glow. Good for smooth swaying and gliding moves rather than hard hits.",
+  "best_part": "The second chorus (96.0-117.3 s) and the 'mere iraade' hook tag right after it (117.3-128.0 s). The full band is playing there and the hook repeats, so it is the place for the robot's best moves.",
+  "sections": [
+   {
+    "label": "intro",
+    "start_s": 0,
+    "end_s": 10.67,
+    "energy": 2
+   },
+   {
+    "label": "instrumental",
+    "start_s": 10.67,
+    "end_s": 21.33,
+    "energy": 3
+   },
+   {
+    "label": "verse",
+    "start_s": 21.33,
+    "end_s": 42.67,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 42.67,
+    "end_s": 64,
+    "energy": 4
+   },
+   {
+    "label": "postchorus",
+    "start_s": 64,
+    "end_s": 74.67,
+    "energy": 4
+   },
+   {
+    "label": "verse",
+    "start_s": 74.67,
+    "end_s": 85.33,
+    "energy": 3
+   },
+   {
+    "label": "prechorus",
+    "start_s": 85.33,
+    "end_s": 96,
+    "energy": 4
+   },
+   {
+    "label": "chorus",
+    "start_s": 96,
+    "end_s": 117.33,
+    "energy": 5
+   },
+   {
+    "label": "postchorus",
+    "start_s": 117.33,
+    "end_s": 128,
+    "energy": 4
+   },
+   {
+    "label": "outro",
+    "start_s": 128,
+    "end_s": 133.3,
+    "energy": 2
+   }
+  ],
+  "key": 66,
+  "minor": false,
+  "chords": {
+   "verse": [
+    4,
+    1,
+    6,
+    5
+   ],
+   "chorus": [
+    4,
+    1,
+    6,
+    5
+   ],
+   "bridge": [
+    4,
+    1,
+    6,
+    5
+   ]
+  },
+  "keySure": "F# major (checked)",
+  "alternatives": [],
+  "sources": [
+   "https://tunebat.com/Info/Iraaday-Rovalio-Abdul-Hannan/6qrifdo7QINdPQr80IelGi (90 BPM, F# major, Camelot 2B; from search snippet, page blocked to direct fetch)",
+   "https://www.shazam.com/song/1615096570/iraaday (BPM field read 122, judged a misdetection)",
+   "https://itunes.apple.com/search?term=iraaday+rovalio&entity=song (duration 133306 ms, released 2022-03-18)",
+   "https://lrclib.net/api/search?q=Iraaday (entries 6063752 / 5142170 / 10387318 / 10935612, 133 s, timestamps only)",
+   "https://tabs.ultimate-guitar.com/tab/rovalio/iraaday-chords-4352255 (B F# D#m C#)",
+   "https://tabs.ultimate-guitar.com/tab/rovalio/iraaday-chords-5487726 (capo 2 A E C#m B = B F# D#m C#)",
+   "https://tabs.ultimate-guitar.com/tab/abdul-hannan/iraaday-ukulele-6176588 (capo 1 Bb F Dm C = B F# D#m C#, tonality F#)",
+   "https://tabs.ultimate-guitar.com/tab/rovalio/iraaday-chords-4345355 (capo 4 D A Em G = F# C# G#m B, a minority reading)",
+   "https://kworb.net/spotify/track/6qrifdo7QINdPQr80IelGi.html (Spotify track ID)"
+  ],
+  "notes": "BPM: Tunebat (Spotify data) gives 90, and the lyric timing confirms it. Both the gap from verse 1 to verse 2 (21.86 to 75.06 s) and the gap from chorus 1 to chorus 2 (42.58 to 96.07 s) come to about 53.3 s. That is 20 bars at 90.0 BPM, and each sung line is 2 bars (8 beats, about 5.33 s). Shazam shows 122 BPM, which fits none of the timing, so I ignored it.\n\nFirst downbeat: one bar is 2.667 s, and the whole track (133.3 s) is exactly 50 bars at that length. The chorus lines also land on a grid that starts at about 0.0 s (they read about 0.09 s early, which is normal for lrclib). So the first downbeat is at about 0.0 s, and the song is 50 bars of 4/4. Section bar counts:\n- 0-21.33 s: intro, 8 bars, with a short vocal tag at about 8.7 s\n- 21.33-42.67 s: verse 1, 8 bars\n- 42.67-64.0 s: chorus 1, 8 bars\n- 64.0-74.67 s: hook tag plus instrumental, 4 bars\n- 74.67-85.33 s: verse 2, 4 bars\n- 85.33-96.0 s: pre-chorus, 4 bars, where new lines build toward the chorus\n- 96.0-117.33 s: chorus 2, 8 bars; its lines repeat chorus 1\n- 117.33-128.0 s: hook tag, 4 bars\n- 128.0-133.3 s: outro, 2 bars\n\nSplitting the intro into a soft half (0-10.67 s) and a groove half (10.67-21.33 s) is my estimate. There is no vocal after the 8.7 s tag until 21.9 s.\n\nKey and chords: Tunebat says F# major. Three separate Ultimate Guitar transcriptions (two guitar, one ukulele, after working out the capo) all give the same 4-bar loop played through the whole song: B, F#, D#m, C#. In F# major that is IV, I, vi, V, so the loop is [4,1,6,5] in the verse, chorus and pre-chorus. The song has no separate bridge progression, so chords_bridge repeats the same loop. A fourth, older tab with the most votes (55) reads the loop as F#, C#, G#m, B (I, V, ii, IV). That is also inside F# major, so an original buzzer tune built on F# major notes will fit either reading."
+ },
+ {
+  "id": "sh_boom",
+  "track": {
+   "title": "Sh-Boom (Life Could Be a Dream)",
+   "artist": "The Chords",
+   "version": "Original 1954 Cat Records single (Cat 104), as used in Pixar's Cars (2006) and on the Cars soundtrack (track 6, 2:26)",
+   "reason": "The task asks for the original 1954 Chords recording used in the Cars neon-lights scene. The Cars soundtrack lists this recording at 2:26, and the lrclib 'Disney Pixar Cars' synced entry (143 s) has the same timing grid as the 146-147 s single entries."
+  },
+  "duration_s": 146,
+  "bpm": 137,
+  "bpm_confidence": "high",
+  "time_signature": "4/4",
+  "first_beat_s": 0.8,
+  "structure_confidence": "high",
+  "mood": "Happy, dreamy, bouncy 1950s doo-wop with a jump-blues shuffle. Warm, romantic and easygoing, the kind of song you cruise to.",
+  "best_part": "The 16-bar hot tenor-sax solo (about 1:25-1:53). The group chants doo-wop syllables underneath it, and it runs straight into the final, higher-pitched refrain at 1:53. Save the robot's best moves for 1:25-2:07.",
+  "sections": [
+   {
+    "label": "intro",
+    "start_s": 0,
+    "end_s": 7.8,
+    "energy": 2
+   },
+   {
+    "label": "verse",
+    "start_s": 7.8,
+    "end_s": 28.8,
+    "energy": 3
+   },
+   {
+    "label": "verse",
+    "start_s": 28.8,
+    "end_s": 42.8,
+    "energy": 3
+   },
+   {
+    "label": "bridge",
+    "start_s": 42.8,
+    "end_s": 56.8,
+    "energy": 2
+   },
+   {
+    "label": "chorus",
+    "start_s": 56.8,
+    "end_s": 70.8,
+    "energy": 4
+   },
+   {
+    "label": "postchorus",
+    "start_s": 70.8,
+    "end_s": 84.8,
+    "energy": 3
+   },
+   {
+    "label": "solo",
+    "start_s": 84.8,
+    "end_s": 112.8,
+    "energy": 5
+   },
+   {
+    "label": "chorus",
+    "start_s": 112.8,
+    "end_s": 126.8,
+    "energy": 5
+   },
+   {
+    "label": "outro",
+    "start_s": 126.8,
+    "end_s": 146,
+    "energy": 3
+   }
+  ],
+  "key": 65,
+  "minor": false,
+  "chords": {
+   "verse": [
+    1,
+    6,
+    2,
+    5
+   ],
+   "chorus": [
+    1,
+    6,
+    2,
+    5
+   ],
+   "bridge": [
+    3,
+    6,
+    2,
+    5
+   ]
+  },
+  "keySure": "F major (fairly sure)",
+  "alternatives": [],
+  "sources": [
+   "https://lrclib.net/api/search?track_name=Sh-Boom&artist_name=The%20Chords (synced timestamps; Cars soundtrack entry id 34465818, 143 s; single entries 146-147 s)",
+   "https://theartofrockmusic.voices.wooster.edu/wp-content/uploads/sites/180/2015/01/Sh-Boom-The-Chords-1954.pdf (Wooster MUSC-21600 listening guide: form, bar counts, timings)",
+   "https://hooktheory.com/theorytab/view/the-chords/sh-boom (F major, 134 BPM, I-vi-ii7-V7)",
+   "https://chordu.com/chords-tabs-sh-boom-id_ESLa421KQaM (136.95 BPM, F major, chord names)",
+   "https://cs.uwaterloo.ca/~dtompkin/music/track/DTRANDOM_007/DTRANDOM_007-11.html (Mixmeister/Traktor 137.5 BPM, D minor = relative of F, 2:27)",
+   "https://songbpm.com/@the-chords/sh-boom (F major; its 130 BPM / 3:36 listing looks like a different version)",
+   "https://en.wikipedia.org/wiki/Cars_(soundtrack) (track 6, 2:26)",
+   "https://mickeyvisit.com/this-is-the-coolest-moment-of-the-day-at-disney-california-adventure-you-wont-want-to-miss/ (Sh-Boom plays while the neon comes on, recreating the Cars scene)",
+   "https://cinemablend.com/news/1670850/7-best-musical-moments-from-the-cars-franchise"
+  ],
+  "notes": "BEAT GRID: Synced lines fall every 3.50 s (2 bars = 8 beats), which works out to 137.1 BPM. The grid holds from 0:09.5 to 2:05 with almost no drift, so the take has a steady tempo. This matches Mixmeister/Traktor (137.5) and Chordu (136.95). Hooktheory says 134. Bars are 1.75 s long, starting at about 0.8 s (0.8, 2.55, 4.3, 6.05, 7.8...). The opening sung line at about 0.1-0.2 s is a pickup before the first downbeat. first_beat_s is estimated from the lyric timestamps, not measured from the audio, so it could be off by about 0.3 s.\n\nFORM: The Wooster listening guide gives AABA with an interlude. In bars: Intro 4 (2 a cappella, then 2 with the band), A1 8+4 (the extra 4 bars are scat singing plus a band fill), A2 8, B (bridge) 8, A3 8+8, sax interlude 16, A4 8+8. A4's extra 8 bars end on a rich, jazzy final chord. Section times above are those bar counts laid on the 1.75 s grid. The guide's own timestamps (0:07, 0:29, 0:43, 0:57, 1:53) agree within about 1 s. Its 1:22 start for the interlude seems early: 16 bars ending at 1:53 means it starts at about 1:25. Labels: A1 and A2 are 'verse'. The bridge is calmer (bass singer with guitar). A3 and A4 are 'chorus' because they bring back the refrain an octave higher for more intensity. The 8-bar scat extensions are 'postchorus' and 'outro'.\n\nKEY/CHORDS: Hooktheory, SongBPM and Chordu all say F major. Mixmeister says D minor, which shares F major's notes. The Wooster guide says C major, the odd one out. Verse and refrain loop: I-vi-ii7-V7 = F, Dm, Gm7, C7 = [1,6,2,5]. Bridge: about A7, Dm, G7, C7 (the III7-vi-II7-V7 pattern Chordu shows). Here degree 3 is played as a major/dominant A7, not A minor, and degree 2 as G7, not Gm, so for a buzzer tune over the bridge, use C# over the A7 bar and B natural over the G7 bar. The saxophone interlude repeats the I-vi-ii-V loop.\n\nCARS SCENE: Sources confirm that Sh-Boom plays while Radiator Springs' restored neon comes on along Route 66, and that the townsfolk then spend the evening cruising Main Street. The rest is from general memory, not a fetched source: McQueen has just shopped at every store in town (new tires, a new paint job), then the neon is switched on as a surprise for Sally. Everyone drives 'low and slow' up and down the street in pairs, with McQueen and Sally side by side, while Ramone bounces on his hydraulics. Robot idea: slow, smooth cruising with gentle side-to-side sways and small weaves in the verses. Add little hops or bounces like Ramone's in the sax solo and the final refrain."
+ },
+ {
+  "id": "ben10_og",
+  "track": {
+   "title": "Ben 10 Theme Song (original series opening)",
+   "artist": "Moxy (written by Andy Sturmer)",
+   "version": "Cartoon Network TV opening, Seasons 1-2 (2005-2008), English, full length about 1:01-1:02. This is the version most people know: the official CN YouTube upload is 1:02 with about 9.7M views, and the Ben 10 wiki lists 1:01. Seasons 3-4 use the same audio with new footage (Cannonbolt replaces Ghostfreak).",
+   "reason": "This is the original 2005 Ben 10 opening that was asked for. The full roughly 61 s TV cut is the popular upload. Some later reruns used a shortened cut, but the full length is the standard one, and current Boomerang airings went back to it."
+  },
+  "duration_s": 61,
+  "bpm": 136,
+  "bpm_confidence": "high",
+  "time_signature": "4/4",
+  "first_beat_s": 0.05,
+  "structure_confidence": "medium",
+  "mood": "Energetic, heroic synth-rock / pop-punk. Driving, punchy and adventurous, with a dark minor-key edge and a big shout-along payoff at the title.",
+  "best_part": "The third stanza from about 35.3 to 49.5 s, where the Flash-animated alien countdown from 1 to 10 plays. It builds straight into the title shout at about 49.5 s, the single biggest hit and the best spot for a spin or flash. The second most exciting stretch is the second verse (about 21-35 s), where the alien renders fly at the screen.",
+  "sections": [
+   {
+    "label": "intro",
+    "start_s": 0,
+    "end_s": 7.11,
+    "energy": 3
+   },
+   {
+    "label": "verse",
+    "start_s": 7.11,
+    "end_s": 21.23,
+    "energy": 3
+   },
+   {
+    "label": "verse",
+    "start_s": 21.23,
+    "end_s": 35.34,
+    "energy": 4
+   },
+   {
+    "label": "chorus",
+    "start_s": 35.34,
+    "end_s": 49.46,
+    "energy": 5
+   },
+   {
+    "label": "hook",
+    "start_s": 49.46,
+    "end_s": 52.99,
+    "energy": 5
+   },
+   {
+    "label": "outro",
+    "start_s": 52.99,
+    "end_s": 61,
+    "energy": 4
+   }
+  ],
+  "key": 63,
+  "minor": true,
+  "chords": {
+   "verse": [
+    1,
+    4,
+    7,
+    3
+   ],
+   "chorus": [
+    6,
+    3,
+    4,
+    7
+   ],
+   "bridge": [
+    6,
+    3,
+    6,
+    1
+   ]
+  },
+  "keySure": "D# minor (checked)",
+  "alternatives": [],
+  "sources": [
+   "https://ben10.fandom.com/wiki/Ben_10_(2005_TV_Series)/Theme_Song (read via the MediaWiki API: key Eb minor, 136 BPM, length 1:01, Moxy / Andy Sturmer, description of the sections and visuals, Hindi singer Sunidhi Chauhan)",
+   "https://www.musicnotes.com/l/rHVNF (piano arrangement: original published key D# minor, about 136 BPM, Andy Sturmer, 2005, seen via search snippet)",
+   "https://lrclib.net/api/get/13567715 ('Ben 10 Theme Song', Cartoon Network, 61 s, synced. Used only the line timestamps: 6.85, 10.30, 13.76, 16.94, 20.93, 24.39, 28.11, 31.29, [gap 33.68], 35.27, 38.46, 42.18, 45.63, 48.83, vocals end 50.00)",
+   "https://lrclib.net/api/get/10146676 (cover version, 64 s, timestamps used only as a cross-check)",
+   "https://tabs.ultimate-guitar.com/tab/misc-cartoons/ben-10-theme-chords-6044315 (capo 1 chart; chord names only)",
+   "https://tabs.ultimate-guitar.com/tab/moxy/ben-10-chords-597955 (chord names only, plus a user comment giving the verse and chorus chords in D# minor)",
+   "https://tabs.ultimate-guitar.com/tab/misc-cartoons/ben-10-theme-song-chords-5263287 (chord names only)",
+   "https://www.youtube.com/results?search_query=ben+10+original+series+intro+2005 (upload lengths: official S1-2 opening 1:02 with about 9.7M views, others 1:00-1:03, Hindi classic theme 1:04)",
+   "https://en.wikipedia.org/wiki/Ben_10_(2005_TV_series) (theme credits: Andy Sturmer, performed by Moxy)"
+  ],
+  "notes": "TEMPO: 136 BPM, from three sources that agree. The Ben 10 wiki infobox says 136 BPM. Musicnotes says about 136. The lrclib timed lines repeat every 3.525 s, which is 2 bars at 136.2 BPM, consistently from 6.85 s to 45.63 s. One bar is about 1.765 s and one beat about 0.441 s.\n\nFIRST BEAT (estimated): about 0.05 s. I did not analyse the audio. I worked it out from the lyric timestamps: the verse vocals start at about 6.85 s with a short pickup, so verse 1's first downbeat is at about 7.1 s. That fits an intro of exactly 4 bars starting right at the top of the audio. The timestamps could be off by about ±0.2 s, so allow up to half a beat of drift. If the robot looks late, try first_beat_s = 0.25. If it looks early, try -0.15, which means the first full downbeat in the audio is at about 1.6 s.\n\nSECTIONS, on the bar grid (bar n starts at 0.05 + (n-1) x 1.765 s):\n- Intro: 4 bars (0-7.1). Instrumental riff while the camera flies through the solar system to Ben's silhouette.\n- Verse 1: 8 bars (7.1-21.2). Clips of the Omnitrix pod and the first Heatblast transformation.\n- Verse 2: 8 bars (21.2-35.3). Alien renders fly at the screen with Wildmutt's transformation. A short instrumental break is at about 33.7-35.3.\n- Third stanza: 8 bars (35.3-49.5). I labelled this 'chorus' because it carries the title hook and is the climax, but the Ben 10 wiki calls it the bridge. This is where the Flash animation counts the aliens 1 to 10.\n- Title shout: at about 49.5 s. All vocals end at about 50.0 s.\n- Outro: about 50-61 s. Instrumental montage of action clips over the verse riff, then all the aliens get sucked into the centre to form the logo. The final hit is near 60 s and it rings out to 61 s.\n\nKEY: Eb minor (key_note 3). Three sources agree: the wiki says Eb minor, Musicnotes says D# minor, and a UG chart in capo-1 Dm shapes also works out to Eb minor. Another UG chart is written a semitone high, in E minor. The 2008 movie cover is in B minor, so it is not this recording.\n\nCHORDS: these come from fan charts, so they are only medium confidence.\n- Verse (chords_verse) is i-iv-VII-III (Ebm-Abm-Db-Gb). Two UG sources agree on it.\n- Climax stanza (chords_chorus) is roughly VI-III-(bV)-IV, then back to i: B-Gb-A-Ab-Ebm. One bar uses a borrowed A major chord that is not in the scale. I swapped it for degree 4 and finished the loop on 7 (Db), which leads back to the tonic.\n- chords_bridge: there is no separate bridge. [6,3,6,1] is how a second fan chart reads that same climax stanza (VI-III-VI-i). Use it as a contrasting loop if needed.\n- Intro pickup: the capo-1 chart shows i-V (Ebm-Bb) in the intro.\n- Outro: goes back to the verse loop.\n\nOTHER:\n- same_as_english is set to true only because this is the English reference itself.\n- The Hindi dub is sung by Sunidhi Chauhan and its common upload is 1:04 long. I did not check whether it reuses the same backing track and timing.\n- I copied no lyrics or melody. I used only the timestamps and line counts from lrclib."
+ },
+ {
+  "id": "ben10_og_hindi",
+  "track": {
+   "title": "Ben 10 Theme Song (Hindi dub)",
+   "artist": "Andy Sturmer (composer); English vocals by Moxy; Hindi vocals credited to Sunidhi Chauhan",
+   "version": "Ben 10 (2005 original series) opening, Hindi/Urdu dub as aired on Cartoon Network India/Pakistan from Oct 2007 (Seasons 1-4 TV opening, about 1:01)",
+   "reason": "This is the original-series intro the user asked for (not the 2016 reboot). The Ben 10 fandom wiki names Sunidhi Chauhan as the singer of the theme in India. Hindi uploads on YouTube run 0:59-1:02, the same as the English 1:01 opening, so it is the same instrumental with Hindi vocals."
+  },
+  "duration_s": 61,
+  "bpm": 136,
+  "bpm_confidence": "high",
+  "time_signature": "4/4",
+  "first_beat_s": 0.05,
+  "structure_confidence": "medium",
+  "mood": "Driving, upbeat synth-rock. Heroic and a bit cheeky, with steady hard drums and guitar from start to finish. It builds in the count-up section and peaks on the shouted title hook.",
+  "best_part": "From about 35.3 s to 56.5 s. The bridge plays while the on-screen Flash sequence counts Ben through his first ten aliens, building up to Ben slamming the ground. It then hits the shouted \"Ben 10!\" title hook with stuttered chants at about 49.4-56.5 s, the most exciting stretch. Good spot for the robot's biggest spin or shimmy, with a hard stop on the logo slam near 60 s.",
+  "sections": [
+   {
+    "label": "intro",
+    "start_s": 0,
+    "end_s": 7.06,
+    "energy": 3
+   },
+   {
+    "label": "verse",
+    "start_s": 7.06,
+    "end_s": 21.18,
+    "energy": 3
+   },
+   {
+    "label": "verse",
+    "start_s": 21.18,
+    "end_s": 35.29,
+    "energy": 4
+   },
+   {
+    "label": "bridge",
+    "start_s": 35.29,
+    "end_s": 49.41,
+    "energy": 4
+   },
+   {
+    "label": "hook",
+    "start_s": 49.41,
+    "end_s": 56.47,
+    "energy": 5
+   },
+   {
+    "label": "outro",
+    "start_s": 56.47,
+    "end_s": 61,
+    "energy": 4
+   }
+  ],
+  "key": 63,
+  "minor": true,
+  "chords": {
+   "verse": [
+    1,
+    4,
+    7,
+    3
+   ],
+   "chorus": [
+    1,
+    6,
+    7,
+    1
+   ],
+   "bridge": [
+    6,
+    3,
+    4,
+    1
+   ]
+  },
+  "keySure": "D# minor (checked)",
+  "alternatives": [],
+  "sources": [
+   "https://ben10.fandom.com/wiki/Ben_10_(2005_TV_Series)/Theme_Song (wiki MusicBox: key Eb minor, 136 BPM, length 1:01, synth rock, Andy Sturmer/Moxy; names Sunidhi Chauhan as the singer in India; notes a Hindi-dub pronunciation difference)",
+   "https://www.musicnotes.com/l/rHVNF (Sheet Music Boss piano arrangement: original key D# minor, quarter = 136, 2005, Andy Sturmer; seen via search snippets because the page returned 403)",
+   "https://tabs.ultimate-guitar.com/tab/moxy/ben-10-chords-597955 (chord names only: tab in Em with a i-VI-VII-i pattern; user comment says D#m and gives verse D#m-G#-C#-F#, chorus B-F#-A-G#-D#)",
+   "https://lrclib.net/api/get/13567715 (Cartoon Network 'Ben 10 Theme Song', 61 s, synced line timestamps only: about 6.85/20.93/35.27/48.83 s, line spacing about 3.5 s = 2 bars at 136 BPM)",
+   "https://lrclib.net/api/get/10146676 (cover, 64 s, similar timestamps)",
+   "https://www.youtube.com/results?search_query=ben+10+hindi+intro+original+2005 (Hindi intro uploads 0:59-1:02, incl. Netflix India Hindi dub at 1:02; English S1-2 opening at 1:02)",
+   "https://madhyamamonline.com/entertainment/sunidhi-chauhans-surprise-performance-of-ben-10-theme-song-at-iit-roorkee-goes-viral-1337867 (Sunidhi Chauhan sang the Hindi Ben 10 theme live at Thomso 2024, IIT Roorkee)",
+   "https://www.afaqs.com/media-briefs/27943_cartoon-network-celebrates-republic-day-with-ben-10-the-green-hero (Ben 10 launched on Cartoon Network India in Oct 2007)"
+  ],
+  "notes": "TEMPO/KEY: The Ben 10 fandom wiki (Eb minor, 136 BPM, 1:01) and the Musicnotes listing (D# minor, quarter = 136) agree. The lrclib timestamps for the English CN recording back this up: vocal lines repeat every ~3.5 s and each 4-line block lasts ~14.1 s, which is 8 bars at 136 BPM (1 bar = 1.765 s, 1 beat = 0.441 s). key_note 3 = Eb/D#.\n\nSAME AS ENGLISH: true. The Hindi dub reuses the original instrumental with Hindi vocals (credited to Sunidhi Chauhan by the wiki). Hindi uploads run 0:59-1:02 against the English 1:01-1:02, so one dance should fit both. The only differences are vocal. The wiki mentions a Hindi-dub pronunciation of 'Ripjaws', which suggests the Hindi version may call out alien names during the count-up section, but the music is unchanged. Check the first hit against the actual Hindi upload, because a TV rip may have up to ~0.5-1 s of lead-in.\n\nBEAT GRID: The section times assume the first downbeat at ~0 s, so bars start at n x 1.765 s. Bar 4 = 7.06 s (first vocal pickup at 6.85), bar 12 = 21.18 s, bar 20 = 35.29 s (lrclib line at 35.27), bar 28 = 49.41 s, bar 32 = 56.47 s. first_beat_s is medium-low confidence: I estimated it from the lyric timestamps, not from analysing the audio. If the robot drifts, nudge first_beat_s by one beat (0.44 s).\n\nSTRUCTURE: 4-bar intro (space fly-through / Ben silhouette). Verse 1 (8 bars, Omnitrix grabs Ben's wrist, ends on a shouted title hook). Verse 2 (8 bars, the 10 alien renders fly at the screen, ends on the hook again). Bridge (8 bars, the Flash count-up of aliens 1-10, energy building). The 'Ben 10!' shout/chant tag at about 49.4-56.5 s is the climax. A short outro (clips, then all aliens get sucked into the title logo) ends with a hit around 60-61 s. The two verses are the same length, so the robot can repeat the same 8-bar move set twice.\n\nCHORDS (low-medium confidence, sources conflict): The Ultimate Guitar tab is written in Em, a semitone off, with an i-VI-VII-i pattern (I used that for the 'chorus'/hook loop). A user correction on the same page puts it in D#m with verse i-IV-VII-III and chorus/bridge VI-III-bV-IV-i. I used [1,4,7,3] for the verse. For the bridge I used [6,3,4,1], dropping the non-diatonic bV, so treat the bridge loop as an approximation. Any Eb natural-minor buzzer tune that leans on degrees 1, 6, 7 and 3 will fit.\n\nFEEDBACK: The alien Feedback does not appear in this original-series intro. The count-up shows the first ten aliens (Ghostfreak was replaced by Cannonbolt in Seasons 3-4), so any Feedback beep or message belongs in the Omniverse-era routines, not this one."
+ },
+ {
+  "id": "ben10_af",
+  "track": {
+   "title": "Ben 10: Alien Force Theme Song (Main Title / Opening)",
+   "artist": "Andy Sturmer (Cartoon Network)",
+   "version": "English TV opening, Season 1 (Season 2-3 variant uses the same music; only the Alien X shot changes). About 30-31 s.",
+   "reason": "This is the opening the task asked for, from the new-Omnitrix era. It is a fully instrumental orchestral-rock remake of the original series verse melody played in half-time. The official 'Season 1 Opening Theme (English) (HD)' upload is 31 s long, and the fandom wiki gives the length as 0:30."
+  },
+  "duration_s": 31,
+  "bpm": 135,
+  "bpm_confidence": "high",
+  "time_signature": "4/4",
+  "first_beat_s": 0.2,
+  "structure_confidence": "low",
+  "mood": "Dark, serious and heroic: driving orchestral rock with heavy distorted guitars, big brass and strings, and pounding drums. It feels older and moodier than the bouncy 2005 theme, but still punchy and triumphant. Instrumental, with no singing.",
+  "best_part": "The last third, from about 23 s to the end (about 31 s). This is the quick slideshow of Ben's first ten Alien Force aliens, ending on the 'Ben 10 Alien Force' logo hit. The full band and orchestra play here, and the ending slips in a callback to the original-series Ben 10 motif. Fast spins and flashing eyes fit well, with a big freeze or pose on the final hit at about 30 s.",
+  "sections": [
+   {
+    "label": "intro",
+    "start_s": 0,
+    "end_s": 2,
+    "energy": 3
+   },
+   {
+    "label": "verse",
+    "start_s": 2,
+    "end_s": 16.2,
+    "energy": 4
+   },
+   {
+    "label": "chorus",
+    "start_s": 16.2,
+    "end_s": 23.3,
+    "energy": 4
+   },
+   {
+    "label": "hook",
+    "start_s": 23.3,
+    "end_s": 28.6,
+    "energy": 5
+   },
+   {
+    "label": "outro",
+    "start_s": 28.6,
+    "end_s": 31,
+    "energy": 4
+   }
+  ],
+  "key": 60,
+  "minor": true,
+  "chords": {
+   "verse": [
+    1,
+    1,
+    6,
+    7
+   ],
+   "chorus": [
+    6,
+    7,
+    1,
+    1
+   ],
+   "bridge": [
+    4,
+    6,
+    7,
+    1
+   ]
+  },
+  "keySure": "C minor (checked)",
+  "alternatives": [],
+  "sources": [
+   "https://ben10.fandom.com/wiki/Ben_10:_Alien_Force_(TV_Series)/Theme_Song (via the MediaWiki API: infobox says Orchestral, C Minor, 135 BPM, length 0:30, written by Andy Sturmer; instrumental; half-time remake of the original series verses; ending references the original series motif; a sped-up version plays in the credits)",
+   "https://en.wikipedia.org/wiki/Ben_10:_Alien_Force (theme music composer Andy Sturmer)",
+   "https://www.songsterr.com/api/meta/1031268 and https://www.songsterr.com/api/video-points/1031268/6721875/list (fan tab of the theme: tempo marking 135 BPM, 4/4; synced bar length about 1.778 s, which is about 135.0 BPM; bass pitch content centred on C with Ab-Bb turnarounds; guitar pitch content is C natural minor with an occasional leading tone)",
+   "https://www.songsterr.com/api/meta/3160289 (another fan guitar arrangement, in drop-C tuning, which also points to C)",
+   "https://www.youtube.com/results?search_query=Ben+10+Alien+Force+opening+theme+English (official-style uploads: 'Season 1 Opening Theme (English) (HD)' 31 s, 'Alien Force Intro' 30 s, 8K remaster 32 s)",
+   "https://songdata.io (cover by Niall Stenson listed at 138 BPM; key given as Bb major, probably a mode confusion; this is a cover and was not used as primary)",
+   "https://www.musicnotes.com/l/rHVNF (original 2005 Ben 10 theme piano arrangement at about 136 BPM; a related tempo, but a different theme)"
+  ],
+  "notes": "BPM 135 in 4/4 has high confidence. It matches three ways: the fandom wiki says 135, the Songsterr tab tempo marking says 135, and the Songsterr video sync points (bar length about 1.778 s) work out to exactly 135.0. The melody is a half-time version of the 2005 theme, so the brass line feels like about 67.5 BPM while the drums drive at 135. The robot can step every beat (0.444 s) in the busy parts and every 2 beats (0.889 s) in the calm opening.\n\nKey C minor has high confidence (wiki, plus the tab pitch content: Eb, Ab and Bb present; a drop-C cover arrangement also points to C).\n\nChords: verse [1,1,6,7] is based on the tab's bass line. That bass mostly holds the tonic C, with a bVI-bVII lift (Ab to Bb) as each phrase turns around, which is typical for this kind of power-chord rock. Chorus [6,7,1,1] is the same material with the lift moved to the front of the loop, to build excitement. Bridge [4,6,7,1] is an invented diatonic loop because a 30 s opening has no real bridge. Use it for the final logo hit or a custom ending.\n\nfirst_beat_s 0.2 is an estimate (low confidence). It assumes the music starts right at the top of the upload, as the official-style 31 s rips do. I did not do any audio analysis.\n\nSection timestamps are low confidence. I put them on the 135 BPM bar grid (bars about 1.778 s long, starting at 0.2 s), so the opening works out to about 17 bars: a 1-bar opening hit, two 8-bar half-time melody phrases, then the final logo hit. They also follow the wiki's shot order: Ben's silhouette with the Omnitrix glow, clips from Ben 10 Returns and other episodes, the team (Ben, Gwen, Kevin), the slideshow of 10 aliens, then the logo. The exact cut points are inferred, not measured.\n\nThe theme is fully instrumental, with no lyrics at all, so the Hindi/Urdu dubbed airings very likely reuse the identical music track. That means the same dance should fit both.\n\nOther uses of this music: the credits play a sped-up version, and the Alien Force video game and Vilgax Attacks use it on their menus.\n\nNot part of this task (for the parent agent): for the user's 'Feedback' special mention, Feedback is an original-series/Omniverse alien, not an Alien Force one. Alien Force's ten opening aliens are Swampfire, Echo Echo, Humungousaur, Jetray, Big Chill, Chromastone, Brainstorm, Spidermonkey, Goop and Alien X."
+ },
+ {
+  "id": "ben10_af_hindi",
+  "track": {
+   "title": "Ben 10: Alien Force Theme (Hindi/Urdu dub opening)",
+   "artist": "Andy Sturmer (composer), Cartoon Network",
+   "version": "Hindi/Urdu dub TV opening (Cartoon Network India/Pakistan; Alien Force premiered on CN India on 11 Dec 2009), about 0:30, the same instrumental as the English Season 1-3 opening",
+   "reason": "Requested intro. The English Alien Force theme has no vocals. Hindi uploads run 0:30-0:31, the same as English uploads (0:30-0:32), so the dub keeps the original music track and only the episode audio and title card are localized."
+  },
+  "duration_s": 30,
+  "bpm": 135,
+  "bpm_confidence": "high",
+  "time_signature": "4/4",
+  "first_beat_s": 0.2,
+  "structure_confidence": "low",
+  "mood": "Dark, heroic orchestral rock in C minor with distorted guitars. The melody moves in a half-time feel over a driving 135 BPM pulse, so it sounds more serious and teen than the bouncy original Ben 10 theme.",
+  "best_part": "21.5-28.6 s: the big climb from the 6th to the 7th to the 1st chord (Ab, Bb, C), with the most exciting part during the fast alien cuts. Then comes the final hit at about 28.6 s, where the classic Ben 10 motif plays under the logo. A good spot for spins or a big finish move.",
+  "sections": [
+   {
+    "label": "intro",
+    "start_s": 0,
+    "end_s": 7.3,
+    "energy": 3
+   },
+   {
+    "label": "verse",
+    "start_s": 7.3,
+    "end_s": 14.4,
+    "energy": 3
+   },
+   {
+    "label": "verse",
+    "start_s": 14.4,
+    "end_s": 21.5,
+    "energy": 4
+   },
+   {
+    "label": "chorus",
+    "start_s": 21.5,
+    "end_s": 28.6,
+    "energy": 5
+   },
+   {
+    "label": "outro",
+    "start_s": 28.6,
+    "end_s": 30,
+    "energy": 4
+   }
+  ],
+  "key": 60,
+  "minor": true,
+  "chords": {
+   "verse": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "chorus": [
+    6,
+    7,
+    1,
+    1
+   ],
+   "bridge": [
+    1,
+    3,
+    1,
+    3
+   ]
+  },
+  "keySure": "C minor (checked)",
+  "alternatives": [],
+  "sources": [
+   "https://ben10.fandom.com/wiki/Ben_10:_Alien_Force_(TV_Series)/Theme_Song (read through the MediaWiki API: key C minor, 135 BPM, length 0:30, instrumental with no lyrics, half-time orchestral remix of the original theme, ending quotes the original motif)",
+   "https://www.songsterr.com/a/wsa/cartoon-network-ben-10-alien-force-theme-song-tab-s1031268 (human tab: tempo 135, bass and chord roots C / Ab / Bb; video sync puts bar starts at 0.19, 1.98, 3.76 ... 7.3, 14.42, 21.53, 28.64 s)",
+   "https://www.songsterr.com/a/wsa/cartoon-network-ben-10-alien-force-theme-on-guitar-tab-s3160289 (AI tab of a guitar cover: tempo 135, drop-C tuning, form = 4 intro bars + 8 melody bars + Ab-Bb-C-C climax + final hit)",
+   "YouTube search listings: 'Ben 10 Alien Force theme song in hindi' bVGDy2TKJJo 0:31; 'BEN 10 ALIEN FORCE OPENING THEME IN HINDI' JbTWfzCrnCA 0:30; _jjgcw4dFJQ 0:31 (Hindi); English -cQAeskDuXI 0:30, kdBp2Sh--vw 0:31",
+   "https://www.afaqs.com/media-briefs/43582_cartoon-network-presents-the-ben-10-alien-force (CN India premiere on 11 Dec 2009)",
+   "https://en.wikipedia.org/wiki/Ben_10:_Alien_Force (theme composer Andy Sturmer)"
+  ],
+  "notes": "The English theme is instrumental, so there is nothing to dub, and Hindi uploads match the English length (about 30 s). One dance should fit both versions, but I did not listen to the Hindi audio to confirm it.\n\nTempo: 135 BPM has three sources that agree:\n- the fandom wiki says 135 BPM;\n- both Songsterr tabs are set to 135;\n- the video sync points are spaced about 1.778 s per bar, which is 134.8 BPM.\n\nThe melody moves in half-time, so it feels like about 67.5 BPM. The robot can step on every beat (0.444 s) or every second beat for the slow, heavy feel.\n\nBeat grid:\n- First downbeat: about 0.2 s. This comes from bar 1 of the synced extended upload; it was not measured on the TV cut, so its confidence is low.\n- One bar is about 1.778 s.\n- Bars start at 0.2, 7.3, 14.4, 21.5 and 28.6 s.\n- 17 bars at this tempo come to about 30.2 s, which matches the intro length.\n\nKey: C minor, from the wiki. Both tabs agree: they center on C, use Ab and Bb power chords, and one uses drop-C tuning. A songdata.io listing of a fan cover gives Bb major, but that is someone else's cover, so I ignored it.\n\nChords:\n- Chorus/climax (6, 7, 1, 1, i.e. Ab, Bb, C, C): well supported by both tabs.\n- Verse (1, 1, 1, 1): the bass and rhythm guitar stay on C the whole time. If the buzzer needs more variety, 1, 1, 4, 1 is a plausible implied alternative.\n- The bridge slot holds the intro pattern instead (1, 3, 1, 3, i.e. C and Eb alternating), because the 30 s intro has no real bridge.\n\nSections: the timeline is inferred, which is why its confidence is low. It assumes the TV cut follows the cover's form of 4 intro bars + 8 melody bars + one 4-bar climax + a final hit. The cover plays the climax twice; I assumed the TV cut plays it once to fit 30 s. The alien slideshow is placed in the climax because the wiki lists it after the team shots; that placement is from screenshot order, not from timing.\n\nThe Feedback alien is not in Alien Force, so there is no Feedback moment in this intro."
+ },
+ {
+  "id": "ben10_ua",
+  "track": {
+   "title": "Ben 10: Ultimate Alien Theme Song (Opening Theme)",
+   "artist": "Kristopher Carter, Michael McCuistion & Lolita Ritmanis (Cartoon Network)",
+   "version": "English TV opening, 2010 to 2012, instrumental, about 20-21 s (YouTube upload KpKf53kga1k is 21 s)",
+   "reason": "This is the only opening Ultimate Alien used. It runs in every episode with no variations. It is fully instrumental, like the Alien Force theme, so it is the Ultimatrix-era intro the user asked for."
+  },
+  "duration_s": 21,
+  "bpm": 170,
+  "bpm_confidence": "medium",
+  "time_signature": "4/4",
+  "first_beat_s": 0.2,
+  "structure_confidence": "low",
+  "mood": "Dark, heroic, epic symphonic metal: brass fanfare over driving rock drums and heavy guitars, with no vocals",
+  "best_part": "The last climax, about 16.9-19.8 s, where Ben raises the Ultimatrix and the title logo hits; good for a big spin or flourish. The Ultimatrix slam near 2.8-3 s, where the full band comes in, also suits a hard 'hit' move.",
+  "sections": [
+   {
+    "label": "intro",
+    "start_s": 0,
+    "end_s": 2.8,
+    "energy": 3
+   },
+   {
+    "label": "verse",
+    "start_s": 2.8,
+    "end_s": 8.5,
+    "energy": 4
+   },
+   {
+    "label": "chorus",
+    "start_s": 8.5,
+    "end_s": 14.1,
+    "energy": 5
+   },
+   {
+    "label": "build",
+    "start_s": 14.1,
+    "end_s": 16.9,
+    "energy": 4
+   },
+   {
+    "label": "hook",
+    "start_s": 16.9,
+    "end_s": 19.8,
+    "energy": 5
+   },
+   {
+    "label": "outro",
+    "start_s": 19.8,
+    "end_s": 21,
+    "energy": 2
+   }
+  ],
+  "key": 60,
+  "minor": true,
+  "chords": {
+   "verse": [
+    1,
+    1,
+    6,
+    7
+   ],
+   "chorus": [
+    1,
+    6,
+    3,
+    7
+   ],
+   "bridge": [
+    6,
+    7,
+    1,
+    1
+   ]
+  },
+  "keySure": "C minor (fairly sure)",
+  "alternatives": [],
+  "sources": [
+   "https://ben10.fandom.com/wiki/Ben_10:_Ultimate_Alien_(TV_Series)/Theme_Song",
+   "https://ben10.fandom.com/wiki/File:Ben_10-_Ultimate_Alien_-_Opening_Theme_(English_-_HD)",
+   "https://www.youtube.com/watch?v=KpKf53kga1k",
+   "https://en.wikipedia.org/wiki/Ben_10:_Ultimate_Alien",
+   "https://ben10.fandom.com/wiki/Ben_10:_Alien_Force_(TV_Series)/Theme_Song"
+  ],
+  "notes": "IDENTIFICATION: The Ben 10 fandom wiki's MusicBox infobox says Symphonic Metal, key C Minor, 170 BPM, length 0:20, and completely instrumental. The fandom file metadata for the English HD upload (YouTube KpKf53kga1k) gives a duration of 21 s. Wikipedia credits theme music to Kristopher Carter, Michael McCuistion and Lolita Ritmanis. The wiki also says it opens with a short French-horn motif built on the tonic, the fifth and the minor seventh, which fits C minor.\n\nBPM: 170 comes from one fan-wiki source; no Tunebat, SongBPM or Musescore page was found. For the robot, 85 BPM half-time (one move per 2 beats, 0.706 s) will look cleaner. A full 4/4 bar is about 1.41 s.\n\nFIRST BEAT: 0.2 s is an estimate. The music starts almost at once in the upload. Treat it as low confidence and nudge it by ear.\n\nSECTIONS: Estimated from the wiki's description of the visuals, snapped to 2-bar units at 170 BPM. They are not measured from the audio.\n- 0 to 2.8 s: horn call while Ben runs at the camera, then he slams the Ultimatrix.\n- 2.8 to 14.1 s: the full band drives as the camera flies through the green tube of 46 aliens, rising in energy.\n- 14.1 to 16.9 s: the green light builds as the aliens surround Ben.\n- 16.9 to 19.8 s: Ben raises his arm and the logo hits.\n- 19.8 to 21 s: the sound rings out.\n\nCHORDS: No chord chart exists online; Chordify was behind a Cloudflare check. The degree loops are plausible C-minor choices for an original buzzer tune, not a transcription:\n- verse: i-i-bVI-bVII (Cm Cm Ab Bb)\n- chorus: i-bVI-bIII-bVII (Cm Ab Eb Bb)\n- climax ('bridge' slot): bVI-bVII-i-i (Ab Bb Cm Cm)\nThere is no real verse, chorus or bridge in a 20-second instrumental; the labels just mark the energy levels.\n\nHINDI/URDU: The intro has no vocals, so a Hindi/Urdu airing almost certainly uses the same music and length; not checked against a dub upload.\n\nFEEDBACK: The user asked for a special Feedback mention. Feedback is NOT among the 46 aliens shown in this opening (the wiki lists them all), so save a 'Feedback' beep or message for the Omniverse intro instead. No lyrics or melody were reproduced."
+ },
+ {
+  "id": "ben10_ua_hindi",
+  "track": {
+   "title": "Ben 10: Ultimate Alien Theme (Opening)",
+   "artist": "Kristopher Carter, Michael McCuistion, Lolita Ritmanis (Dynamic Music Partners) - credited as theme music composers on Wikipedia",
+   "version": "Hindi/Urdu dub TV opening (Cartoon Network India/Pakistan). Uses the same instrumental opening as the English version, about 20-21 s",
+   "reason": "The Ultimate Alien opening is entirely instrumental (Ben 10 fandom wiki says it has no lyrics, like the Alien Force theme). That leaves nothing to dub, so the Hindi/Urdu broadcast reuses the same music track. I found no separate Hindi Ultimate Alien intro upload. All 'Ultimate Alien intro' search hits are this 0:21 instrumental, while Hindi-specific uploads exist only for Classic, Alien Force and Omniverse."
+  },
+  "duration_s": 20.5,
+  "bpm": 170,
+  "bpm_confidence": "medium",
+  "time_signature": "4/4",
+  "first_beat_s": 0.2,
+  "structure_confidence": "low",
+  "mood": "Heroic, dark and fast: symphonic metal with French horn calls over pounding drums and distorted guitars. Big, serious, 'hero powering up' energy",
+  "best_part": "The last ~6 s (about 14.3-20 s): the camera reaches the end of the alien tube, green light floods in, the aliens surround Ben as he raises the Ultimatrix, and the title logo hits. The opening Ultimatrix slam (0-3 s) is a close second.",
+  "sections": [
+   {
+    "label": "intro",
+    "start_s": 0,
+    "end_s": 3.02,
+    "energy": 4
+   },
+   {
+    "label": "verse",
+    "start_s": 3.02,
+    "end_s": 8.67,
+    "energy": 4
+   },
+   {
+    "label": "build",
+    "start_s": 8.67,
+    "end_s": 11.49,
+    "energy": 4
+   },
+   {
+    "label": "chorus",
+    "start_s": 11.49,
+    "end_s": 17.14,
+    "energy": 5
+   },
+   {
+    "label": "hook",
+    "start_s": 17.14,
+    "end_s": 19.96,
+    "energy": 5
+   },
+   {
+    "label": "outro",
+    "start_s": 19.96,
+    "end_s": 20.5,
+    "energy": 3
+   }
+  ],
+  "key": 60,
+  "minor": true,
+  "chords": {
+   "verse": [
+    1,
+    7,
+    6,
+    7
+   ],
+   "chorus": [
+    6,
+    7,
+    1,
+    1
+   ],
+   "bridge": [
+    4,
+    6,
+    7,
+    1
+   ]
+  },
+  "keySure": "C minor (fairly sure)",
+  "alternatives": [],
+  "sources": [
+   "https://ben10.fandom.com/wiki/Ben_10:_Ultimate_Alien_(TV_Series)/Theme_Song (MusicBox: Symphonic Metal, key C Minor, 170 BPM, length 0:20, completely instrumental; opening horn motif goes up a fifth, back down, then up a minor seventh)",
+   "https://en.wikipedia.org/wiki/Ben_10:_Ultimate_Alien (theme music composers; India premiere 10 Oct 2010)",
+   "YouTube search listings: 'Ben 10: Ultimate Alien - Intro (1080p)' (NDNyZ4dIP54) 0:21; 'Ben 10: Ultimate Alien | Opening Theme (English) (HD)' (KpKf53kga1k) 0:21; Hindi/Urdu official uploads found only for Omniverse (0:21), Alien Force (0:31) and Classic (~1:02-1:04)"
+  ],
+  "notes": "same_as_english = true. The theme has no lyrics, so the Hindi/Urdu dub has nothing to re-sing: the music, tempo and length match the English opening, and one dance fits both. At most the Hindi airing might show a different title card, which doesn't change the music. Key (C minor) and BPM (170) come from one source, the Ben 10 fandom wiki infobox, so confidence is medium. The C-minor key fits the wiki's description of the opening horn motif (tonic, up a fifth, back, up a minor seventh, i.e. it leans on degrees 1, 5 and b7). If the robot looks frantic, try half-time 85 BPM. At 170 BPM one bar is about 1.41 s, so the ~20 s intro is only ~14 bars. Section times are snapped to 170-BPM bar lines starting at 0.2 s (bars at 0.2, 3.02, 8.67, 11.49, 17.14, 19.96 s). They are estimates from the wiki's scene-by-scene description (Ben runs in and slams the Ultimatrix -> camera rides through a green tube of 46 aliens -> green light -> aliens surround Ben -> logo), not from a measured audio analysis, so structure confidence is low. first_beat_s 0.2 is an estimate (music starts essentially at once). I found no chord chart anywhere. The loops are plausible diatonic C-minor guesses built around i, bVII and bVI (Cm, Bb, Ab, Fm), the usual epic-minor movement and consistent with the b7 in the horn motif. Treat them as an original fit, not a transcription. Separate note for the orchestrator, not about this song: the user asked for a special 'Feedback' alien mention (beep/message). Feedback is an Omniverse-era alien, so it fits the Omniverse dances, not Ultimate Alien."
+ },
+ {
+  "id": "ben10_ov",
+  "track": {
+   "title": "Ben 10: Omniverse Theme Song (main opening)",
+   "artist": "Parry Gripp (writer and performer)",
+   "version": "English TV opening, 2012, Opening #1 (Seasons 1-2). Later versions keep the same song and length: Variation 1 with sound effects (to end of S4), Galactic Monsters S5 (darker, organ), and a dubstep-style remix in S7-8.",
+   "reason": "This is the main Omniverse opening with 16-year-old Ben and 11-year-old Ben, which is the one requested. The Ben 10 fandom wiki credits Parry Gripp and says Cartoon Network asked him for a short, action-packed theme of about 20 seconds."
+  },
+  "duration_s": 20.5,
+  "bpm": 98,
+  "bpm_confidence": "medium",
+  "time_signature": "4/4",
+  "first_beat_s": 0.25,
+  "structure_confidence": "low",
+  "mood": "Fast, punchy and playful-heroic. Electronic rock / pop-punk with a retro sci-fi synth countermelody and shouted \"Ben 10!\" hits. High energy the whole way through.",
+  "best_part": "The final \"Hero Time\" climax, about 14.9 to 19.8 s. Both Bens line up with their aliens and the logo hits on the last downbeat (about 19.8 s), with the synth countermelody ringing out after it.",
+  "sections": [
+   {
+    "label": "intro",
+    "start_s": 0,
+    "end_s": 1.4,
+    "energy": 4
+   },
+   {
+    "label": "verse",
+    "start_s": 1.4,
+    "end_s": 5.1,
+    "energy": 4
+   },
+   {
+    "label": "verse",
+    "start_s": 5.1,
+    "end_s": 10,
+    "energy": 4
+   },
+   {
+    "label": "prechorus",
+    "start_s": 10,
+    "end_s": 14.9,
+    "energy": 4
+   },
+   {
+    "label": "chorus",
+    "start_s": 14.9,
+    "end_s": 19.2,
+    "energy": 5
+   },
+   {
+    "label": "outro",
+    "start_s": 19.2,
+    "end_s": 20.5,
+    "energy": 4
+   }
+  ],
+  "key": 71,
+  "minor": true,
+  "chords": {
+   "verse": [
+    1,
+    6,
+    3,
+    7
+   ],
+   "chorus": [
+    6,
+    7,
+    1,
+    1
+   ],
+   "bridge": [
+    4,
+    6,
+    7,
+    7
+   ]
+  },
+  "keySure": "B minor (fairly sure)",
+  "alternatives": [],
+  "sources": [
+   "https://ben10.fandom.com/wiki/Ben_10:_Omniverse_(TV_Series)/Theme_Song (infobox: B minor, 196 BPM, 0:20, Parry Gripp; shot-by-shot description; 20-second brief trivia)",
+   "https://ben10.fandom.com/es/wiki/Opening_de_Ben_10:_Omniverse (Si menor, 196 BPM, 0:20)",
+   "https://ben10.fandom.com/de/wiki/Ben_10:_Omniverse_Thema (h-Moll = B minor, 0:20)",
+   "https://ben10.fandom.com/wiki/Ben_10:_Omniverse_(TV_Series)/Theme_Song/Gallery",
+   "https://ben10.fandom.com/wiki/Feedback (trivia: Feedback has his own in-show theme)",
+   "YouTube search listing: official Cartoon Network upload 'Theme Song | Ben 10: Omniverse' 0:25 (includes branding); other intro uploads 0:21-0:22",
+   "https://kids.kiddle.co/Ben_10:_Omniverse (theme composer Parry Gripp)",
+   "lrclib.net search (only a 47 s holiday remix and covers found; not used for timing)"
+  ],
+  "notes": "TEMPO/KEY: The 196 BPM, B minor and 0:20 figures come from the Ben 10 fandom wiki infobox. The Spanish page has the same numbers, probably copied, and the German page also says B minor. No Tunebat, SongBPM, Musescore or Chordify entry was found for this theme. Chordify and YouTube watch pages were behind bot checks, so I did not use them. The numbers fit together: 16 bars of 4/4 at 196 BPM is 19.6 s, which matches the 20 s length. So the BPM is probably right, but it has not been checked against the audio. For robot moves, use the half-time pulse: 98 BPM, one step every 612 ms. At full speed, one beat is 306 ms and one bar is 1.224 s. The first downbeat at 0.25 s is an estimate, not measured (the song starts almost at once with the opening flash and the first \"Ben 10!\" shout). Downbeats every 4.9 s at about 0.25, 5.1, 10.0, 14.9 and 19.8 s.\n\nCHORDS: No chord chart for the Omniverse theme was found. The loops are plausible guesses in B minor in a pop-punk style: verse i-VI-III-VII, build iv-VI-VII-VII, hook VI-VII-i-i. They are not transcribed from the song.\n\nSTRUCTURE: There is no audio analysis behind this. The timeline comes from the lyric layout (four short 4-bar stanzas, each ending with a \"Ben 10!\" shout) placed on the 196 BPM grid, plus the order of shots on the wiki. The whole intro is high energy, and the last stanza (Hero Time) is the peak. The instrumental version in the end credits plays the closing countermelody twice. The Galactic Monsters (S5) and dubstep remix (S7-8) versions are about the same length (uploads 0:21).\n\nFEEDBACK (the user's favourite): The wiki shot list, not a timestamped source, puts Feedback in the original opening three times. (1) He is the FIRST alien shown: a still of Feedback with a zoomed-in face behind him, right after the light flash and both Bens slamming their Omnitrixes. That is about 1.2 to 2.5 s, during the first stanza. Feedback is electric, and the next cut is an electricity wipe, so this is a good moment for a special Feedback beep or message, around 1.4 s. (2) He is in the second set of four sliding panels over young Ben running (Four Arms, Feedback, Grey Matter, Wildmutt), about 11 to 13.5 s. (3) He stands at the end of young Ben's alien line-up in the finale, about 16 to 20 s. All of these seconds are estimates from the shot order. In the Season 3-4 version, the first shot shows Feedback in his 16-year-old design, but Ditto replaces him in the line-up. In the Galactic Monsters (S5) version, Snare-oh replaces him in the first shot. Also, the wiki notes that Feedback is one of only three aliens with his own in-show theme music."
+ },
+ {
+  "id": "ben10_ov_hindi",
+  "track": {
+   "title": "Ben 10: Omniverse Theme Song (Hindi/Urdu dub)",
+   "artist": "Parry Gripp (composer/performer of the original); Hindi vocals by the Cartoon Network India dub team (singer not credited)",
+   "version": "Hindi/Urdu dubbed TV opening, mainly the Season 2-4 variation (the 'Ben Again' version), about 0:21. A Hindi/Urdu 'Galactic Monsters' (Season 5) variant also exists. It is a darker re-skin with the same length and structure.",
+   "reason": "The user asked for every OG-era Ben 10 intro, including the Hindi/Urdu dubs, with Omniverse in the list. YouTube has several Hindi/Urdu uploads of this opening, including a lyrical video of the Hindi words. Each one runs 0:21, the same as the English intro uploads, so the dub swaps the vocals but keeps Parry Gripp's 20-second backing track and the same animation."
+  },
+  "duration_s": 21,
+  "bpm": 98,
+  "bpm_confidence": "medium",
+  "time_signature": "4/4",
+  "first_beat_s": 0.1,
+  "structure_confidence": "low",
+  "mood": "Fast, bouncy, cheeky pop-punk / electronic rock with a retro sci-fi synth line. Upbeat kid-superhero energy that starts at full speed and ends on a big hero shout.",
+  "best_part": "The 'Hero Time' climax at about 13.6-17.3 s. The build drives into the final big hero line and the last 'Ben 10!' shout, then the retro synth line plays over the alien line-up and logo (about 17.3-19.8 s). The opening shout and hit at 0-1.3 s is a second strong accent.",
+  "sections": [
+   {
+    "label": "intro",
+    "start_s": 0,
+    "end_s": 1.3,
+    "energy": 4
+   },
+   {
+    "label": "verse",
+    "start_s": 1.3,
+    "end_s": 6.2,
+    "energy": 3
+   },
+   {
+    "label": "verse",
+    "start_s": 6.2,
+    "end_s": 11.1,
+    "energy": 3
+   },
+   {
+    "label": "build",
+    "start_s": 11.1,
+    "end_s": 13.6,
+    "energy": 4
+   },
+   {
+    "label": "chorus",
+    "start_s": 13.6,
+    "end_s": 17.3,
+    "energy": 5
+   },
+   {
+    "label": "instrumental",
+    "start_s": 17.3,
+    "end_s": 19.8,
+    "energy": 4
+   },
+   {
+    "label": "outro",
+    "start_s": 19.8,
+    "end_s": 21,
+    "energy": 2
+   }
+  ],
+  "key": 71,
+  "minor": true,
+  "chords": {
+   "verse": [
+    1,
+    6,
+    3,
+    7
+   ],
+   "chorus": [
+    6,
+    7,
+    1,
+    1
+   ],
+   "bridge": [
+    6,
+    6,
+    7,
+    7
+   ]
+  },
+  "keySure": "B minor (fairly sure)",
+  "alternatives": [],
+  "sources": [
+   "https://ben10.fandom.com/wiki/Ben_10:_Omniverse_(TV_Series)/Theme_Song (MusicBox: key B minor, 196 BPM, length 0:20, Parry Gripp; description of visuals incl. Feedback; variations)",
+   "https://www.youtube.com/watch?v=6pw6gaGudNg ((OFFICIAL) Ben 10 Omniverse Intro (Hindi/Urdu) (Season 4), 0:21)",
+   "https://www.youtube.com/watch?v=ABYuSAOXf3Y (Ben 10 Omniverse Galactic Monsters Intro (Hindi/Urdu), 0:21)",
+   "https://www.youtube.com/watch?v=T6ICuK6syl8 (Ben 10 Omniverse HINDI Theme Song, 0:22)",
+   "https://www.youtube.com/watch?v=_mAkXfu8BB4 (Ben 10 Omniverse Theme Song (Hindi) lyrical video, 0:21; confirms Hindi-language vocals)",
+   "https://www.youtube.com/watch?v=u6TPC1v5YnA (English Omniverse theme upload, 0:21, for length comparison)",
+   "https://www.youtube.com/watch?v=jKSi87myWds (Cartoon Network official English theme upload, 0:25 incl. bumper)"
+  ],
+  "notes": "No lyrics or melody are included here.\n\nHOW THE DUB COMPARES TO THE ENGLISH INTRO: The Hindi/Urdu uploads (0:21-0:22) match the English uploads (0:21) in length and use the same animation. A Hindi lyrical video exists, so the dub re-sings the words in Hindi over Parry Gripp's original backing track. That makes same_as_english = true: one dance routine should fit both versions. The 'Galactic Monsters' Hindi variant is also 0:21 with the same structure. Only the tone is spookier (organ and whistling), so the same beat grid should work there too.\n\nTEMPO AND KEY: 196 BPM and B minor come from a single source, the Ben 10 Fandom wiki infobox. No songbpm, tunebat or sheet-music listing was found to confirm them, which is why both are medium confidence. A rough check fits, though: at 196 BPM one 4/4 bar is about 1.22 s, so 16-17 bars is about 20 s, the same as the commissioned 20-second length. If the robot looks too frantic, use the half-time feel of 98 BPM, which keeps the same grid.\n\nFIRST BEAT: About 0.1 s. The intro opens straight on the first 'Ben 10!' shout and hit, with almost no lead-in. Trim any upload's leading silence before syncing.\n\nSECTION TIMES: These are estimates from the bar grid (bar = 1.2245 s) and the known lyric layout of four short line pairs plus shouts. They were not measured from the audio, so structure confidence is low.\n\nCHORDS: I could not find a published chord chart for this theme. The loops are plausible diatonic loops in B minor, suited to a pop-punk minor-key song, and are not a transcription:\n- verse: i-VI-III-VII (Bm-G-D-A)\n- chorus: VI-VII-i-i (G-A-Bm-Bm)\n- 'bridge' slot: VI-VI-VII-VII. This intro has no real bridge, so the slot holds the build loop for 11.1-13.6 s.\n\nFEEDBACK MOMENT (the user's special request): Per the wiki's description of the opening, Feedback is the first alien on screen. His still, with his zoomed-in face behind him, appears right after Ben slams the Omnitrix. That is roughly 1.3-3 s, just after the opening 'Ben 10!' hit and at the start of the first verse. It's the ideal place for a 'FEEDBACK' buzzer beep or serial message.\n- In the original Season 1 opening, Feedback also shows up in the second set of four panels (about 11-13 s) and in the final line-up next to young Ben (about 17-20 s).\n- In the Season 2-4 version, which is the one most Hindi uploads use, he appears only in that first shot, in his 16-year-old design. The panel spot goes to Eye Guy and the line-up spot to Ditto.\n- In the Galactic Monsters version, Snare-Oh replaces him.\n- Electric moments that also suit a zap effect: Shocksquatch pounding his fists with electricity at about 5-6 s."
+ },
+ {
+  "id": "ben10_ov_kid",
+  "track": {
+   "title": "Ben 10: Omniverse Theme Song - Opening #1 (the version built around 11-year-old Ben, shown split-screen with 16-year-old Ben)",
+   "artist": "Parry Gripp (writer and performer)",
+   "version": "English TV opening #1, used from Season 1 E1 'The More Things Change' up to Season 2 E7 'Bros in Space'. About 20 s of music; YouTube uploads run 0:21-0:22",
+   "reason": "Omniverse never had a separate opening just for kid Ben. The main opening already stars 11-year-old Ben: it begins with Young Ben and Teen Ben each slamming his own Omnitrix, Young Ben runs under alien panels partway through, and both Bens stand together with their alien line-ups at the end. Opening #1 is the most 'kid' version. Its aliens use their 11-year-old designs where those exist, and 11-year-old Feedback appears three times: as the first alien shot, in the second set of panels, and last in Young Ben's line-up. That makes it the one to use for the kid Omniverse intro and the Feedback special."
+  },
+  "duration_s": 21,
+  "bpm": 98,
+  "bpm_confidence": "medium",
+  "time_signature": "4/4",
+  "first_beat_s": 0.2,
+  "structure_confidence": "low",
+  "mood": "Fast, bouncy and fun. Electronic pop-punk with group 'Ben 10!' shouts and a retro sci-fi synth counter-line. Bright and heroic in a minor key, with no calm part: it is a 20-second sprint.",
+  "best_part": "The ending, about 16-20 s: the 'Hero Time' line and the last 'Ben 10!' shout while Young Ben and Teen Ben line up with their aliens, then the logo sting. For the FEEDBACK special: the first alien shot comes right after both Bens slam their Omnitrices, a still of Feedback at about 1.4-3 s. That is the ideal moment for a 'FEEDBACK' message or zappy beep. In Opening #1 Feedback also appears in the second set of panels over the running Young Ben (about 12-15 s) and stands last in Young Ben's line-up at the very end (about 17-20 s), so a second and third Feedback beep can go there. The electric wipe and Shocksquatch's lightning (about 4-8 s) suit buzzy electric-sounding beeps too.",
+  "sections": [
+   {
+    "label": "intro",
+    "start_s": 0,
+    "end_s": 1.4,
+    "energy": 4
+   },
+   {
+    "label": "verse",
+    "start_s": 1.4,
+    "end_s": 6.3,
+    "energy": 3
+   },
+   {
+    "label": "verse",
+    "start_s": 6.3,
+    "end_s": 12.4,
+    "energy": 3
+   },
+   {
+    "label": "prechorus",
+    "start_s": 12.4,
+    "end_s": 16.1,
+    "energy": 4
+   },
+   {
+    "label": "chorus",
+    "start_s": 16.1,
+    "end_s": 19.8,
+    "energy": 5
+   },
+   {
+    "label": "outro",
+    "start_s": 19.8,
+    "end_s": 21,
+    "energy": 4
+   }
+  ],
+  "key": 71,
+  "minor": true,
+  "chords": {
+   "verse": [
+    1,
+    6,
+    3,
+    7
+   ],
+   "chorus": [
+    6,
+    7,
+    1,
+    1
+   ],
+   "bridge": [
+    4,
+    5,
+    6,
+    7
+   ]
+  },
+  "keySure": "B minor (fairly sure)",
+  "alternatives": [],
+  "sources": [
+   "https://ben10.fandom.com/wiki/Ben_10:_Omniverse_(TV_Series)/Theme_Song (key B minor, 196 BPM, length 0:20, Parry Gripp, opening variations and which episodes use them, scene order including Feedback shots)",
+   "https://ben10.fandom.com/de/wiki/Ben_10:_Omniverse_Thema (key h-Moll = B minor, length 0:20)",
+   "https://ben10.fandom.com/wiki/Feedback (Feedback was 11-year-old Ben's alien in the flashbacks; destroyed by Malware in Showdown: Part 1, regained in Showdown: Part 2)",
+   "https://ben10.fandom.com/wiki/Ben_10:_Omniverse_(TV_Series) (11-year-old flashback storyline)",
+   "https://ben10.fandom.com/wiki/Bros_in_Space and https://ben10.fandom.com/wiki/Ben_Again (season and episode numbers marking where Opening #1 ends and Opening #2 starts)",
+   "YouTube search listing: 'Theme Song | Ben 10: Omniverse | Cartoon Network' 0:25; '(OFFICIAL) Ben 10 Omniverse Intro (English UK) (Season 1)' 0:22; 'Ben 10: Omniverse - Intro Theme Tune (HD)' 0:22; Galactic Monsters opening 0:21; Galactic Monsters Hindi/Urdu 0:21",
+   "https://en.wikipedia.org/wiki/Ben_10:_Omniverse"
+  ],
+  "notes": "WHICH INTRO: There is no separate 'kid Ben' opening in Ben 10: Omniverse. The main opening itself features 11-year-old Ben (split-screen with 16-year-old Ben), because the show alternates between 11-year-old flashbacks (mostly Seasons 1-2) and the 16-year-old present day. So the 'kid Omniverse intro' uses the SAME music as the main Omniverse intro.\n\nThe variants differ like this:\n(1) Opening #1, S1E1 to S2E7 'Bros in Space': the most kid-flavored version, with 11-year-old alien designs and 11-year-old Feedback in three spots.\n(2) Opening #2, S2E8 'Ben Again' to end of Season 4: same song plus extra sound effects. Some aliens are swapped, Feedback is shown in his 16-year-old design, and Ditto replaces him in Young Ben's line-up.\n(3) Season 5 'Galactic Monsters': darker spooky arrangement (organ, whistling, deep voices). Different sound.\n(4) Seasons 7-8: dubstep-style remix. Different sound.\nFor the kid version, use the Season 1 audio. The end credits use an instrumental of the same theme.\n\nFEEDBACK BACKGROUND (for the special mention): Feedback first appeared in S1 'The More Things Change: Part 1' and was 11-year-old Ben's favourite alien in the flashbacks. Malware destroyed him in 'Showdown: Part 1', and Ben got him back in 'Showdown: Part 2'.\n\nTEMPO: 196 BPM comes from the Ben 10 wiki only (not independently measured). It fits a 20 s theme: about 16 bars of 4/4 at 196 BPM is 19.6 s. For the robot, dance steps on every 2nd beat (98 per minute, about 0.61 s per step) will look cleaner than 196.\n\nTIMINGS: first_beat_s (about 0.2) and all section times are ESTIMATES. I built them from the 196 BPM bar grid (1 bar = about 1.22 s) and the known scene order: both Omnitrix slams, then Feedback, Heatblast, Four Arms, Shocksquatch with lightning, the alien panels, Rath and Upchuck on the selection wheel, Young Ben running under more panels, and the final line-up and logo. They were not measured from audio. I couldn't time the audio myself because YouTube returned a CAPTCHA, which I did not try to get around, and lrclib has no timed entry for the original 20 s theme. Nudge times by ear if the robot drifts.\n\nKEY: B minor, which the English and German wiki pages agree on. CHORDS: no chord chart exists online for this theme. All three loops are plausible B-minor pop-punk guesses: verse i-VI-III-VII (Bm-G-D-A), climax VI-VII-i-i, build iv-v-VI-VII. Use them only to make an ORIGINAL buzzer tune.\n\nDUBS: same_as_english=true here means 'same music as the main English Omniverse intro'. The Hindi/Urdu Galactic Monsters upload is also 0:21, which suggests the dubs keep the same backing track and length (low confidence; not checked for the Season 1 dub). The 2016 reboot is excluded, as the user asked."
+ },
+ {
+  "id": "worry",
+  "track": {
+   "title": "worry",
+   "artist": "LONOWN (feat. riserayss)",
+   "version": "original (2026), 3:01 - not the slowed versions"
+  },
+  "duration_s": 181,
+  "bpm": 99,
+  "bpm_confidence": "medium",
+  "time_signature": "4/4",
+  "first_beat_s": 0.5,
+  "structure_confidence": "medium",
+  "mood": "catchy TikTok edit song",
+  "best_part": "the hook at 0:17 and 1:38",
+  "sections": [
+   {
+    "label": "intro",
+    "start_s": 0,
+    "end_s": 17,
+    "energy": 2
+   },
+   {
+    "label": "hook",
+    "start_s": 17,
+    "end_s": 39.3,
+    "energy": 4
+   },
+   {
+    "label": "instrumental",
+    "start_s": 39.3,
+    "end_s": 78.5,
+    "energy": 4
+   },
+   {
+    "label": "verse",
+    "start_s": 78.5,
+    "end_s": 98,
+    "energy": 3
+   },
+   {
+    "label": "hook",
+    "start_s": 98,
+    "end_s": 115,
+    "energy": 5
+   },
+   {
+    "label": "instrumental",
+    "start_s": 115,
+    "end_s": 170,
+    "energy": 4
+   },
+   {
+    "label": "outro",
+    "start_s": 170,
+    "end_s": 181,
+    "energy": 2
+   }
+  ],
+  "key": 71,
+  "minor": false,
+  "chords": {
+   "verse": [
+    1,
+    5,
+    6,
+    4
+   ],
+   "chorus": [
+    1,
+    5,
+    6,
+    4
+   ],
+   "bridge": [
+    6,
+    4,
+    1,
+    5
+   ]
+  },
+  "keySure": "B major (one site, from the instrumental)",
+  "alternatives": [],
+  "sources": [],
+  "notes": "99 BPM / B major from songdata.io (instrumental edition, same length); parts from timed lyrics."
+ }
+]

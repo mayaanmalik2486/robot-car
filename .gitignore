@@ -1,0 +1,6 @@
+.theia/
+.claude/
+build/
+build-cache/
+node_modules/
+package-lock.json
