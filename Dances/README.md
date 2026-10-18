@@ -21,7 +21,7 @@ The buzzer plays an original tune in each song's key (bass notes on the beat plu
 on top), not the real melody. **Mute:** phone **X** (the "!" button) turns every sound off,
 press again to turn it back on. The dance never drives forward into anything closer than 30 cm.
 
-## The songs (38)
+## The songs (39)
 
 | Folder | Song (exact version the dance is timed to) | Tempo / key / style | Press dance | Notes |
 |---|---|---|---|---|
@@ -63,3 +63,4 @@ press again to turn it back on. The dance never drives forward into anything clo
 | `Ben_10_3_Ultimate_Alien_Theme` | Ben 10: Ultimate Alien Theme Song (Opening Theme) - Kristopher Carter, Michael McCuistion & Lolita Ritmanis (Cartoon Network)  (0:21) | tempo 85 BPM (fairly sure), key C minor, song parts best guess, dance style: hype | about 0.2 s after the song starts (first beat) | The 0:21 TV opening. Works with the English AND the Hindi/Urdu version. The song is very fast (170), so the robot dances one move per beat. |
 | `Ben_10_4_Omniverse_Theme` | Ben 10: Omniverse Theme Song (main opening) - Parry Gripp (writer and performer)  (0:20) | tempo 98 BPM (fairly sure), key B minor, song parts best guess, dance style: hype | about 0.3 s after the song starts (first beat) | The 0:21 TV opening. Works with the English AND the Hindi/Urdu version. FEEDBACK! flashes (with an electric zap) where Feedback appears. The song is very fast (196), so the robot dances one move per beat. |
 | `Ben_10_5_Omniverse_Kid_Ben` | Ben 10: Omniverse Theme Song - Opening #1 (the version built around 11-year-old Ben, shown split-screen with 16-year-old Ben) - Parry Gripp (writer and performer)  (0:21) | tempo 98 BPM (fairly sure), key B minor, song parts best guess, dance style: groove | about 0.2 s after the song starts (first beat) | Opening #1 (Season 1 to S2E7 Bros in Space) - the one built around 11-year-old Ben, same song as the later Omniverse opening. FEEDBACK! flashes three times where kid-Ben Feedback appears. |
+| `Badtameez_Dil_Pritam` | Badtameez Dil - Benny Dayal & Shefali Alvares (Yeh Jawaani Hai Deewani, music Pritam)  (4:13) | tempo 106 BPM (checked), key D minor, song parts fairly sure, dance style: bollywood | right when the song starts (first beat at about 0.15 s) | The 4:13 album version. The choruses and the brass dance break are POWER parts: explosive moves at extra speed. |

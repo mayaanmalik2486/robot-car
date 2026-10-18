@@ -29,6 +29,7 @@ const SONGS = {
   feet_dont_fail:    { folder: 'Feet_Dont_Fail_Me_Now_Joy_Crookes',      screen: "Feet Don't Fail Me Now - Joy Crookes", style: 'hype' },
   kabhi_kabhi_aditi: { folder: 'Kabhi_Kabhi_Aditi_Rashid_Ali',          screen: 'Kabhi Kabhi Aditi',            style: 'bollywood' },
   bolve:             { folder: 'Bolve_Madan_Maddi',          screen: 'Bolve - Madan Maddi',          style: 'bollywood', power: { minEnergy: 4, style: 'explosive', speed: 250 } },
+  badtameez_dil:     { folder: 'Badtameez_Dil_Pritam',       screen: 'Badtameez Dil - YJHD',         style: 'bollywood', power: { minEnergy: 5, style: 'explosive', speed: 250 } },
   flashing_lights:   { folder: 'Flashing_Lights_Kanye_West',      screen: 'Flashing Lights - Kanye West', style: 'groove' },
   touch_the_sky:     { folder: 'Touch_The_Sky_Kanye_West',        screen: 'Touch The Sky - Kanye West',   style: 'hype' },
   aankhen_milaney:   { folder: 'Aankhen_Milaney_Waaley_Nazia_Hassan',     screen: 'Aankhen Milaney Waaley',       style: 'hype' },
@@ -80,6 +81,7 @@ const NOTES = {
   ben10_ov_kid: 'Opening #1 (Season 1 to S2E7 Bros in Space) - the one built around 11-year-old Ben, same song as the later Omniverse opening. FEEDBACK! flashes three times where kid-Ben Feedback appears.',
   sh_boom: 'Slow, jazzy cruising like the Cars neon-lights scene: one move per beat (the tempo here is half the song tempo on purpose).',
   bolve: 'The big bhangra parts are POWER parts: explosive moves at extra speed.',
+  badtameez_dil: 'Tempo 106 BPM (songbpm; the timed lyrics agree). The choruses and the brass dance break are POWER parts: explosive moves at extra speed.',
   all_is_well: 'Calm parts at normal speed; the party parts (choruses) are POWER parts: explosive moves at extra speed. The dance is silent (DANCE_SOUND_OFF) - set DANCE_SOUND_TUNE for the tune.',
   ambarsariya: 'Played live, so the beat wobbles a little: tap dance on a beat at each chorus.',
 };

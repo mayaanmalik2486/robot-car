@@ -2,7 +2,7 @@
 
 A 4-wheel-drive Arduino robot car. You drive it from a phone (Bluetooth) or a small IR remote.
 It stops before it hits things, searches for open space by itself, does donuts, drifts and
-"chaos" mode, shows eyes on a little OLED screen, and **dances to 38 songs** in time with the
+"chaos" mode, shows eyes on a little OLED screen, and **dances to 39 songs** in time with the
 music while the buzzer plays along.
 
 ## What's in this repo
@@ -10,7 +10,7 @@ music while the buzzer plays along.
 | Folder | What it is |
 |---|---|
 | [`Robot_Car_Main`](Robot_Car_Main) | **The main robot program** (latest version). Upload this one for normal use. Also has the full [wiring and power guide](Robot_Car_Main/POWER_AND_WIRING.md). |
-| [`Dances`](Dances) | 38 copies of the main program, each with a dance made for one song. The [song list and how to dance in time](Dances/README.md) are in that folder. |
+| [`Dances`](Dances) | 39 copies of the main program, each with a dance made for one song. The [song list and how to dance in time](Dances/README.md) are in that folder. |
 | [`Old_Versions`](Old_Versions) | Every earlier version of the code, oldest first (from the first servo test up to v7.1). |
 | [`Tools`](Tools) | Computer scripts that made and tested the dances in a simulator. **You don't need these** to use the car. |
 

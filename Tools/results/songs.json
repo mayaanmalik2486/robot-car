@@ -4600,5 +4600,130 @@
   "alternatives": [],
   "sources": [],
   "notes": "99 BPM / B major from songdata.io (instrumental edition, same length); parts from timed lyrics."
+ },
+ {
+  "id": "badtameez_dil",
+  "track": {
+   "title": "Badtameez Dil",
+   "artist": "Benny Dayal & Shefali Alvares (music Pritam)",
+   "version": "Yeh Jawaani Hai Deewani soundtrack (2013), album version 4:13 - not the longer video edit"
+  },
+  "duration_s": 253,
+  "bpm": 106,
+  "bpm_confidence": "high",
+  "time_signature": "4/4",
+  "first_beat_s": 0.15,
+  "structure_confidence": "medium",
+  "mood": "High-energy Bollywood party song with big-band brass and fast, playful vocals",
+  "best_part": "the choruses (about 1:26, 2:30 and 3:28) and the brass dance break after chorus 2 (about 2:39-2:57)",
+  "sections": [
+   {
+    "label": "intro",
+    "start_s": 0.15,
+    "end_s": 36.38,
+    "energy": 3
+   },
+   {
+    "label": "verse",
+    "start_s": 36.38,
+    "end_s": 72.6,
+    "energy": 3
+   },
+   {
+    "label": "prechorus",
+    "start_s": 72.6,
+    "end_s": 86.19,
+    "energy": 4
+   },
+   {
+    "label": "chorus",
+    "start_s": 86.19,
+    "end_s": 104.3,
+    "energy": 5
+   },
+   {
+    "label": "instrumental",
+    "start_s": 104.3,
+    "end_s": 113.36,
+    "energy": 4
+   },
+   {
+    "label": "verse",
+    "start_s": 113.36,
+    "end_s": 136,
+    "energy": 3
+   },
+   {
+    "label": "prechorus",
+    "start_s": 136,
+    "end_s": 149.58,
+    "energy": 4
+   },
+   {
+    "label": "chorus",
+    "start_s": 149.58,
+    "end_s": 158.64,
+    "energy": 5
+   },
+   {
+    "label": "instrumental",
+    "start_s": 158.64,
+    "end_s": 176.75,
+    "energy": 5
+   },
+   {
+    "label": "bridge",
+    "start_s": 176.75,
+    "end_s": 208.45,
+    "energy": 3
+   },
+   {
+    "label": "chorus",
+    "start_s": 208.45,
+    "end_s": 226.57,
+    "energy": 5
+   },
+   {
+    "label": "outro",
+    "start_s": 226.57,
+    "end_s": 244.68,
+    "energy": 4
+   },
+   {
+    "label": "outro",
+    "start_s": 244.68,
+    "end_s": 253,
+    "energy": 2
+   }
+  ],
+  "key": 62,
+  "minor": true,
+  "chords": {
+   "verse": [
+    1,
+    7,
+    6,
+    7
+   ],
+   "chorus": [
+    1,
+    6,
+    3,
+    7
+   ],
+   "bridge": [
+    4,
+    1,
+    6,
+    5
+   ]
+  },
+  "keySure": "D minor (one site; chords are a guess)",
+  "alternatives": [],
+  "sources": [
+   "https://songbpm.com/@pritam/badtameez-dil",
+   "https://lrclib.net/api/get/34331138 (line timestamps only)"
+  ],
+  "notes": "106 BPM / D minor / 4:13 from songbpm. Tempo checked against the timed lyrics: the repeated chorus lines are exactly 26 and 28 bars apart at 106 BPM, and lines line up with half-bars at about 0.15 s. Song parts from where the lines start and repeat; chords are a plausible D minor loop, not transcribed."
  }
 ]

@@ -4,3 +4,4 @@ build/
 build-cache/
 node_modules/
 package-lock.json
+Tools/results/songs-made.json
