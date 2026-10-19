@@ -13,7 +13,7 @@ your phone), **music** (your hand plays notes), **gestures** and a little **robo
 ## 📱 The app
 
 **[⬇ Download the Robot Car app](https://github.com/mayaanmalik2486/robot-car/raw/main/App/RobotCar.apk)**
-(Android). Send that link to anyone. How to install and connect: [App/README.md](App/README.md).
+(Android). Send that link to anyone. How to install and connect: [App/README.md](App/README.md). It looks like a game controller (landscape, thumbstick + emoji buttons) and works with a real game controller too.
 
 ## What's in this repo
 
