@@ -129,7 +129,7 @@ function main() {
   const flagsNoW = CPPFLAGS.filter((f) => f !== '-w');
   fs.mkdirSync(path.dirname(sketchObj), { recursive: true });
   const { spawnSync } = require('child_process');
-  const sc = spawnSync(tool('avr-g++'), [...flagsNoW, ...warnFlags, ...MCU, ...defs, ...includes.map((i) => '-I' + i), cppPath, '-o', sketchObj],
+  const sc = spawnSync(tool('avr-g++'), [...flagsNoW, ...warnFlags, ...MCU, ...defs, '-I' + path.dirname(path.resolve(a.sketch)), ...includes.map((i) => '-I' + i), cppPath, '-o', sketchObj],
     { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
   // keep only diagnostics that point into the sketch itself (library header noise is dropped)
   const sketchDiag = (sc.stderr || '').split(/\r?\n/).filter((l) => l.includes(path.basename(a.sketch)));

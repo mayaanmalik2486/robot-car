@@ -313,7 +313,7 @@ function main() {
   for (const s of research) {
     if (only && s.id !== only) continue;
     const cfg = SONGS[s.id];
-    if (!cfg) { console.log('no config for ' + s.id); continue; }
+    if (!cfg) continue;                        // (research notes for songs with no dance of their own, e.g. the Hindi Ben 10 dubs)
     const blk = songBlock(s.id, cfg.halfTime ? { ...s, bpm: s.bpm / 2 } : s, cfg);
     warnings.push(...blk.warnings);
     let out = template.slice(0, i0) + blk.text.replace(/\r\n/g, nl) + template.slice(i1 + endTag.length);

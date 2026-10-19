@@ -4,11 +4,11 @@
 ======================================================
 
   WHAT THIS ROBOT DOES
-  - You drive it with a "Bluetooth RC car" phone app (through the HC-05).
-  - You can also drive it with the small 17-button IR remote.
+  - You drive it with the Robot Car phone app (App folder - or any "Bluetooth
+    RC car" app), through the HC-05. The IR remote is an add-on now.
   - It has self-driving modes that use the ultrasonic distance sensor
     (HC-SR04) so it stops before it bumps into things, some fun moves
-    (dance, demo, chaos, donut, curve) and a SEARCH mode that turns the
+    (dance, chaos, donut, curve, turbo) and a SEARCH mode that turns the
     sensor with the servo to look left, ahead and right, then turns toward
     the side with the most room until the way ahead is open (boxed in: it
     turns 90 degrees at a time until it finds an opening).
@@ -27,51 +27,53 @@
     parking-sensor beeps that speed up as you get close, and warning beeps.
   - When you switch it on, and when your phone sends its first command,
     it says hello: "Hello!" on the screen + a tune + a little servo wave.
+  - PLAY MODES: follow me, goalkeeper (with a kick), guard (an alarm), music
+    (your hand plays notes), gestures and a little robot pet - see section 16b.
+  - It tells the app what it is doing, and warns when the battery is nearly empty.
 
-  BLUETOOTH LETTERS (sent by the phone app)
+  BLUETOOTH LETTERS (sent by the phone app - the Robot Car app has a button for each)
     F forward        B backward       L spin left      R spin right
     G curve left     H curve right    S stop
     (CURVE = drive forward while turning, like a car going round a bend)
     Q slow speed     W full speed
     2 auto forward (stops at obstacles)       J auto backward
     3 donut          U 180-degree turn         u smooth brake
-    4 dance          Y demo           1 chaos          I search (looks around)
+    4 dance          Y horn           1 chaos          I search (looks around)
     X (the "!" button) mute / unmute every sound
     V football mode on / off: the distance sensor is switched OFF (like X for the buzzer),
       so it never stops for obstacles (push a ball, bump into things). SEARCH and CHAOS
       still use the sensor. Press V again to switch the sensor back on.
     (4 again while dancing: tap it ON a beat to line the dance up with the music)
+    T turbo (a full-power burst)
+    PLAY MODES (they use the distance sensor, even in football mode):
+    M follow me      K goalkeeper (k = kick!)      A guard (alarm)
+    N music (your hand plays notes)      E gestures (tap / hold your hand)      P pet
+    ? the app asks what the car is doing (the car answers "~MODE|flags")
+    The car also warns when the battery is nearly empty (screen + sad tune).
 
-  IR REMOTE BUTTONS
-    OK   stop everything             UP   forward (only if the way is clear)
-    DOWN backward                    LEFT / RIGHT  short turn (150 ms)
-    1 180-degree turn    2 slow/full speed    3 smooth brake
-    4 demo   5 dance (again while dancing = line up with the beat)
-    6 chaos  7 curve left   8 curve right   9 search
-    * auto forward       # auto backward      0 donut
-    Holding an arrow button keeps it going; other buttons act once per press.
-    The buzzer borrows the IR receiver's timer, so keep IrReceiver.begin() in
-    setup() even if you unplug the IR receiver.
+  IR REMOTE: taken out to make room for the play modes. To add it back, see
+    the IR_Remote_Addon folder (a guide + the code to paste in).
 
   WIRING  (Arduino UNO + Sensor Shield V5) - see the PINS section below
     L298N   ENA D5   ENB D6   IN1 D2   IN2 D4   IN3 D7   IN4 D10
     HC-05   TXD -> D3 (Arduino listens)    RXD -> A0 (Arduino talks)
-    IR receiver D8      Servo D9      HC-SR04 TRIG D11 / ECHO D12
+    Servo D9      HC-SR04 TRIG D11 / ECHO D12      (D8 is free - the IR add-on uses it)
     Buzzer (3-pin board) A1           OLED (I2C) SDA A4 / SCL A5
-    The little "L" LED on the board (D13) flickers when IR signals arrive.
     Full wiring and power guide: POWER_AND_WIRING.md (in this folder).
 
   LIBRARIES
-    IRremote 4.x (by Armin Joachimsmeyer), U8g2 (by oliver),
+    U8g2 (by oliver),
     plus Servo, SoftwareSerial and Wire (come with the Arduino IDE).
 
   HOW THE PROGRAM IS ORGANISED (top to bottom)
     1 libraries   2 pins   3 settings   3b dance moves
     3c THE SONG (tempo, the song's dance steps, the choreography from start to end)
-    4 remote codes   5 robot "memory"
+    5 robot "memory" (4 was the IR remote's codes - see the IR add-on)
     6 motors      7 buzzer   8 OLED screen   9 distance sensor   10 servo
-   11 greeting    12 timed moves   13 stop / start helpers   14 IR remote
-   15 Bluetooth   16 self-driving modes   17 setup() and loop()
+   11 greeting    12 timed moves   13 stop / start helpers
+   15 Bluetooth (the letters from the app)   16 self-driving modes
+   16b play modes (follow me, goalkeeper, guard, music, gestures, pet, turbo, battery)
+   17 setup() and loop()
 ======================================================
 */
 
@@ -82,11 +84,29 @@
 
 #include <Arduino.h>
 #include <Servo.h>            // moves the SG90 servo
-#define DECODE_NEC            // only understand NEC remotes (yours is one): saves ~4.8 KB and TV remotes can't drive the car
-#include <IRremote.hpp>       // reads the IR remote (version 4.x)
 #include <SoftwareSerial.h>   // extra serial port for the HC-05
 #include <Wire.h>             // I2C, used by the OLED
 #include <U8x8lib.h>          // OLED text drawing (part of the U8g2 library)
+
+// Debug messages on the computer's Serial Monitor (USB cable). They are OFF to save
+// about 3 KB of memory for the car's modes - the car works exactly the same either way.
+// To see them, change the 0 to 1 (with every mode on, the program may then be too big).
+#ifndef DEBUG_MESSAGES
+#define DEBUG_MESSAGES 0
+#endif
+
+#if DEBUG_MESSAGES
+#define DEBUG Serial
+#else
+struct NoDebug                // stands in for Serial and does nothing: the messages are left out
+{
+    void begin(long) {}
+    template <class T> void print(T) {}
+    template <class T> void println(T) {}
+    void println() {}
+};
+NoDebug DEBUG;
+#endif
 
 
 //======================================================
@@ -102,7 +122,6 @@ const byte IN3 = 7;          // right wheels direction
 const byte IN4 = 10;         // right wheels direction
 
 // Sensors and servo
-const byte IR_PIN = 8;       // IR receiver signal
 const byte SERVO_PIN = 9;    // servo that turns the distance sensor
 const byte TRIG_PIN = 11;    // HC-SR04 "trigger": Arduino -> sensor
 const byte ECHO_PIN = 12;    // HC-SR04 "echo":    sensor -> Arduino
@@ -159,16 +178,9 @@ const unsigned long PING_GAP_MS = 15;          // pause between the 3 pings of o
 // stops on time, and 455 ms = 180 degrees on this car. Still off? Change it a little.)
 const unsigned long TURN180_TIME = 455;
 const unsigned long TURN90_TIME = TURN180_TIME / 2;   // and for a 90-degree turn (SEARCH when boxed in)
-const unsigned long IR_TURN_TIME = 150;        // one tap of IR LEFT/RIGHT turns this long
 
 const unsigned long BRAKE_STEP_MS = 40;        // smooth brake: lower the speed every 40 ms ...
 const int BRAKE_STEP_PWM = 10;                 // ... by this much
-
-const unsigned long DEMO_FORWARD_MS = 400;
-const unsigned long DEMO_PAUSE_MS = 600;
-const unsigned long DEMO_REVERSE_MS = 375;
-const unsigned long DEMO_SPIN_MS = 2000;
-const unsigned long DEMO_LAUNCH_MS = 375;
 
 // CHAOS mode: random straight runs, random turns, spins and wiggles
 // (every choice is random, so it doesn't drive in circles like the old zigzag)
@@ -203,12 +215,62 @@ const byte SEARCH_STUCK_FAR_CHECKS = 3;        // farther away: unchanged for 3 
                                                // the sensor sees the side walls, so the reading hardly changes while driving.)
 const unsigned long SEARCH_STUCK_BACKUP_MS = 300;  // when stuck, back up this long (then it always turns, never straight on)
 
+// PLAY MODES (letters from the app). They all use the distance sensor, even in football mode.
+// Switch one off (false) to free memory - for example to make room for the IR add-on.
+const bool HAS_FOLLOW = true;          // M  follow me
+const bool HAS_KEEPER = true;          // K  goalkeeper  (k = kick: punch the ball)
+const bool HAS_GUARD = true;           // A  guard
+const bool HAS_MUSIC = true;           // N  music: your hand plays notes
+const bool HAS_GESTURE = true;         // E  gesture control
+const bool HAS_PET = true;             // P  pet
+
+const int SEE_CM = 150;                // play modes: something closer than this is "seen"
+
+// FOLLOW ME: it keeps about this far from your hand or feet
+const int FOLLOW_NEAR_CM = 18;         // closer than this: it backs away
+const int FOLLOW_FAR_CM = 30;          // farther than this: it comes after you
+const int FOLLOW_LOST_CM = 90;         // nothing closer than this: it lost you, and looks around
+const int FOLLOW_SPEED_PERCENT = 65;
+
+// GOALKEEPER: put it in front of the goal, facing the player
+const int KEEPER_SAVE_CM = 30;         // the ball comes this close: punch it away
+const unsigned long KEEPER_PUNCH_MS = 220;   // the punch dashes forward this long, then comes back
+
+// GUARD: counts down, learns what the room looks like, then watches it
+const byte GUARD_ARM_SECONDS = 5;      // time for you to walk away before it starts
+const int GUARD_CLOSER_CM = 25;        // something this much closer than the room was = an intruder
+const unsigned long GUARD_CALM_MS = 5000;    // the alarm stops this long after the intruder left
+
+// MUSIC: move your hand in front of the sensor (closer = higher note)
+const int MUSIC_NEAR_CM = 5;
+const int MUSIC_FAR_CM = 60;           // farther than this: silence
+
+// GESTURES: your hand in front of the sensor
+const int GESTURE_ZONE_CM = 35;        // closer than this: it sees your hand
+const int GESTURE_NEAR_CM = 12;        // held closer than this: push (it backs away)
+const unsigned long GESTURE_TAP_MS = 450;    // in and out quicker than this = a tap
+const unsigned long GESTURE_HOLD_MS = 700;   // held this long close = push; twice as long further away = "come here"
+
+// PET
+const unsigned long PET_BORED_MS = 25000;    // nobody played with it for this long: bored
+const unsigned long PET_SLEEP_MS = 45000;    // ... and this long: it falls asleep
+const int PET_HAND_CM = 25;                  // a hand closer than this (while it sits) = petting
+const int PET_SPEED_PERCENT = 50;            // how fast it wanders
+
+// TURBO: a full-power burst forward (it still stops for obstacles, unless football mode is on)
+const unsigned long TURBO_MS = 1500;
+
+// LOW BATTERY: the Arduino measures its own power supply (no extra wires needed). The
+// motor driver keeps that at 5 V until the battery is nearly empty, so the warning
+// comes late - charge the battery as soon as you see it.
+const unsigned long BATTERY_CHECK_MS = 2000;
+const int BATTERY_DROP_MV = 300;             // warn if the power falls this much below the start ...
+const int BATTERY_LOW_MV = 4300;             // ... or below this (millivolts)
+
 // Phone apps send the letter while you hold a button and 'S' when you let go.
 // For this long after a mode letter, that 'S' is ignored so the mode keeps going.
 const unsigned long BUTTON_RELEASE_IGNORE_MS = 1500;
 
-// IR remote
-const unsigned long IR_REPEAT_WINDOW_MS = 300; // a "held down" signal must follow the press within this time
 
 // Buzzer: if your buzzer board gets warm or clicks while it should be silent,
 // it is the kind that turns on with LOW - change this to HIGH.
@@ -568,31 +630,6 @@ const unsigned long DANCE_STEP_US = 60000000.0 / (SONG_BPM * 2);   // one step, 
 
 
 //======================================================
-// 4. IR REMOTE BUTTON CODES (from your remote - unchanged)
-//======================================================
-
-const byte CMD_UP    = 0x18;
-const byte CMD_DOWN  = 0x52;
-const byte CMD_LEFT  = 0x08;
-const byte CMD_RIGHT = 0x5A;
-const byte CMD_OK    = 0x1C;
-
-const byte CMD_1     = 0x45;
-const byte CMD_2     = 0x46;
-const byte CMD_3     = 0x47;
-const byte CMD_4     = 0x44;
-const byte CMD_5     = 0x40;
-const byte CMD_6     = 0x43;
-const byte CMD_7     = 0x07;
-const byte CMD_8     = 0x15;
-const byte CMD_9     = 0x09;
-
-const byte CMD_STAR  = 0x16;
-const byte CMD_0     = 0x19;
-const byte CMD_HASH  = 0x0D;
-
-
-//======================================================
 // 5. THE ROBOT'S "MEMORY" - what it is doing right now
 //======================================================
 
@@ -610,11 +647,17 @@ enum RobotState
     CURVE_LEFT,
     CURVE_RIGHT,
     DANCE,
-    DEMO,
     CHAOS,
     SEARCH,
     TURN180,
-    BRAKING
+    BRAKING,
+    FOLLOW,          // the play modes (keep them last in this list)
+    KEEPER,
+    GUARD,
+    MUSIC,
+    GESTURE,
+    PET,
+    TURBO
 };
 
 RobotState robotState = IDLE;
@@ -657,12 +700,6 @@ unsigned long danceNextUs = 0;     // when the next step is due (micros)
 unsigned long danceBeatUs = 0;     // when the last beat was (micros), to line up with your taps
 unsigned long danceStartMs = 0;    // when the dance started (for the clock on the screen)
 
-// Demo and chaos: which step they are on and when it started
-
-bool demoMode = false;
-byte demoStep = 0;
-unsigned long demoTimer = 0;
-
 // CHAOS mode steps
 const byte CHAOS_STRAIGHT = 0;
 const byte CHAOS_TURN = 1;           // a turn (a long turn is a "spin")
@@ -699,16 +736,54 @@ int leftDistance = NO_ECHO;
 int rightDistance = NO_ECHO;
 int centerDistance = NO_ECHO;
 
+// Play modes: the step they are on, timers, and what the sensor saw
+byte playStep = 0;
+unsigned long playTimer = 0;         // when the current step (or timed move) started
+unsigned long playMoveMs = 0;        // how long the current timed move lasts
+unsigned long playStopAt = 0;        // a timed move stops at this moment (0 = none) - yield() stops it on time
+unsigned long playOther = 0;         // a second timer (taps, head moves, sounds)
+unsigned long playSince = 0;         // gestures: hand seen since / pet: last played with / guard: intruder last seen
+byte playLook = 0;                   // which way the sensor looks (in LOOK_ANGLES)
+byte playCount = 0;                  // taps / countdown / the note playing
+bool playFlag = false;               // guard: sweeping toward the left / gestures: moving forward
+int playSeen[5];                     // what the sensor saw at each angle
+int playCm = 0;                      // guard: how far away the intruder was
+
+const byte FOLLOW_TRACK = 0;         // follow me: you're in front - keep the distance
+const byte FOLLOW_LOOK = 1;          // lost you: looking around
+const byte FOLLOW_TURN = 2;          // turning toward you
+const byte KEEPER_SCAN = 0;          // goalkeeper: start looking for the ball
+const byte KEEPER_LOOK = 1;          // looking around for it
+const byte KEEPER_TURN = 2;          // turning to face it
+const byte KEEPER_WATCH = 3;         // watching it
+const byte KEEPER_PUNCH = 4;         // punching it away ...
+const byte KEEPER_BACK = 5;          // ... and back into the goal
+const byte GUARD_ARM = 0;            // guard: counting down
+const byte GUARD_LEARN = 1;          // learning what the room looks like
+const byte GUARD_WATCH = 2;          // watching
+const byte GUARD_TURN = 3;           // turning to face the intruder
+const byte GUARD_ALARM = 4;          // siren!
+const byte GESTURE_WATCH = 0;        // gestures: waiting for your hand
+const byte GESTURE_MOVE = 1;         // doing a move
+const byte GESTURE_CLEAR = 2;        // waiting for your hand to go away
+const byte GESTURE_WIGGLE = 3;       // happy wiggle
+const byte PET_WANDER = 0;           // pet: a little walk
+const byte PET_TURN = 1;             // turning away from something
+const byte PET_SIT = 2;              // sitting, looking around
+const byte PET_BORED = 3;
+const byte PET_SLEEP = 4;
+const byte PET_HAPPY = 5;            // being petted
+
+// Battery
+int batteryStartMv = 0;              // the power supply when it started (millivolts)
+bool batteryLow = false;
+
 // Bluetooth button handling
 unsigned long modeLetterAt = 0;    // when the last mode letter (I, 1, 2 ...) arrived
 
 // Distance sensor
 int lastDistance = NO_ECHO;        // newest measurement (shown on the OLED)
 bool obstacleWarned = false;       // already beeped for this obstacle
-
-// IR remote
-unsigned long lastIRTime = 0;      // when the last IR button was handled
-byte lastIRCommand = 0;            // which button that was
 
 // Bluetooth
 bool btGreeted = false;            // true once the phone has sent its first letter
@@ -919,11 +994,10 @@ void setSlowMode(bool on)
 //    0 Hz is a short silence, and END_OF_TUNE marks the end.
 //    The tunes live in flash memory (PROGMEM) to save RAM.
 //
-//    HOW THE SOUND IS MADE: the usual tone() function needs Timer2, but the
-//    IR receiver already uses Timer2 (it ticks about 20,000 times a second).
-//    So we don't use tone(). Instead a tiny interrupt rides along on the IR
-//    receiver's tick and flips the buzzer pin at the right moments.
-//    That way the buzzer and the IR remote both work at the same time.
+//    HOW THE SOUND IS MADE: Timer2 ticks about 20,000 times a second, and a
+//    tiny interrupt flips the buzzer pin at the right moments (like tone(),
+//    but it can play notes in the background while everything else runs).
+//    The IR add-on's receiver uses the same Timer2 settings, so both work together.
 //    (Don't add tone() anywhere - it would fight over Timer2.)
 //======================================================
 
@@ -1010,7 +1084,7 @@ void buzzerNote(unsigned int frequency)
     interrupts();
 }
 
-// Call once, after IrReceiver.begin() has started Timer2
+// Call once in setup() (after IrReceiver.begin() if you use the IR add-on)
 void setupBuzzer()
 {
     pinMode(BUZZER_PIN, OUTPUT);
@@ -1019,14 +1093,19 @@ void setupBuzzer()
     buzzerPort = portOutputRegister(digitalPinToPort(BUZZER_PIN));
     buzzerMask = digitalPinToBitMask(BUZZER_PIN);
 
-    // The IR receiver set Timer2 to "count up to OCR2A, clock divided by 8".
+    // Timer2: "count up to OCR2A, clock divided by 8" (the IR add-on's receiver
+    // sets it up exactly like this - if it already did, keep its settings)
     bool countsToOcr2a = (TCCR2A & _BV(WGM21)) && !(TCCR2B & _BV(WGM22));
     bool divideBy8 = (TCCR2B & 0x07) == _BV(CS21);
 
-    if (countsToOcr2a && divideBy8)
-        buzzerTickHz = F_CPU / 8 / (OCR2A + 1UL);
-    else
-        Serial.println(F("Buzzer: Timer2 not set up by the IR receiver - no sound"));
+    if (!countsToOcr2a || !divideBy8)
+    {
+        TCCR2A = _BV(WGM21);
+        TCCR2B = _BV(CS21);
+        OCR2A = 100;                     // 16 MHz / 8 / 101 = about 19,800 ticks a second
+    }
+
+    buzzerTickHz = F_CPU / 8 / (OCR2A + 1UL);
 }
 
 // More notes for the jingles below
@@ -1065,8 +1144,47 @@ const uint16_t TUNE_DONUT[] PROGMEM = {           // a spiral going up
     NOTE_C6, 50, NOTE_D6, 50, NOTE_E6, 50, NOTE_F6, 50, NOTE_G6, 50, NOTE_A6, 50, NOTE_B6, 50, NOTE_C7, 120,
     END_OF_TUNE
 };
-const uint16_t TUNE_DEMO[] PROGMEM = {            // "ta-da-da-DAAA"
+const uint16_t TUNE_TADA[] PROGMEM = {            // "ta-da-da-DAAA" (end of a dance)
     NOTE_C5, 100, NOTE_E5, 100, NOTE_G5, 100, NOTE_C6, 300,
+    END_OF_TUNE
+};
+
+const uint16_t TUNE_HORN[] PROGMEM = {            // car horn: "beep beeeep"
+    NOTE_A5, 140,  REST, 70,  NOTE_A5, 320,
+    END_OF_TUNE
+};
+
+// Play modes
+const uint16_t TUNE_SAVE[] PROGMEM = {            // goalkeeper: "SAVE!"
+    NOTE_C6, 40, NOTE_G6, 40, NOTE_C7, 120,
+    END_OF_TUNE
+};
+const uint16_t TUNE_SIREN[] PROGMEM = {           // guard alarm: wee-woo wee-woo
+    1320, 160, 880, 160, 1320, 160, 880, 160,
+    END_OF_TUNE
+};
+const uint16_t TUNE_HAPPY[] PROGMEM = {           // a happy chirp
+    NOTE_C6, 60, NOTE_E6, 60, NOTE_G6, 60, NOTE_C7, 120,
+    END_OF_TUNE
+};
+const uint16_t TUNE_PURR[] PROGMEM = {            // purring
+    262, 45, 233, 45, 262, 45, 233, 45, 262, 45, 233, 45, REST, 60,
+    END_OF_TUNE
+};
+const uint16_t TUNE_SIGH[] PROGMEM = {            // a bored sigh
+    NOTE_G5, 150, NOTE_E5, 200, NOTE_C5, 350,
+    END_OF_TUNE
+};
+const uint16_t TUNE_SNORE[] PROGMEM = {           // snoring
+    196, 350, REST, 250, 175, 450,
+    END_OF_TUNE
+};
+const uint16_t TUNE_TURBO[] PROGMEM = {           // turbo whoosh
+    NOTE_C6, 30, NOTE_E6, 30, NOTE_G6, 30, NOTE_C7, 30, NOTE_E6, 30, NOTE_G6, 30, NOTE_C7, 150,
+    END_OF_TUNE
+};
+const uint16_t TUNE_BATTERY_LOW[] PROGMEM = {     // battery nearly empty: sad falling notes
+    NOTE_E5, 200, NOTE_C5, 200, NOTE_A4, 400,
     END_OF_TUNE
 };
 
@@ -1163,15 +1281,17 @@ void updateSound()
 
 void updateDance();                 // (they're further down - these lines just let yield() use them)
 void update180();
+void updatePlayStop();
 
 // Arduino calls yield() again and again while delay() is waiting.
 // We use that spare time to keep the music playing in time, the dance
-// moves exactly on the beat, and to stop the 180 turn at exactly the right moment.
+// moves exactly on the beat, and to stop the 180 turn and the play modes' timed moves at exactly the right moment.
 void yield()
 {
     updateSound();
     updateDance();
     update180();
+    updatePlayStop();
 }
 
 
@@ -1256,11 +1376,25 @@ void flashText(char* buf, const char* textP, byte width)
         buf[length++] = ' ';
 }
 
-// Football mode (phone V) switches the distance sensor off - except in SEARCH and CHAOS,
-// which need it to see where they're going
+// Football mode (phone V) switches the distance sensor off - except in SEARCH, CHAOS and
+// the play modes, which need it to see where they're going
 bool sensorOff()
 {
-    return footballMode && robotState != SEARCH && robotState != CHAOS;
+    switch (robotState)
+    {
+    case SEARCH:
+    case CHAOS:
+    case FOLLOW:
+    case KEEPER:
+    case GUARD:
+    case MUSIC:
+    case GESTURE:
+    case PET:
+        return false;              // these need to see
+
+    default:
+        return footballMode;
+    }
 }
 
 // Short name of what the robot is doing (max 8 letters, stored in flash)
@@ -1281,10 +1415,17 @@ const char* actionName()
     case CURVE_LEFT:      return blocked ? PSTR("BLOCKED") : PSTR("CURVE L");
     case CURVE_RIGHT:     return blocked ? PSTR("BLOCKED") : PSTR("CURVE R");
     case DANCE:           return PSTR("DANCE");
-    case DEMO:            return PSTR("DEMO");
     case CHAOS:           return PSTR("CHAOS!");
     case TURN180:         return PSTR("TURN 180");
     case BRAKING:         return PSTR("BRAKING");
+    case FOLLOW:          return PSTR("FOLLOW");
+    case KEEPER:          return playStep >= KEEPER_PUNCH ? PSTR("SAVE!") : PSTR("KEEPER");
+    case GUARD:           return playStep == GUARD_ARM ? PSTR("ARMING") : playStep >= GUARD_TURN ? PSTR("INTRUDER") : PSTR("GUARD");
+    case MUSIC:           return PSTR("MUSIC");
+    case GESTURE:         return PSTR("GESTURE");
+    case PET:             return playStep == PET_SLEEP ? PSTR("Zzz...") : playStep == PET_BORED ? PSTR("BORED")
+                               : playStep == PET_HAPPY ? PSTR("PURR <3") : PSTR("PET");
+    case TURBO:           return PSTR("TURBO!");
     case SEARCH:
         if (searchStep == AVOID_LOOK_LEFT)   return PSTR("LOOK L");
         if (searchStep == AVOID_LOOK_RIGHT)  return PSTR("LOOK R");
@@ -1403,7 +1544,9 @@ void wantedText(byte area, char* buf)
     if (area == 0)
     {
         flashText(buf, btGreeted ? PSTR("BT:OK") : PSTR("BT:--"), 5);
-        if (footballMode)
+        if (batteryLow)
+            strcat_P(buf, PSTR(" LOW BATT!"));
+        else if (footballMode)
             strcat_P(buf, PSTR(" FOOTBALL!"));
         else if (muted)
             strcat_P(buf, slowMode ? PSTR(" MUTED SLOW") : PSTR(" MUTED FULL"));
@@ -1593,10 +1736,6 @@ void setEyeTargets()
             break;
         }
 
-        case DEMO:
-            eyeTarget[E_HAPPY] = 22;
-            break;
-
         case CHAOS:                                     // mad and serious: deep frown, narrowed eyes,
             eyeTarget[E_ANGRY] = 18;                    // a steady glare (no silly darting around)
             eyeTarget[E_H] = EYE_H - 6;
@@ -1610,6 +1749,76 @@ void setEyeTargets()
             eyeTarget[E_X] = servoLook(toLeft);
             if (searchStep == AVOID_TURN_TO_OPEN || searchStep == AVOID_CORNER_TURN)   // ... or where it is turning
                 eyeTarget[E_X] = searchTurnLeft ? toLeft : -toLeft;
+            break;
+
+        case FOLLOW:                                    // happy, keeping an eye on you
+            eyeTarget[E_HAPPY] = 12;
+            eyeTarget[E_X] = servoLook(toLeft);
+            break;
+
+        case KEEPER:                                    // a focused goalkeeper, watching the ball
+            eyeTarget[E_ANGRY] = 8;
+            eyeTarget[E_H] = EYE_H - 8;
+            eyeTarget[E_X] = servoLook(toLeft);
+            if (playStep >= KEEPER_PUNCH)               // the save: big eyes
+            {
+                eyeTarget[E_ANGRY] = 0;
+                eyeTarget[E_H] = EYE_H + 10;
+            }
+            break;
+
+        case GUARD:                                     // on guard: narrowed, following the sensor
+            eyeTarget[E_H] = EYE_H - 10;
+            eyeTarget[E_X] = servoLook(toLeft);
+            if (playStep >= GUARD_TURN)                 // INTRUDER: furious, flashing
+            {
+                eyeTarget[E_ANGRY] = 18;
+                eyeTarget[E_H] = EYE_H + 6;
+                eyeTarget[E_X] = ((now / 120) % 2) ? 4 : -4;
+            }
+            break;
+
+        case MUSIC:                                     // happy, the eyes go up with the note
+            if (playCount <= 10)
+            {
+                eyeTarget[E_HAPPY] = 18;
+                eyeTarget[E_Y] = 5 - playCount;
+            }
+            break;
+
+        case GESTURE:                                   // wide awake, watching your hand
+            eyeTarget[E_W] = EYE_W - 4;
+            eyeTarget[E_H] = EYE_H + 6;
+            break;
+
+        case PET:
+            if (playStep == PET_SLEEP)                  // asleep
+            {
+                eyeTarget[E_OPEN] = 8;
+                eyeTarget[E_Y] = 6;
+            }
+            else if (playStep == PET_BORED)             // bored: droopy
+            {
+                eyeTarget[E_OPEN] = 55;
+                eyeTarget[E_TIRED] = 10;
+                eyeTarget[E_Y] = 4;
+            }
+            else if (playStep == PET_HAPPY)             // being petted: ^ ^
+            {
+                eyeTarget[E_HAPPY] = 30;
+            }
+            else
+            {
+                eyeTarget[E_HAPPY] = 10;
+                eyeTarget[E_X] = servoLook(toLeft);
+            }
+            break;
+
+        case TURBO:                                     // turbo: fierce
+            eyeTarget[E_ANGRY] = 14;
+            eyeTarget[E_W] = EYE_W + 4;
+            eyeTarget[E_H] = EYE_H - 8;
+            eyeTarget[E_Y] = -3;
             break;
 
         case BRAKING:                                   // slowing down: squinting
@@ -1827,7 +2036,7 @@ void drawEyesNow()
 // Called from loop(): animates the eyes, or updates one text row
 void updateDisplay()
 {
-    if (!oledFound || turning180)
+    if (!oledFound || turning180 || playStopAt)
         return;
 
     // While dancing, don't start drawing just before the next step: a picture
@@ -1885,7 +2094,7 @@ void setupDisplay()
 
     if (address == 0)
     {
-        Serial.println(F("OLED not found - check the SDA/SCL wires"));
+        DEBUG.println(F("OLED not found - check the SDA/SCL wires"));
         return;
     }
 
@@ -1899,7 +2108,7 @@ void setupDisplay()
     memset(shownBottom, ' ', 16);
     memset(tileStates, 0, sizeof(tileStates));   // and the eye area starts all dark
 
-    Serial.println(F("OLED ready"));
+    DEBUG.println(F("OLED ready"));
 }
 
 
@@ -1961,7 +2170,8 @@ bool drivingForward()
     return robotState == MANUAL_FORWARD || robotState == AUTO_FORWARD
         || robotState == CURVE_LEFT || robotState == CURVE_RIGHT
         || (robotState == CHAOS && chaosStep == CHAOS_STRAIGHT)
-        || (robotState == SEARCH && searchStep == AVOID_DRIVE);
+        || (robotState == SEARCH && searchStep == AVOID_DRIVE)
+        || robotState == TURBO;
 }
 
 // Two quick beeps the first time something gets too close while driving forward
@@ -2031,7 +2241,7 @@ int filteredDistance()
 // Runs on every pass of loop(). While you drive forward by hand (F / UP),
 // it stops the car if something is closer than STOP_DISTANCE.
 // NOTE: this measurement takes about 40-60 ms, which also sets the rhythm of
-// loop(). The timed moves (180 turn, dance, demo) were tuned with it,
+// loop(). The timed moves (180 turn, dance) were tuned with it,
 // so keep this measurement running every loop.
 void checkObstacle()
 {
@@ -2070,6 +2280,10 @@ void lookRight()
     scanner.write(SERVO_RIGHT);
 }
 
+// Where the play modes look when they look around: right ... straight ... left
+const int LOOK_ANGLES[5] = {SERVO_RIGHT, (SERVO_RIGHT + SERVO_CENTER) / 2, SERVO_CENTER,
+                            (SERVO_CENTER + SERVO_LEFT) / 2, SERVO_LEFT};
+
 
 //======================================================
 // 11. GREETING - "Hello!" on the screen + a tune + a servo wave
@@ -2090,7 +2304,7 @@ void startGreeting(bool fromPhone)
         scanner.write(WAVE_ANGLES[0]);
     }
 
-    Serial.println(fromPhone ? F("HELLO PHONE") : F("HELLO"));
+    DEBUG.println(fromPhone ? F("HELLO PHONE") : F("HELLO"));
 }
 
 // Called from loop(): after a donut, the head wobbles left and right while
@@ -2218,9 +2432,7 @@ void update180()
     {
         turning180 = false;
         stop();
-
-        if (!demoMode)
-            robotState = IDLE;
+        robotState = IDLE;
     }
 }
 
@@ -2253,41 +2465,46 @@ void emergencyStop()
     braking = false;
     turning180 = false;
 
-    demoMode = false;
-    demoStep = 0;
-
     chaosMode = false;
     chaosStep = CHAOS_STRAIGHT;
 
     searchMode = false;
     searchStep = AVOID_DRIVE;
 
+    if (robotState == MUSIC)           // music mode: its note stops too
+        stopSound();
+
     robotState = IDLE;
     stop();
 
     lookCenter();
 
+    playStopAt = 0;                    // (no play-mode move waiting to stop)
+
     nextBlinkAt = millis();            // the eyes blink at every new command
 
-    Serial.println(F("STOP"));
+    DEBUG.println(F("STOP"));
 }
 
 // Switches off every mode that drives by itself (auto forward/backward, donut,
-// dance, demo, chaos, search) without stopping the motors - the button that
-// called this decides what the motors do next. Used by the IR remote buttons
-// and the smooth brake, so a running dance or search can't fight with them.
+// dance, chaos, search, play modes) without stopping the motors - the button that
+// called this decides what the motors do next. Used by the smooth brake and the
+// IR add-on, so a running dance or search can't fight with them.
 void cancelAutoModes()
 {
     dizzyIfDonut();
+    playStopAt = 0;
     autoForward = false;
     autoBackward = false;
     donutMode = false;
 
-    if (danceMode || searchMode)
-        lookCenter();                  // the sensor head may be turned
+    if (danceMode || searchMode || robotState >= FOLLOW)
+        lookCenter();                  // the sensor head may be turned (play modes are last in the list)
+
+    if (robotState == MUSIC)
+        stopSound();
 
     danceMode = false;
-    demoMode = false;
     chaosMode = false;
     searchMode = false;
 }
@@ -2316,6 +2533,8 @@ void setDonut()
     playSound(TUNE_DONUT);
 }
 
+void sendStatus();                  // (section 15 - this line just lets us use it here)
+
 // Press dance on the first beat of the song: the first move starts right away
 void startDance()
 {
@@ -2330,15 +2549,16 @@ void startDance()
     danceMove = POSE;
     danceTurnStopMs = 0;
     danceAfterDash = false;
-    danceNextUs = micros();
+    robotState = DANCE;
+    danceNextUs = micros();            // the beat starts now (when you pressed dance) ...
     danceBeatUs = danceNextUs;
     danceStartMs = millis();
-    robotState = DANCE;
+    sendStatus();                      // ... then tell the app (no messages while dancing)
 
-    Serial.print(F("DANCE to: "));
-    Serial.print((const __FlashStringHelper*)SONG_NAME);
-    Serial.print(F("  BPM "));
-    Serial.println((int)(SONG_BPM + 0.5));
+    DEBUG.print(F("DANCE to: "));
+    DEBUG.print((const __FlashStringHelper*)SONG_NAME);
+    DEBUG.print(F("  BPM "));
+    DEBUG.println((int)(SONG_BPM + 0.5));
 }
 
 // Dance button tapped again while dancing: you tapped ON a beat, so move the
@@ -2354,18 +2574,8 @@ void danceTap()
     danceNextUs += shift;
     danceBeatUs += shift;
 
-    Serial.print(F("DANCE beat moved by ms: "));
-    Serial.println(shift / 1000);
-}
-
-void startDemo()
-{
-    emergencyStop();
-    demoMode = true;
-    demoStep = 0;
-    demoTimer = millis();
-    robotState = DEMO;
-    playSound(TUNE_DEMO);
+    DEBUG.print(F("DANCE beat moved by ms: "));
+    DEBUG.println(shift / 1000);
 }
 
 void startChaos()
@@ -2390,160 +2600,17 @@ void startSearch()
     playSound(TUNE_SEARCH);
 }
 
-
-//======================================================
-// 14. IR REMOTE
-//======================================================
-
-// What each remote button does
-void handleRemote(byte cmd)
+// Starts one of the play modes (what they do is in section 16b)
+void startPlayMode(RobotState mode)
 {
-    switch (cmd)
-    {
-    case CMD_OK:                       // stop everything
-        emergencyStop();
-        break;
-
-    case CMD_2:                        // slow / full speed
-        setSlowMode(!slowMode);
-
-        if (slowMode)
-            Serial.println(F("Slow Mode ON"));
-        else
-            Serial.println(F("Slow Mode OFF"));
-
-        break;
-
-    case CMD_UP:                       // forward, only if the way is clear
-        cancelAutoModes();
-
-        if (filteredDistance() > STOP_DISTANCE)
-        {
-            robotState = MANUAL_FORWARD;
-            forward(currentSpeed);
-        }
-        else
-        {
-            stop();
-            robotState = IDLE;
-        }
-
-        break;
-
-    case CMD_DOWN:                     // backward
-        cancelAutoModes();
-        robotState = MANUAL_BACKWARD;
-        backward(currentSpeed);
-        break;
-
-    case CMD_LEFT:                     // short turn left
-        cancelAutoModes();
-        left();
-        delay(IR_TURN_TIME);
-        stop();
-        robotState = IDLE;
-        break;
-
-    case CMD_RIGHT:                    // short turn right
-        cancelAutoModes();
-        right();
-        delay(IR_TURN_TIME);
-        stop();
-        robotState = IDLE;
-        break;
-
-    case CMD_STAR:                     // auto forward
-        setAutoForward();
-        break;
-
-    case CMD_HASH:                     // auto backward
-        setAutoBackward();
-        break;
-
-    case CMD_0:                        // donut
-        setDonut();
-        break;
-
-    case CMD_1:                        // 180-degree turn (stops any other mode first, like the phone's U)
-        if (!turning180)
-        {
-            emergencyStop();
-            start180();
-        }
-        break;
-
-    case CMD_3:                        // smooth brake
-        beginBrake();
-        break;
-
-    case CMD_4:                        // demo
-        startDemo();
-        break;
-
-    case CMD_5:                        // dance (pressed while dancing: line up with the beat)
-        if (danceMode)
-            danceTap();
-        else
-            startDance();
-        break;
-
-    case CMD_6:                        // chaos
-        startChaos();
-        break;
-
-    case CMD_7:                        // curve left (forward while turning left)
-        emergencyStop();
-        robotState = CURVE_LEFT;
-        break;
-
-    case CMD_8:                        // curve right (forward while turning right)
-        emergencyStop();
-        robotState = CURVE_RIGHT;
-        break;
-
-    case CMD_9:                        // search
-        startSearch();
-        break;
-    }
-}
-
-// Checks if the IR receiver caught a button press
-void handleIR()
-{
-    if (!IrReceiver.decode())
-        return;
-
-    byte cmd = IrReceiver.decodedIRData.command;
-    bool heldDown = IrReceiver.decodedIRData.flags & IRDATA_FLAGS_IS_REPEAT;
-
-    if (heldDown)
-    {
-        // The remote sends a "still held down" signal about every 0.1 s.
-        // Only the arrow buttons keep going while held, and only when the
-        // signal follows the press we just handled.
-        bool arrow = (cmd == CMD_UP || cmd == CMD_DOWN || cmd == CMD_LEFT || cmd == CMD_RIGHT);
-
-        if (!arrow || cmd != lastIRCommand || millis() - lastIRTime > IR_REPEAT_WINDOW_MS)
-        {
-            IrReceiver.resume();
-            return;
-        }
-    }
-    else
-    {
-        if (IrReceiver.decodedIRData.protocol != UNKNOWN)   // a real, fresh button press
-        {
-            Serial.print(F("IR button 0x"));
-            Serial.println(cmd, HEX);
-        }
-    }
-
-    handleRemote(cmd);
-
-    lastIRCommand = cmd;
-    lastIRTime = millis();
-
-    IrReceiver.resume();               // get ready for the next button
+    emergencyStop();
+    robotState = mode;
+    playStep = 0;
+    playTimer = millis();
+    playOther = millis();
+    playSince = millis();
+    playCount = 0;
+    playFlag = false;
 }
 
 
@@ -2551,10 +2618,65 @@ void handleIR()
 // 15. BLUETOOTH - letters from the phone app
 //======================================================
 
+// THE APP'S STATUS LINE: the car tells the app what it is doing - "~MODE|1010" + a new line.
+// (MODE = what the screen shows; then 1 or 0 for: muted, football mode, slow, low battery.)
+// Sending pauses the Arduino for a moment, so it only sends when something changed,
+// at most 4 times a second, and never while dancing or turning.
+void sendStatus()
+{
+    BT.print('~');
+    BT.print((const __FlashStringHelper*)actionName());
+    BT.print('|');
+    BT.print(muted ? '1' : '0');
+    BT.print(footballMode ? '1' : '0');
+    BT.print(slowMode ? '1' : '0');
+    BT.print(batteryLow ? '1' : '0');
+    BT.print('\n');
+}
+
+void updateStatus()
+{
+    static const char* sentName = NULL;
+    static byte sentFlags = 255;
+    static unsigned long sentAt = 0;
+
+    if (!btGreeted || danceMode || turning180 || millis() - sentAt < 250)
+        return;
+
+    const char* name = actionName();
+    byte flags = muted | footballMode << 1 | slowMode << 2 | batteryLow << 3;
+
+    if (name == sentName && flags == sentFlags)
+        return;
+
+    sentName = name;
+    sentFlags = flags;
+    sentAt = millis();
+    sendStatus();
+}
+
+void keeperPunch();                 // (section 16b - this line just lets us use it here)
+
+// The same driving letter again (some apps repeat it while you hold the button): just keep going
+bool sameDriving(char c)
+{
+    switch (c)
+    {
+        case 'F': return robotState == MANUAL_FORWARD;
+        case 'B': return robotState == MANUAL_BACKWARD;
+        case 'L': return robotState == MANUAL_LEFT;
+        case 'R': return robotState == MANUAL_RIGHT;
+        case 'G': return robotState == CURVE_LEFT;
+        case 'H': return robotState == CURVE_RIGHT;
+    }
+    return false;
+}
+
 // Letters that start a self-driving mode
 bool isModeLetter(char c)
 {
-    return c == 'I' || c == '1' || c == '2' || c == 'J' || c == '3' || c == '4' || c == 'Y' || c == 'U';
+    return c == 'I' || c == '1' || c == '2' || c == 'J' || c == '3' || c == '4' || c == 'U'
+        || c == 'M' || c == 'K' || c == 'A' || c == 'N' || c == 'E' || c == 'P' || c == 'T';
 }
 
 // Is the mode for this letter already running?
@@ -2568,21 +2690,35 @@ bool modeAlreadyRunning(char c)
         case 'J': return robotState == AUTO_BACKWARD;
         case '3': return robotState == DONUT;
         case '4': return danceMode;
-        case 'Y': return demoMode;
         case 'U': return turning180;
+        case 'M': return robotState == FOLLOW;
+        case 'K': return robotState == KEEPER;
+        case 'A': return robotState == GUARD;
+        case 'N': return robotState == MUSIC;
+        case 'E': return robotState == GESTURE;
+        case 'P': return robotState == PET;
+        case 'T': return robotState == TURBO;
     }
     return false;
 }
 
+void handleCommand(char c);         // (just below)
+
+// A letter from the phone app
 void handleBluetooth()
 {
-    if (!BT.available())
+    if (BT.available())
+        handleCommand(BT.read());
+}
+
+// Does what one letter asks for. (The IR add-on turns remote buttons into these letters too.)
+void handleCommand(char c)
+{
+    DEBUG.print(F("Received: "));
+    DEBUG.println(c);
+
+    if (sameDriving(c))
         return;
-
-    char c = BT.read();
-
-    Serial.print(F("Received: "));
-    Serial.println(c);
 
     // Phone apps send the letter again and again while you hold a button,
     // and an 'S' when you let go. So:
@@ -2603,65 +2739,65 @@ void handleBluetooth()
     }
     else if (c == 'S' && modeLetterAt != 0 && millis() - modeLetterAt < BUTTON_RELEASE_IGNORE_MS)
     {
-        Serial.println(F("(button let go - mode keeps going)"));
+        DEBUG.println(F("(button let go - mode keeps going)"));
         return;
     }
 
     switch (c)
     {
         case 'F':                          // forward
-            Serial.println(F("FORWARD"));
+            DEBUG.println(F("FORWARD"));
             emergencyStop();
             robotState = MANUAL_FORWARD;
             forward(currentSpeed);
             break;
 
         case 'B':                          // backward
-            Serial.println(F("BACKWARD"));
+            DEBUG.println(F("BACKWARD"));
             emergencyStop();
             robotState = MANUAL_BACKWARD;
             backward(currentSpeed);
             break;
 
         case 'L':                          // spin left
-            Serial.println(F("LEFT"));
+            DEBUG.println(F("LEFT"));
             emergencyStop();
             left();
             robotState = MANUAL_LEFT;
             break;
 
         case 'R':                          // spin right
-            Serial.println(F("RIGHT"));
+            DEBUG.println(F("RIGHT"));
             emergencyStop();
             right();
             robotState = MANUAL_RIGHT;
             break;
 
         case 'G':                          // curve left (forward while turning left)
-            Serial.println(F("CURVE LEFT"));
+            DEBUG.println(F("CURVE LEFT"));
             emergencyStop();
             robotState = CURVE_LEFT;
             break;
 
         case 'H':                          // curve right (forward while turning right)
-            Serial.println(F("CURVE RIGHT"));
+            DEBUG.println(F("CURVE RIGHT"));
             emergencyStop();
             robotState = CURVE_RIGHT;
             break;
 
         case 'S':                          // stop
-            Serial.println(F("STOP"));
+            DEBUG.println(F("STOP"));
             emergencyStop();
             break;
 
         case 'Q':                          // slow speed
             setSlowMode(true);
-            Serial.println(F("Slow Mode ON"));
+            DEBUG.println(F("Slow Mode ON"));
             break;
 
         case 'W':                          // full speed
             setSlowMode(false);
-            Serial.println(F("Full Speed"));
+            DEBUG.println(F("Full Speed"));
             break;
 
         case 'X':                          // the "!" button: mute / unmute all sounds
@@ -2672,7 +2808,7 @@ void handleBluetooth()
                 muteToggledAt = millis();
                 if (muted)
                     stopSound();
-                Serial.println(muted ? F("MUTED") : F("SOUND ON"));
+                DEBUG.println(muted ? F("MUTED") : F("SOUND ON"));
             }
             break;
 
@@ -2683,56 +2819,124 @@ void handleBluetooth()
                 footballMode = !footballMode;
                 footballToggledAt = millis();
                 playBeep(footballMode ? NOTE_A5 : NOTE_BEEP, 120);
-                Serial.println(footballMode ? F("FOOTBALL MODE: sensor off") : F("SENSOR ON"));
+                DEBUG.println(footballMode ? F("FOOTBALL MODE: sensor off") : F("SENSOR ON"));
             }
             break;
 
         case '2':                          // auto forward
-            Serial.println(F("AUTO FORWARD"));
+            DEBUG.println(F("AUTO FORWARD"));
             emergencyStop();
             setAutoForward();
             break;
 
         case 'J':                          // auto backward
-            Serial.println(F("AUTO BACKWARD"));
+            DEBUG.println(F("AUTO BACKWARD"));
             emergencyStop();
             setAutoBackward();
             break;
 
         case '3':                          // donut
-            Serial.println(F("DONUT"));
+            DEBUG.println(F("DONUT"));
             emergencyStop();
             setDonut();
             break;
 
         case 'U':                          // 180-degree turn
-            Serial.println(F("180 TURN"));
+            DEBUG.println(F("180 TURN"));
             emergencyStop();
             start180();
             break;
 
         case 'u':                          // smooth brake
-            Serial.println(F("BRAKE"));
+            DEBUG.println(F("BRAKE"));
             beginBrake();
             break;
 
         case '4':                          // dance
-            Serial.println(F("DANCE"));
+            DEBUG.println(F("DANCE"));
             startDance();
             break;
 
-        case 'Y':                          // demo
-            Serial.println(F("DEMO"));
-            startDemo();
+        case 'Y':                          // horn
+            playSound(TUNE_HORN);
             break;
 
         case '1':                          // chaos
-            Serial.println(F("CHAOS"));
+            DEBUG.println(F("CHAOS"));
             startChaos();
             break;
 
+        case 'T':                          // turbo: a full-power burst
+            startPlayMode(TURBO);
+            playSound(TUNE_TURBO);
+            break;
+
+        case 'M':                          // follow me
+            if (HAS_FOLLOW)
+            {
+                startPlayMode(FOLLOW);
+                playSound(TUNE_AUTO_FORWARD);
+            }
+            break;
+
+        case 'K':                          // goalkeeper
+            if (HAS_KEEPER)
+            {
+                startPlayMode(KEEPER);
+                playSound(TUNE_SEARCH);
+            }
+            break;
+
+        case 'k':                          // kick: punch the ball away now
+            if (HAS_KEEPER)
+            {
+                if (robotState != KEEPER)
+                    startPlayMode(KEEPER);
+                keeperPunch();
+            }
+            break;
+
+        case 'A':                          // guard
+            if (HAS_GUARD)
+            {
+                startPlayMode(GUARD);
+                playCount = GUARD_ARM_SECONDS;
+            }
+            break;
+
+        case 'N':                          // music: your hand plays notes
+            if (HAS_MUSIC)
+            {
+                startPlayMode(MUSIC);
+                stopSound();
+                playCount = 255;           // (no note yet)
+            }
+            break;
+
+        case 'E':                          // gesture control
+            if (HAS_GESTURE)
+            {
+                startPlayMode(GESTURE);
+                playSince = 0;
+                playSound(TUNE_HAPPY);
+            }
+            break;
+
+        case 'P':                          // pet
+            if (HAS_PET)
+            {
+                startPlayMode(PET);
+                playMoveMs = 8000;         // a walk first
+                playSound(TUNE_HAPPY);
+            }
+            break;
+
+        case '?':                          // the app asks what the car is doing
+            sendStatus();
+            break;
+
         case 'I':                          // search
-            Serial.println(F("SEARCH"));
+            DEBUG.println(F("SEARCH"));
             startSearch();
             break;
     }
@@ -2971,8 +3175,8 @@ bool nextDanceStep()
         else
             danceSectionBar++;
 
-        Serial.print(F("DANCE part "));
-        Serial.println(dancePart);
+        DEBUG.print(F("DANCE part "));
+        DEBUG.println(dancePart);
         return true;
     }
 
@@ -2987,8 +3191,8 @@ void endDance()
     stop();
     lookCenter();
     robotState = IDLE;
-    playSound(TUNE_DEMO);
-    Serial.println(F("DANCE finished"));
+    playSound(TUNE_TADA);
+    DEBUG.println(F("DANCE finished"));
 }
 
 void updateDance()
@@ -3047,7 +3251,7 @@ void updateDance()
     {
         shoutUntil = millis() + SHOUT_MS;
         playSound(SOUND_ZAP);
-        Serial.println((const __FlashStringHelper*)SONG_SHOUT);
+        DEBUG.println((const __FlashStringHelper*)SONG_SHOUT);
     }
 
     bool shouting = (long)(shoutUntil - millis()) > (long)(SHOUT_MS - SHOUT_SOUND_MS);   // let the zap play
@@ -3065,80 +3269,6 @@ void updateDance()
 
     if (!nextDanceStep())
         dancePart = SONG_PARTS;                // the end comes after this last step
-}
-
-// Demo: forward, pause, reverse, spin, 180 turn, final launch
-void updateDemo()
-{
-    if (!demoMode)
-        return;
-
-    switch (demoStep)
-    {
-        case 0:                            // forward
-            forward(currentSpeed);
-
-            if (millis() - demoTimer >= DEMO_FORWARD_MS)
-            {
-                stop();
-                demoTimer = millis();
-                demoStep = 1;
-            }
-            break;
-
-        case 1:                            // pause
-            stop();
-
-            if (millis() - demoTimer >= DEMO_PAUSE_MS)
-            {
-                demoTimer = millis();
-                demoStep = 2;
-            }
-            break;
-
-        case 2:                            // reverse
-            backward(currentSpeed);
-
-            if (millis() - demoTimer >= DEMO_REVERSE_MS)
-            {
-                stop();
-                demoTimer = millis();
-                demoStep = 3;
-            }
-            break;
-
-        case 3:                            // spin, then start the 180 turn
-            donut();
-
-            if (millis() - demoTimer >= DEMO_SPIN_MS)
-            {
-                stop();
-                start180();
-                demoStep = 4;
-            }
-            break;
-
-        case 4:                            // wait for the 180 turn to finish
-            if (!turning180)
-            {
-                robotState = DEMO;         // give control back to the demo
-                demoTimer = millis();
-                demoStep = 5;
-            }
-            break;
-
-        case 5:                            // final launch forward
-            forward(currentSpeed);
-
-            if (millis() - demoTimer >= DEMO_LAUNCH_MS)
-            {
-                stop();
-                demoMode = false;
-                demoStep = 0;
-                robotState = IDLE;
-            }
-            break;
-    }
 }
 
 // CHAOS: random straight runs, random left/right turns, surprise spins and
@@ -3258,7 +3388,7 @@ void searchLookAround(bool stuck)
 // just past the edge of the obstacle.
 void startTurnToOpen(bool toLeft)
 {
-    Serial.println(toLeft ? F("SEARCH -> turn left until open") : F("SEARCH -> turn right until open"));
+    DEBUG.println(toLeft ? F("SEARCH -> turn left until open") : F("SEARCH -> turn right until open"));
 
     int seen = toLeft ? leftDistance : rightDistance;
     searchOpenTarget = constrain(max(seen / 4 * 3, centerDistance + 10), SAFE_DISTANCE, SEARCH_OPEN_ENOUGH);
@@ -3285,7 +3415,7 @@ void turnStep()
 // then check straight ahead (see AVOID_CORNER_TURN / AVOID_CORNER_CHECK below)
 void startCornerTurn(bool toLeft)
 {
-    Serial.println(toLeft ? F("SEARCH boxed in -> 90 left") : F("SEARCH boxed in -> 90 right"));
+    DEBUG.println(toLeft ? F("SEARCH boxed in -> 90 left") : F("SEARCH boxed in -> 90 right"));
 
     searchTurnLeft = toLeft;
     cornerTurns++;
@@ -3347,14 +3477,14 @@ void runObstacleAvoidance()
         if (millis() - lastReport >= 500)
         {
             lastReport = millis();
-            Serial.print(F("SEARCH ahead: "));
-            Serial.println(ahead);
+            DEBUG.print(F("SEARCH ahead: "));
+            DEBUG.println(ahead);
         }
 
         if (ahead <= STOP_DISTANCE)
         {
-            Serial.print(F("SEARCH blocked at "));
-            Serial.println(ahead);
+            DEBUG.print(F("SEARCH blocked at "));
+            DEBUG.println(ahead);
             searchLookAround(false);           // something in the way
             break;
         }
@@ -3379,7 +3509,7 @@ void runObstacleAvoidance()
 
             if (stuck)
             {
-                Serial.println(F("SEARCH stuck - backing out"));
+                DEBUG.println(F("SEARCH stuck - backing out"));
                 searchLookAround(true);
             }
         }
@@ -3411,12 +3541,12 @@ void runObstacleAvoidance()
         {
             centerDistance = filteredDistance();
 
-            Serial.print(F("SEARCH looked  L="));   // debug: what it saw around it
-            Serial.print(leftDistance);
-            Serial.print(F("  C="));
-            Serial.print(centerDistance);
-            Serial.print(F("  R="));
-            Serial.println(rightDistance);
+            DEBUG.print(F("SEARCH looked  L="));   // debug: what it saw around it
+            DEBUG.print(leftDistance);
+            DEBUG.print(F("  C="));
+            DEBUG.print(centerDistance);
+            DEBUG.print(F("  R="));
+            DEBUG.println(rightDistance);
 
             chooseClearestWay();
         }
@@ -3429,8 +3559,8 @@ void runObstacleAvoidance()
 
             if (ahead >= SAFE_DISTANCE)
             {
-                Serial.print(F("SEARCH opening found: "));
-                Serial.println(ahead);
+                DEBUG.print(F("SEARCH opening found: "));
+                DEBUG.println(ahead);
                 searchDriveOn();               // an opening: go that way
             }
             else if (cornerTurns < MAX_CORNER_TURNS)
@@ -3439,7 +3569,7 @@ void runObstacleAvoidance()
             }
             else
             {
-                Serial.println(F("SEARCH turned all the way round - looking again"));
+                DEBUG.println(F("SEARCH turned all the way round - looking again"));
                 searchLookAround(false);
             }
         }
@@ -3454,8 +3584,8 @@ void runObstacleAvoidance()
 
         if (ahead >= searchOpenTarget)
         {
-            Serial.print(F("SEARCH open way found: "));
-            Serial.println(ahead);
+            DEBUG.print(F("SEARCH open way found: "));
+            DEBUG.println(ahead);
 
             for (byte i = 0; i < SEARCH_TURN_EXTRA_STEPS; i++)
                 turnStep();                    // a little more, so the whole car gets past the edge
@@ -3464,7 +3594,7 @@ void runObstacleAvoidance()
         }
         else if (turnSteps >= SEARCH_TURN_MAX_STEPS)
         {
-            Serial.println(F("SEARCH no open way yet - looking again"));
+            DEBUG.println(F("SEARCH no open way yet - looking again"));
             lookLeft();
             avoidTimer = millis();
             searchStep = AVOID_LOOK_LEFT;
@@ -3476,71 +3606,726 @@ void runObstacleAvoidance()
 
 
 //======================================================
+// 16b. PLAY MODES - follow me, goalkeeper, guard, music, gestures, pet, turbo,
+//      and the low-battery check.
+//      They use the newest distance reading (lastDistance - measured on every
+//      pass of loop()), and the sensor stays on for them even in football mode.
+//======================================================
+
+// The nearest thing seen while looking around (its place in LOOK_ANGLES), or 255 for nothing
+byte nearestLook(int maxCm)
+{
+    byte best = 255;
+
+    for (byte i = 0; i < 5; i++)
+        if (playSeen[i] < maxCm && (best == 255 || playSeen[i] < playSeen[best]))
+            best = i;
+
+    return best;
+}
+
+// A timed move: the motors stop exactly after ms (yield() and loop() stop them on time,
+// and the screen waits meanwhile - like the 180 turn). playMoveDone() says when it's over.
+void playMoveFor(unsigned long ms)
+{
+    playMoveMs = ms;
+    playTimer = millis();
+    playStopAt = (playTimer + ms) | 1;     // (| 1: never exactly 0)
+}
+
+void updatePlayStop()
+{
+    if (playStopAt && (long)(millis() - playStopAt) >= 0)
+    {
+        playStopAt = 0;
+        stop();
+    }
+}
+
+// Turn the car toward where the sensor looked (a timed turn - playMoveDone() says when it's over)
+void playTurnToward(int angle)
+{
+    int degrees = angle - SERVO_CENTER;
+
+    if ((degrees > 0) == (SERVO_LEFT > SERVO_CENTER))
+        left();
+    else
+        right();
+
+    playMoveFor(TURN90_TIME * abs(degrees) / 90);
+}
+
+bool playMoveDone()
+{
+    return millis() - playTimer >= playMoveMs;
+}
+
+// Look around: the sensor looks at the 5 angles one after the other.
+// lookAroundDone() is true once it has seen them all (they're in playSeen[]).
+void startLookAround()
+{
+    playLook = 0;
+    scanner.write(LOOK_ANGLES[0]);
+    playTimer = millis();
+}
+
+bool lookAroundDone()
+{
+    if (millis() - playTimer < SERVO_SETTLE_MS + 60)   // the sensor is still turning (+ one fresh measurement)
+        return false;
+
+    playSeen[playLook] = lastDistance;
+
+    if (++playLook < 5)
+    {
+        scanner.write(LOOK_ANGLES[playLook]);
+        playTimer = millis();
+        return false;
+    }
+
+    lookCenter();
+    return true;
+}
+
+// FOLLOW ME: keeps between FOLLOW_NEAR_CM and FOLLOW_FAR_CM from you.
+// Lost you? It looks around and turns toward the nearest thing it sees.
+void updateFollow()
+{
+    int d = lastDistance;
+    int speed = percentOf(currentSpeed, FOLLOW_SPEED_PERCENT);
+
+    switch (playStep)
+    {
+    case FOLLOW_TRACK:
+        if (d < FOLLOW_NEAR_CM)
+            backward(speed);
+        else if (d <= FOLLOW_FAR_CM)
+            stop();
+        else if (d <= FOLLOW_LOST_CM)
+            forward(speed);
+        else
+        {
+            stop();
+
+            if (millis() - playTimer > 1500)      // lost you for a moment: look around
+            {
+                startLookAround();
+                playStep = FOLLOW_LOOK;
+            }
+            break;
+        }
+
+        playTimer = millis();                     // (it can see you)
+        break;
+
+    case FOLLOW_LOOK:
+        if (lookAroundDone())
+        {
+            byte you = nearestLook(FOLLOW_LOST_CM);
+
+            if (you == 255)                       // nobody there: wait a moment, then look again
+            {
+                playTimer = millis();
+                playStep = FOLLOW_TRACK;
+            }
+            else
+            {
+                playTurnToward(LOOK_ANGLES[you]);
+                playStep = FOLLOW_TURN;
+            }
+        }
+        break;
+
+    case FOLLOW_TURN:
+        if (playMoveDone())
+        {
+            stop();
+            playTimer = millis();
+            playStep = FOLLOW_TRACK;
+        }
+        break;
+    }
+}
+
+// GOALKEEPER: looks for the ball, turns to face it, and punches it away when it comes close
+void keeperPunch()
+{
+    forward(FULL_SPEED);
+    playMoveFor(KEEPER_PUNCH_MS);
+    playStep = KEEPER_PUNCH;
+    playSound(TUNE_SAVE);
+}
+
+void updateKeeper()
+{
+    int d = lastDistance;
+
+    switch (playStep)
+    {
+    case KEEPER_SCAN:                             // start looking for the ball
+        startLookAround();
+        playStep = KEEPER_LOOK;
+        break;
+
+    case KEEPER_LOOK:
+        if (lookAroundDone())
+        {
+            byte ball = nearestLook(SEE_CM);
+
+            if (ball == 255)                      // no ball: look again
+            {
+                playStep = KEEPER_SCAN;
+            }
+            else
+            {
+                playTurnToward(LOOK_ANGLES[ball]);
+                playStep = KEEPER_TURN;
+            }
+        }
+        break;
+
+    case KEEPER_TURN:                             // turning to face the ball
+        if (playMoveDone())
+        {
+            stop();
+            playTimer = millis();
+            playStep = KEEPER_WATCH;
+        }
+        break;
+
+    case KEEPER_WATCH:                            // eyes on the ball
+        if (d <= KEEPER_SAVE_CM)
+            keeperPunch();
+        else if (d <= SEE_CM)
+            playTimer = millis();
+        else if (millis() - playTimer > 1500)     // lost the ball: look for it again
+            playStep = KEEPER_SCAN;
+        break;
+
+    case KEEPER_PUNCH:                            // punch: dash at the ball ...
+        if (playMoveDone())
+        {
+            backward(FULL_SPEED);
+            playMoveFor(KEEPER_PUNCH_MS);
+            playStep = KEEPER_BACK;
+        }
+        break;
+
+    case KEEPER_BACK:                             // ... and back into the goal
+        if (playMoveDone())
+        {
+            stop();
+            playTimer = millis();
+            playStep = KEEPER_WATCH;
+        }
+        break;
+    }
+}
+
+// GUARD: counts down (walk away!), learns what the room looks like, then sweeps the
+// sensor back and forth. Something new and closer = INTRUDER: siren, and it turns to face them.
+void updateGuard()
+{
+    int d = lastDistance;
+
+    switch (playStep)
+    {
+    case GUARD_ARM:                               // countdown: one beep a second
+        if (millis() - playTimer < 1000)
+            break;
+
+        playTimer = millis();
+
+        if (playCount > 0)
+        {
+            playCount--;
+            playBeep(NOTE_A5, 60);
+            break;
+        }
+
+        startLookAround();
+        playStep = GUARD_LEARN;
+        break;
+
+    case GUARD_LEARN:                             // learning the room
+        if (!lookAroundDone())
+            break;
+
+        playLook = 2;                             // start watching from the middle ...
+        playFlag = true;                          // ... sweeping to the left first
+        playCount = 0;
+        playTimer = millis();
+        playStep = GUARD_WATCH;
+        playBeep(NOTE_C6, 150);
+        break;
+
+    case GUARD_WATCH:                             // sweeping, comparing with the room
+        if (millis() - playTimer < SERVO_SETTLE_MS + 60)
+            break;
+
+        if (d + GUARD_CLOSER_CM < playSeen[playLook])
+        {
+            if (++playCount < 2)                  // check once more before raising the alarm
+                break;
+
+            DEBUG.println(F("GUARD: INTRUDER"));
+            playCm = d;
+            lookCenter();
+            playTurnToward(LOOK_ANGLES[playLook]);
+            playStep = GUARD_TURN;
+            playSound(TUNE_SIREN);
+            break;
+        }
+
+        playCount = 0;
+
+        if (playLook == 4)
+            playFlag = false;
+        else if (playLook == 0)
+            playFlag = true;
+
+        playLook += playFlag ? 1 : -1;
+        scanner.write(LOOK_ANGLES[playLook]);
+        playTimer = millis();
+        break;
+
+    case GUARD_TURN:                              // turning to face the intruder
+        if (playMoveDone())
+        {
+            stop();
+            playTimer = millis();
+            playSince = millis();
+            playStep = GUARD_ALARM;
+        }
+        break;
+
+    case GUARD_ALARM:                             // siren until the intruder has gone for a while
+        if (!soundPlaying())
+            playSound(TUNE_SIREN);
+
+        if (d <= playCm + 40)                     // still there
+            playSince = millis();
+
+        // gone for a while (or 20 s of siren): learn the room again (the car has turned)
+        if (millis() - playSince > GUARD_CALM_MS || millis() - playTimer > 20000)
+        {
+            stopSound();
+            startLookAround();
+            playStep = GUARD_LEARN;
+        }
+        break;
+    }
+}
+
+// MUSIC: your hand plays notes - closer = higher. The notes are a "pentatonic" scale,
+// so whatever you play sounds nice.
+const uint16_t MUSIC_NOTES[] PROGMEM = {523, 587, 659, 784, 880, 1047, 1175, 1319, 1568, 1760, 2093};
+
+void updateMusic()
+{
+    int d = lastDistance;
+    byte note = 255;                              // 255 = no hand = silence
+
+    if (d <= MUSIC_FAR_CM)
+        note = constrain((long)(MUSIC_FAR_CM - d) * 11 / (MUSIC_FAR_CM - MUSIC_NEAR_CM), 0, 10);
+
+    if (note == playCount)
+        return;
+
+    playCount = note;
+    buzzerNote(note == 255 ? 0 : pgm_read_word(&MUSIC_NOTES[note]));
+}
+
+// GESTURES: one tap = spin round, two taps = happy wiggle, hold your hand close = it backs
+// away, hold it a bit further away = it comes to you.
+void gestureMove(unsigned long ms)
+{
+    playMoveFor(ms);
+    playStep = GESTURE_MOVE;
+}
+
+void updateGesture()
+{
+    int d = lastDistance;
+    bool hand = d < GESTURE_ZONE_CM;
+    unsigned long now = millis();
+    int speed = percentOf(currentSpeed, 55);
+
+    switch (playStep)
+    {
+    case GESTURE_WATCH:
+        if (hand)
+        {
+            if (playSince == 0)
+                playSince = now;                  // a hand appeared
+
+            unsigned long held = now - playSince;
+
+            if (held >= GESTURE_HOLD_MS && d < GESTURE_NEAR_CM)              // pushed: back away
+            {
+                playFlag = false;
+                backward(speed);
+                gestureMove(500);
+                playCount = 0;
+            }
+            else if (held >= GESTURE_HOLD_MS * 2 && d >= GESTURE_NEAR_CM)    // held further away: come here
+            {
+                playFlag = true;
+                forward(speed);
+                gestureMove(1000);
+                playCount = 0;
+            }
+            break;
+        }
+
+        if (playSince != 0 && now - playSince < GESTURE_TAP_MS)   // in and out quickly: a tap
+        {
+            playCount++;
+            playOther = now;
+        }
+        playSince = 0;
+
+        if (playCount > 0 && now - playOther > 600)               // the taps are over: do the trick
+        {
+            if (playCount == 1)                   // one tap: spin round once
+            {
+                playFlag = false;
+                left();
+                gestureMove(TURN180_TIME * 2);
+            }
+            else                                  // two or more: a happy wiggle
+            {
+                playTimer = now;
+                playStep = GESTURE_WIGGLE;
+                playSound(TUNE_HAPPY);
+            }
+            playCount = 0;
+        }
+        break;
+
+    case GESTURE_MOVE:                            // doing a move ("come here" stops at your hand)
+        if (playMoveDone() || (playFlag && d < GESTURE_NEAR_CM))
+        {
+            stop();
+            playStopAt = 0;
+            playStep = GESTURE_CLEAR;
+        }
+        break;
+
+    case GESTURE_WIGGLE:                          // twist left, right, left ...
+    {
+        unsigned long t = now - playTimer;
+
+        if (t >= 6 * 130UL)
+        {
+            stop();
+            playStep = GESTURE_CLEAR;
+        }
+        else
+        {
+            danceTurn(percentOf(currentSpeed, 70), (t / 130) % 2 == 0);
+        }
+        break;
+    }
+
+    case GESTURE_CLEAR:                           // wait for the hand to go before the next gesture
+        if (!hand)
+        {
+            playSince = 0;
+            playStep = GESTURE_WATCH;
+        }
+        break;
+    }
+}
+
+// PET: wanders about slowly, sits and looks around, gets bored, falls asleep.
+// A hand in front of it while it sits = petting: it wakes up, wiggles and purrs.
+void petStep(byte step, unsigned long ms)
+{
+    playStep = step;
+    playMoveMs = ms;
+    playTimer = millis();
+    playOther = millis();
+}
+
+void petHappy()
+{
+    stop();
+    lookCenter();
+    playSince = millis();
+    petStep(PET_HAPPY, 0);
+    playSound(TUNE_HAPPY);
+}
+
+void updatePet()
+{
+    int d = lastDistance;
+    unsigned long now = millis();
+    unsigned long inStep = now - playTimer;
+    bool lookingAhead = scanner.read() == SERVO_CENTER && now - playOther >= SERVO_SETTLE_MS + 60;
+
+    switch (playStep)
+    {
+    case PET_WANDER:                              // a little walk
+        if (d < 35)                               // something in the way: turn away from it
+        {
+            if (random(2))
+                left();
+            else
+                right();
+            petStep(PET_TURN, random(300, 700));
+            break;
+        }
+
+        forward(percentOf(currentSpeed, PET_SPEED_PERCENT));
+
+        if (inStep >= playMoveMs)                 // walked enough: sit down
+        {
+            stop();
+            petStep(PET_SIT, 6000);
+        }
+        break;
+
+    case PET_TURN:
+        if (inStep >= playMoveMs)
+        {
+            stop();
+            petStep(PET_WANDER, random(5000, 10000));
+        }
+        break;
+
+    case PET_SIT:                                 // sitting, looking around
+        if (lookingAhead && d < PET_HAND_CM)      // a hand!
+        {
+            petHappy();
+            break;
+        }
+
+        if (now - playOther >= 1500)              // turn the head: somewhere, then back to the middle
+        {
+            playOther = now;
+            scanner.write(scanner.read() == SERVO_CENTER ? LOOK_ANGLES[random(5)] : SERVO_CENTER);
+        }
+
+        if (inStep >= playMoveMs)
+        {
+            lookCenter();
+
+            if (now - playSince > PET_BORED_MS)   // nobody played with it for ages: bored
+            {
+                petStep(PET_BORED, 0);
+                playSound(TUNE_SIGH);
+            }
+            else
+            {
+                petStep(PET_WANDER, random(5000, 10000));
+            }
+        }
+        break;
+
+    case PET_BORED:
+    case PET_SLEEP:
+        if (inStep > SERVO_SETTLE_MS + 60 && d < PET_HAND_CM)    // a hand!
+        {
+            petHappy();
+            break;
+        }
+
+        if (playStep == PET_BORED)
+        {
+            if (now - playOther >= 8000)          // a sigh now and then
+            {
+                playOther = now;
+                playSound(TUNE_SIGH);
+            }
+
+            if (now - playSince > PET_SLEEP_MS)   // ... and off to sleep
+                petStep(PET_SLEEP, 0);
+        }
+        else if (now - playOther >= 4000)         // asleep: a snore now and then
+        {
+            playOther = now;
+            playSound(TUNE_SNORE);
+        }
+        break;
+
+    case PET_HAPPY:                               // being petted: purr while your hand is there
+        if (d < PET_HAND_CM + 10)
+            playSince = now;
+
+        if (!soundPlaying())
+            playSound(TUNE_PURR);
+
+        if (inStep < 6 * 120UL)                   // a happy wiggle first
+            danceTurn(percentOf(currentSpeed, 70), (inStep / 120) % 2 == 0);
+        else
+            stop();
+
+        if (now - playSince > 2000)               // you stopped petting it: off it goes again
+        {
+            stop();
+            stopSound();
+            petStep(PET_WANDER, random(4000, 8000));
+        }
+        break;
+    }
+}
+
+// TURBO: full power for TURBO_MS (it still stops for obstacles, unless football mode is on)
+void updateTurbo()
+{
+    if (lastDistance <= STOP_DISTANCE)
+    {
+        brakeStop();
+        robotState = IDLE;
+        return;
+    }
+
+    forward(FULL_SPEED);
+
+    if (millis() - playTimer >= TURBO_MS)
+    {
+        stop();
+        robotState = IDLE;
+    }
+}
+
+// Runs the play mode that is on (called from loop())
+void updatePlayModes()
+{
+    switch (robotState)
+    {
+    case FOLLOW:   if (HAS_FOLLOW) updateFollow();     break;
+    case KEEPER:   if (HAS_KEEPER) updateKeeper();     break;
+    case GUARD:    if (HAS_GUARD) updateGuard();       break;
+    case MUSIC:    if (HAS_MUSIC) updateMusic();       break;
+    case GESTURE:  if (HAS_GESTURE) updateGesture();   break;
+    case PET:      if (HAS_PET) updatePet();           break;
+    case TURBO:    updateTurbo();                      break;
+    default:       break;
+    }
+}
+
+// LOW BATTERY: measures the Arduino's own power supply against its built-in 1.1 V
+// reference. When it has stayed low for 10 seconds: "LOW BATT!" on the screen and a
+// sad tune (again every minute).
+int readSupplyMv()
+{
+    ADMUX = _BV(REFS0) | _BV(MUX3) | _BV(MUX2) | _BV(MUX1);   // the 1.1 V reference, measured against the supply
+    delayMicroseconds(500);                   // let it settle
+
+    ADCSRA |= _BV(ADSC);                      // (the first reading after switching is not accurate)
+    while (ADCSRA & _BV(ADSC))
+    {
+    }
+
+    ADCSRA |= _BV(ADSC);
+    while (ADCSRA & _BV(ADSC))
+    {
+    }
+
+    unsigned int raw = ADC;
+    return raw ? 1125300L / raw : 0;          // 1.1 V x 1023 x 1000
+}
+
+void updateBattery()
+{
+    static unsigned long checkedAt = 0;
+    static byte lowChecks = 0;
+    static unsigned long warnedAt = 0;
+
+    if (millis() - checkedAt < BATTERY_CHECK_MS)
+        return;
+
+    checkedAt = millis();
+
+    int mv = readSupplyMv();
+
+    if (mv < 2500)                            // not a real reading
+        return;
+
+    if (batteryStartMv == 0)                  // the first reading: remember the starting level
+    {
+        batteryStartMv = mv;
+        return;
+    }
+
+    bool low = mv < batteryStartMv - BATTERY_DROP_MV || mv < BATTERY_LOW_MV;
+
+    if (!low)
+        lowChecks = 0;
+    else if (lowChecks < 10)
+        lowChecks++;
+
+    if (lowChecks >= 5 && (!batteryLow || millis() - warnedAt >= 60000))
+    {
+        batteryLow = true;
+        warnedAt = millis();
+        playSound(TUNE_BATTERY_LOW);
+        DEBUG.println(F("LOW BATTERY"));
+    }
+}
+
+
+//======================================================
 // 17. SETUP (runs once) AND LOOP (runs forever)
 //======================================================
 
 void setup()
 {
-    Serial.begin(SERIAL_BAUD);
+    DEBUG.begin(SERIAL_BAUD);
     BT.begin(BT_BAUD);
 
     randomSeed(analogRead(A3) ^ micros());   // A3 is unused, its noise makes CHAOS different each time
 
     // The numbers 1-7 are start-up progress markers in the Serial Monitor
-    Serial.println(F("1"));
+    DEBUG.println(F("1"));
 
     pinMode(ENA, OUTPUT);
     pinMode(ENB, OUTPUT);
 
-    Serial.println(F("2"));
+    DEBUG.println(F("2"));
 
     pinMode(IN1, OUTPUT);
     pinMode(IN2, OUTPUT);
     pinMode(IN3, OUTPUT);
     pinMode(IN4, OUTPUT);
 
-    Serial.println(F("3"));
+    DEBUG.println(F("3"));
 
     pinMode(TRIG_PIN, OUTPUT);
     pinMode(ECHO_PIN, INPUT);
 
-    Serial.println(F("4"));
+    DEBUG.println(F("4"));
 
     scanner.attach(SERVO_PIN);
 
-    Serial.println(F("5"));
+    DEBUG.println(F("5"));
 
     lookCenter();
 
-    Serial.println(F("6"));
+    DEBUG.println(F("6"));
 
     stop();
 
-    Serial.println(F("7"));
+    DEBUG.println(F("7"));
 
-    // ENABLE_LED_FEEDBACK: the "L" LED flickers when IR signals arrive
-    IrReceiver.begin(IR_PIN, ENABLE_LED_FEEDBACK);
-
-    setupBuzzer();             // must come after IrReceiver.begin() (it borrows its timer)
+    setupBuzzer();             // (the IR add-on's IrReceiver.begin() goes just before this line)
 
     setupDisplay();
 
     startGreeting(false);      // power-on hello: screen + fanfare + servo wave
 
-    Serial.println(F("READY"));
+    DEBUG.println(F("READY"));
 }
 
 void loop()
 {
     handleBluetooth();         // phone commands
 
-    handleIR();                // remote commands
-
     updateDriving();           // auto forward/backward, donut, curve
 
     updateDance();
-
-    updateDemo();
 
     update180();
 
@@ -3548,9 +4333,19 @@ void loop()
 
     checkObstacle();           // distance check (also sets loop timing)
 
+    handleBluetooth();         // (again: the distance check takes a while - this answers the phone sooner)
+
     updateChaos();
 
     runObstacleAvoidance();    // SEARCH mode
+
+    updatePlayStop();          // a play mode's timed move: stop on time
+
+    updatePlayModes();         // follow me, goalkeeper, guard, music, gestures, pet, turbo
+
+    updateBattery();           // low battery check
+
+    updateStatus();            // tell the app what the car is doing
 
     updateSound();             // next note of the tune
 
@@ -3562,24 +4357,4 @@ void loop()
 
     updateDisplay();           // OLED: one small part per pass
 
-    /*
-    Old idea, switched off: stop the car if no IR button arrived for 150 ms,
-    so the IR arrows would only drive while held down.
-
-    if (millis() - lastIRTime > 150 &&
-        robotState != AUTO_FORWARD &&
-        robotState != AUTO_BACKWARD &&
-        robotState != DONUT &&
-        robotState != DANCE &&
-        robotState != DEMO &&
-        robotState != CHAOS &&
-        robotState != CURVE_LEFT &&
-        robotState != CURVE_RIGHT &&
-        robotState != SEARCH &&
-        robotState != TURN180 &&
-        robotState != BRAKING)
-    {
-          stop();
-    }
-    */
 }

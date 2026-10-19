@@ -5,7 +5,8 @@ const path = require('path');
 const { simulate } = require('./harness');
 
 const STATE_NAMES = ['IDLE', 'MANUAL_FORWARD', 'MANUAL_BACKWARD', 'MANUAL_LEFT', 'MANUAL_RIGHT', 'AUTO_FORWARD', 'AUTO_BACKWARD',
-  'DONUT', 'CURVE_LEFT', 'CURVE_RIGHT', 'DANCE', 'DEMO', 'CHAOS', 'SEARCH', 'TURN180', 'BRAKING'];
+  'DONUT', 'CURVE_LEFT', 'CURVE_RIGHT', 'DANCE', 'CHAOS', 'SEARCH', 'TURN180', 'BRAKING',
+  'FOLLOW', 'KEEPER', 'GUARD', 'MUSIC', 'GESTURE', 'PET', 'TURBO'];
 const [scFile, outDir, base, only] = process.argv.slice(2);
 const build = { label: 'v8', bin: base + '.bin', nm: base + '.nm.txt', stateNames: STATE_NAMES };
 const scenarios = require(path.resolve(scFile)).filter((s) => !only || s.name === only);

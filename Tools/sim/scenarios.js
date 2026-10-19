@@ -5,6 +5,28 @@ const { parseSong, matchMotors, matchTune } = require('./dancecheck');
 const { makeRoom } = require('./room');
 
 const kind = (log, k) => log.filter((e) => e.kind === k);
+// how long (ms) the motors were in this state between from and to
+function motorMs(log, v, from, to) {
+  const m = kind(log, 'motor');
+  let total = 0;
+  for (let i = 0; i < m.length; i++) {
+    const a = Math.max(m[i].t, from), b = Math.min(m[i + 1] ? m[i + 1].t : to, to);
+    if (m[i].v === v && b > a) total += b - a;
+  }
+  return total;
+}
+// did the buzzer play about this note between from and to? (low notes can only be measured to about 25 Hz)
+function buzzAt(log, hz, from, to) {
+  const b = kind(log, 'buzzer');
+  const near = (e) => e && Math.abs(e.v - hz) <= Math.max(hz * 0.05, 30);
+  return near(b.filter((e) => e.t <= from).pop()) || b.some((e) => e.t >= from && e.t <= to && near(e));
+}
+// silent all the way from 'from' to 'to'
+function silentFrom(log, from, to) {
+  const b = kind(log, 'buzzer');
+  const before = b.filter((e) => e.t <= from).pop();
+  return (!before || before.v === 0) && !b.some((e) => e.t > from && e.t <= to && e.v > 0);
+}
 const check = (name, pass, detail) => ({ name, pass: !!pass, detail });
 const song = parseSong(process.env.SKETCH);
 const footballPings = [];                                // when the sensor was pinged (football test)
@@ -47,7 +69,8 @@ const scenarios = [
     check: (log) => {
       const { res, anchor } = danceChecks(log);
       if (anchor === null) return res;
-      const fin = kind(log, 'serial').find((e) => e.v === 'DANCE finished');
+      const states = kind(log, 'state');
+      const fin = states.find((e, i) => i > 0 && e.t > anchor && states[i - 1].v === 'DANCE' && e.v !== 'DANCE');
       const want = anchor + song.totalMs;
       res.push(check('stops at the end of the song', fin && fin.t >= want - 15 && fin.t <= want + 40,
         fin ? `finished ${(fin.t - want).toFixed(1)} ms after the last step's end (song ${(song.totalMs / 1000).toFixed(1)} s)` : 'never finished'));
@@ -57,10 +80,10 @@ const scenarios = [
       res.push(check('back to IDLE after the end', st.length && st[st.length - 1].v === 'IDLE', st.map((e) => e.v).join(',')));
       const sv = kind(log, 'servo');
       res.push(check('sensor head back to the centre at the end', sv.length && sv[sv.length - 1].v >= 88 && sv[sv.length - 1].v <= 92, sv.length ? 'last ' + sv[sv.length - 1].v : ''));
-      const parts = kind(log, 'serial').filter((e) => /^DANCE part \d+$/.test(e.v));
-      res.push(check('goes through every part of the song', parts.length === song.map.length - 1, `${parts.length + 1}/${song.map.length} parts`));
+      const parts = new Set(kind(log, 'var').filter((e) => e.t > anchor && /^dancePart=\d+$/.test(e.v)).map((e) => +e.v.split('=')[1]).filter((n) => n >= 1 && n < song.map.length));
+      res.push(check('goes through every part of the song', parts.size === song.map.length - 1, `${parts.size + 1}/${song.map.length} parts`));
       if (song.notes.length) {
-        const shouts = song.shout ? kind(log, 'serial').filter((e) => e.v === song.shout).map((e) => e.t - 5) : [];
+        const shouts = song.shout ? kind(log, 'var').filter((e) => e.t > anchor && /^shoutUntil=/.test(e.v) && e.v !== 'shoutUntil=0').map((e) => e.t - 2) : [];
         if (song.shout && song.shoutSteps.length) {
           const want = song.shoutSteps.map((k) => anchor + k * song.stepUs / 1000);
           const ok = want.every((w) => shouts.some((s) => Math.abs(s - w) < 60));
@@ -88,7 +111,10 @@ const scenarios = [
       const res = [];
       const moved = kind(log, 'serial').find((e) => /^DANCE beat moved by ms: -?\d+$/.test(e.v));
       const shift = moved ? +moved.v.split(': ')[1] : null;
-      res.push(check('a new tap moves the beat (by the tap time + up to one loop)', moved && shift >= 60 && shift <= 170, moved ? moved.v : 'no tap seen'));
+      // the tap came this late after the robot's own beat 8 (its beat started when the dance started, a little after the byte)
+      const late = DANCE_AT * 1000 + 90 - (anchorOf(log, DANCE_AT * 1000) || 0);
+      res.push(check('a new tap moves the beat (by the tap time + up to one loop)', moved && shift >= late - 10 && shift <= late + 110,
+        moved ? `${moved.v} (tap ${late.toFixed(0)} ms after the beat)` : 'no tap seen'));
       const st = kind(log, 'state').filter((e) => e.t > DANCE_AT * 1000 + 100);
       res.push(check('dance keeps going after the button is let go and tapped', st.every((e) => e.v === 'DANCE'), st.map((e) => e.v).join(',')));
       if (moved) {
@@ -112,15 +138,17 @@ const scenarios = [
       return [check('holding dance (letter repeats) does not restart or shift it', taps.length === 0 && starts.length === 1, `${starts.length} start(s), ${taps.length} shift(s)`), ...res];
     },
   },
+  // ---- these two need the IR add-on pasted in (see IR_Remote_Addon) ----
   {
     name: 'dance-ir',
     duration: DANCE_AT + 8,
     distance: () => 150,
     inputs: [{ t: DANCE_AT, ir: 0x40 }, { t: DANCE_AT + 4 * (60 / song.bpm) + 0.05, ir: 0x40 }],
     check: (log) => {
-      const starts = kind(log, 'serial').filter((e) => /^DANCE to:/.test(e.v));
-      const taps = kind(log, 'serial').filter((e) => /^DANCE beat moved/.test(e.v));
-      return [check('remote 5 starts the dance, 5 again lines up the beat', starts.length === 1 && taps.length === 1, `${starts.length} start, ${taps.map((e) => e.v).join(',')}`)];
+      const st = kind(log, 'state');
+      const into = st.filter((e) => e.v === 'DANCE').length;
+      const last = st.length ? st[st.length - 1].v : '-';
+      return [check('remote 5 starts the dance, 5 again does not restart it', into === 1 && last === 'DANCE', st.map((e) => e.v).join(','))];
     },
   },
   {
@@ -134,20 +162,16 @@ const scenarios = [
       return out;
     })(),
     check: (log) => {
-      const codes = [0x18, 0x52, 0x08, 0x5A, 0x1C, 0x45, 0x46, 0x47, 0x44, 0x40, 0x43, 0x07, 0x15, 0x09, 0x16, 0x19, 0x0D];
-      const seen = new Set(kind(log, 'serial').filter((e) => /^IR button 0x/.test(e.v)).map((e) => e.v.slice(12)));
-      const missing = codes.map((c) => c.toString(16).toUpperCase()).filter((h) => !seen.has(h));
-      // total time spent turning left during the ~1 s hold (short gaps between repeats are fine)
-      const m = kind(log, 'motor');
-      let turning = 0;
-      for (let i = 0; i < m.length; i++) {
-        if (m[i].v !== 'LB216 RF216' || m[i].t < 3800 || m[i].t > 5000) continue;
-        const end = m[i + 1] ? m[i + 1].t : m[i].t;
-        turning += end - m[i].t;
-      }
+      const want = ['MANUAL_FORWARD', 'MANUAL_BACKWARD', 'MANUAL_LEFT', 'MANUAL_RIGHT', 'TURN180', 'BRAKING', 'TURBO', 'DANCE', 'CHAOS',
+        'CURVE_LEFT', 'CURVE_RIGHT', 'SEARCH', 'AUTO_FORWARD', 'DONUT', 'AUTO_BACKWARD'];
+      const seen = new Set(kind(log, 'state').map((e) => e.v));
+      const missing = want.filter((w) => !seen.has(w));
+      const turning = motorMs(log, 'LB216 RF216', 3800, 5300);
+      const upMs = motorMs(log, 'LF255 RF255', 1000, 2000);
       return [
-        check('all 17 remote buttons are decoded (NEC only)', missing.length === 0, missing.length ? 'missing ' + missing.join(',') : '17/17'),
-        check('holding LEFT for ~1 s keeps turning (more than one 150 ms tap)', turning > 400, `${turning.toFixed(0)} ms of turning`),
+        check('every remote button does its job', missing.length === 0, missing.length ? 'missing ' + missing.join(',') : want.length + ' modes seen'),
+        check('holding LEFT for ~1 s keeps turning', turning > 900, `${turning.toFixed(0)} ms of turning`),
+        check('a tap on UP drives briefly, then stops when the remote goes quiet', upMs > 150 && upMs < 450, `${upMs.toFixed(0)} ms`),
       ];
     },
   },
@@ -188,10 +212,10 @@ const scenarios = [
     },
   },
   ...[
-    { name: 'stop-dance-ir-up', inp: { ir: 0x18 }, want: 'MANUAL_FORWARD' },
+    { name: 'stop-dance-forward', inp: { bt: 'F' }, want: 'MANUAL_FORWARD' },
     { name: 'stop-dance-brake', inp: { bt: 'u' }, want: 'IDLE' },
-    { name: 'stop-dance-ir-180', inp: { ir: 0x45 }, want: 'IDLE' },
-    { name: 'stop-search-ir-down', inp: { ir: 0x52 }, want: 'MANUAL_BACKWARD', start: 'I' },
+    { name: 'stop-dance-180', inp: { bt: 'U' }, want: 'IDLE' },
+    { name: 'stop-search-backward', inp: { bt: 'B' }, want: 'MANUAL_BACKWARD', start: 'I' },
   ].map((c) => ({
     name: c.name,
     duration: DANCE_AT + 7,
@@ -209,6 +233,141 @@ const scenarios = [
         `states after: ${st.map((e) => e.v).join(',')}; head ${head}`)];
     },
   })),
+  // ---------------- play modes (no debug messages needed: they read motors, servo, buzzer, variables) ----------------
+  {
+    name: 'turbo-horn-status',
+    duration: 15,
+    // a wall 20 cm ahead from 8 s on
+    distance: (t) => (t >= 8 ? 20 : 150),
+    inputs: [{ t: 0.5, bt: '?' }, { t: 2.0, bt: 'W' }, { t: 3.0, bt: 'Y' }, { t: 4.0, bt: 'T' }, { t: 6.5, bt: 'X' }, { t: 7.2, bt: 'X' },
+      { t: 8.5, bt: 'T' }, { t: 10.0, bt: 'V' }, { t: 10.5, bt: 'T' }, { t: 12.5, bt: 'v' }, { t: 13.0, bt: 'M' }],
+    check: (log) => {
+      const bt = kind(log, 'bt').map((e) => e.v);
+      const vars = kind(log, 'var').map((e) => e.v);
+      const start = vars.find((v) => v.startsWith('batteryStartMv=') && v !== 'batteryStartMv=0');
+      return [
+        check('the car answers "?" with its status line', bt[0] === '~READY|0000', bt.slice(0, 3).join(' / ')),
+        check('Y = horn (880 Hz)', buzzAt(log, 880, 3000, 3600), ''),
+        check('T = turbo: full power for 1.5 s, then stop', Math.abs(motorMs(log, 'LF255 RF255', 4000, 6000) - 1500) < 80, `${motorMs(log, 'LF255 RF255', 4000, 6000).toFixed(0)} ms`),
+        check('the app hears TURBO! then READY', bt.includes('~TURBO!|0000') && bt.indexOf('~READY|0000', bt.indexOf('~TURBO!|0000')) > 0, bt.join(' / ')),
+        check('mute shows in the status (X)', bt.includes('~READY|1000'), ''),
+        check('turbo stops at once for a wall 20 cm ahead', motorMs(log, 'LF255 RF255', 8400, 9500) < 60, `${motorMs(log, 'LF255 RF255', 8400, 9500).toFixed(0)} ms`),
+        check('in football mode (V) turbo drives the full 1.5 s', Math.abs(motorMs(log, 'LF255 RF255', 10400, 12400) - 1500) < 80 && bt.includes('~TURBO!|0100'),
+          `${motorMs(log, 'LF255 RF255', 10400, 12400).toFixed(0)} ms`),
+        check('follow me (M) shows in the status', bt.includes('~FOLLOW|0000'), ''),
+        check('the battery check reads the power supply (about 5 V) and does not warn', start && +start.split('=')[1] > 4500 && !vars.includes('batteryLow=1'), start || 'no reading'),
+      ];
+    },
+  },
+  {
+    name: 'follow-me',
+    duration: 16,
+    // you: straight ahead at 60 cm, then 25 cm, then 10 cm; from 11 s you step out to the left
+    distance: (t, angle) => (t < 7 ? 60 : t < 9 ? 25 : t < 11 ? 10 : angle >= 110 ? 50 : 999),
+    inputs: [{ t: 0.5, bt: 'W' }, { t: 4.0, bt: 'M' }],
+    check: (log) => {
+      const sv = kind(log, 'servo').filter((e) => e.t > 11000).map((e) => e.v);
+      return [
+        check('you are far (60 cm): it comes after you', motorMs(log, 'LF165 RF165', 4100, 7000) > 2500, `${motorMs(log, 'LF165 RF165', 4100, 7000).toFixed(0)} ms forward`),
+        check('25 cm: it stops', motorMs(log, 'L-0 R-0', 7100, 9000) > 1700, ''),
+        check('10 cm: it backs away', motorMs(log, 'LB165 RB165', 9100, 11000) > 1700, ''),
+        check('it lost you: it looks around (5 angles)', [40, 65, 90, 115, 140].every((a) => sv.includes(a)), sv.join(',')),
+        check('it turns toward where it saw you (left)', motorMs(log, 'LB216 RF216', 12000, 16000) > 30, `${motorMs(log, 'LB216 RF216', 12000, 16000).toFixed(0)} ms`),
+      ];
+    },
+  },
+  {
+    name: 'goalkeeper',
+    duration: 15,
+    // the ball: on the right (40-65 degrees) at 100 cm; after it turned: straight ahead 80 cm, then 25 cm (a shot!), then gone
+    distance: (t, angle) => (t < 7 ? (angle <= 70 ? 100 : 999) : t < 8.5 ? 80 : t < 8.65 ? 25 : 999),
+    inputs: [{ t: 0.5, bt: 'W' }, { t: 3.0, bt: 'V' }, { t: 4.0, bt: 'K' }, { t: 12.0, bt: 'k' }],
+    check: (log) => {
+      const sv = kind(log, 'servo').filter((e) => e.t > 4000 && e.t < 7000).map((e) => e.v);
+      const fwd = motorMs(log, 'LF255 RF255', 8400, 9600), back = motorMs(log, 'LB255 RB255', 8400, 9800);
+      return [
+        check('it looks around for the ball (even in football mode)', [40, 65, 90, 115, 140].every((a) => sv.includes(a)), sv.join(',')),
+        check('it turns to face the ball (right)', motorMs(log, 'LF216 RB216', 5000, 7500) > 60, `${motorMs(log, 'LF216 RB216', 5000, 7500).toFixed(0)} ms`),
+        check('the shot (25 cm): it punches the ball away and comes back', Math.abs(fwd - 220) < 25 && Math.abs(back - 220) < 25, `forward ${fwd.toFixed(0)} ms, back ${back.toFixed(0)} ms`),
+        check('k = kick right away', Math.abs(motorMs(log, 'LF255 RF255', 12000, 12600) - 220) < 25, `${motorMs(log, 'LF255 RF255', 12000, 12600).toFixed(0)} ms`),
+      ];
+    },
+  },
+  {
+    name: 'guard',
+    duration: 30,
+    // the room: a wall 200 cm away all round. From 14 s someone stands at the right (65 degrees) 80 cm away
+    // (once the car has turned to them, they're straight ahead); gone at 19 s
+    distance: (t, angle, read) => (t >= 14 && t < 19 && (angle === 65 || (read('playStep') >= 3 && angle === 90)) ? 80 : 200),
+    inputs: [{ t: 0.5, bt: 'W' }, { t: 3.0, bt: 'A' }],
+    vars: ['playLook'],
+    check: (log) => {
+      const steps = kind(log, 'var').filter((e) => e.v.startsWith('playStep='));
+      const alarm = steps.find((e) => e.v === 'playStep=4' && e.t > 14000);
+      const relearn = alarm && steps.find((e) => e.v === 'playStep=1' && e.t > alarm.t);
+      const beeps = kind(log, 'buzzer').filter((e) => e.t > 3500 && e.t < 9500 && Math.abs(e.v - 880) < 50).length;
+      const bt = kind(log, 'bt').map((e) => e.v);
+      return [
+        check('it counts down with 5 beeps (time to walk away)', beeps >= 5, `${beeps} beeps`),
+        check('an intruder sets off the alarm', alarm && alarm.t < 17000, alarm ? `at ${(alarm.t / 1000).toFixed(1)} s` : 'no alarm'),
+        check('siren (wee-woo)', alarm && buzzAt(log, 1320, alarm.t - 500, alarm.t + 3000) && buzzAt(log, 880, alarm.t, alarm.t + 3000), ''),
+        check('it turns to face the intruder (right)', alarm && motorMs(log, 'LF216 RB216', alarm.t - 600, alarm.t + 200) > 30, ''),
+        check('the app hears INTRUDER', bt.some((v) => v.startsWith('~INTRUDER|')), bt.join(' / ')),
+        check('5 s after they left it calms down and learns the room again', relearn && relearn.t > 19000 + 5000 && relearn.t < 19000 + 7000,
+          relearn ? `at ${(relearn.t / 1000).toFixed(1)} s` : 'never'),
+      ];
+    },
+  },
+  {
+    name: 'music',
+    duration: 10,
+    // your hand: none, 50 cm, 20 cm, 5 cm, none
+    distance: (t) => (t < 5 ? 999 : t < 6 ? 50 : t < 7 ? 20 : t < 8 ? 5 : 999),
+    inputs: [{ t: 0.5, bt: 'W' }, { t: 4.0, bt: 'N' }],
+    check: (log) => [
+      check('hand at 50 cm: a low note (E5, 659 Hz)', buzzAt(log, 659, 5050, 5950), ''),
+      check('hand at 20 cm: a higher note (G6, 1568 Hz)', buzzAt(log, 1568, 6050, 6950), ''),
+      check('hand at 5 cm: the top note (C7, 2093 Hz)', buzzAt(log, 2093, 7050, 7950), ''),
+      check('no hand: silence', silentFrom(log, 8200, 10000), ''),
+      check('the car stays still', motorMs(log, 'L-0 R-0', 4100, 10000) > 5800, ''),
+    ],
+  },
+  {
+    name: 'gestures',
+    duration: 19,
+    // tap (5.0-5.3), double tap (8.0-8.25 and 8.45-8.7), push (8 cm, 11.0-12.5), "come here" (25 cm, 14.0-16.5)
+    distance: (t) => ((t >= 5 && t < 5.3) || (t >= 8 && t < 8.25) || (t >= 8.45 && t < 8.7) ? 20
+      : t >= 11 && t < 12.5 ? 8 : t >= 14 && t < 16.5 ? 25 : 999),
+    inputs: [{ t: 0.5, bt: 'W' }, { t: 4.0, bt: 'E' }],
+    check: (log) => {
+      const spin = motorMs(log, 'LB216 RF216', 5300, 7500);
+      const wiggle = motorMs(log, 'LB178 RF178', 8700, 10500) + motorMs(log, 'LF178 RB178', 8700, 10500);
+      return [
+        check('one tap: it spins round once (910 ms)', Math.abs(spin - 910) < 25, `${spin.toFixed(0)} ms`),
+        check('two taps: a happy wiggle', wiggle > 600, `${wiggle.toFixed(0)} ms of wiggling`),
+        check('hand held close: it backs away', Math.abs(motorMs(log, 'LB140 RB140', 11000, 13000) - 500) < 60, `${motorMs(log, 'LB140 RB140', 11000, 13000).toFixed(0)} ms`),
+        check('hand held further away: it comes to you', motorMs(log, 'LF140 RF140', 14000, 17000) > 800, `${motorMs(log, 'LF140 RF140', 14000, 17000).toFixed(0)} ms`),
+      ];
+    },
+  },
+  {
+    name: 'pet',
+    duration: 64,
+    // an empty room; from 56 s to 59 s a hand right in front of it (only seen when it looks straight ahead)
+    distance: (t, angle) => (t >= 56 && t < 59 && angle === 90 ? 15 : 150),
+    inputs: [{ t: 0.5, bt: 'W' }, { t: 4.0, bt: 'P' }],
+    check: (log) => {
+      const steps = kind(log, 'var').filter((e) => e.v.startsWith('playStep='));
+      const at = (v, from, to) => steps.find((e) => e.v === 'playStep=' + v && e.t >= from && e.t <= to);
+      return [
+        check('it wanders about slowly first', motorMs(log, 'LF127 RF127', 4100, 12000) > 7000, ''),
+        check('then sits and looks around', at(2, 11000, 13500) && kind(log, 'servo').some((e) => e.t > 12500 && e.t < 18000 && e.v !== 90), ''),
+        check('nobody plays with it: it gets bored', at(3, 28000, 51000), steps.map((e) => `${(e.t / 1000).toFixed(0)}s:${e.v.slice(9)}`).join(' ')),
+        check('... and falls asleep (snoring)', at(4, 48000, 52000) && buzzAt(log, 196, 48000, 56000), ''),
+        check('a hand wakes it up: happy, purring', at(5, 56000, 57000) && buzzAt(log, 262, 56000, 60000), ''),
+      ];
+    },
+  },
   {
     name: 'faces-donut-dizzy-180',
     duration: 16,

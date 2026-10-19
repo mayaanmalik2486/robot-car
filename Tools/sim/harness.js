@@ -144,6 +144,8 @@ function simulate(build, scenario, opts = {}) {
     else line += String.fromCharCode(b);
   };
 
+  const BIT = F_CPU / 9600;               // one bit at 9600 baud (HC-05)
+
   // OLED
   let i2cBytes = 0, i2cLastLogged = -1;
   const oled = new Ssd1306(cpu, twi, () => { i2cBytes++; });
@@ -175,13 +177,26 @@ function simulate(build, scenario, opts = {}) {
     }
   });
 
+  // Bluetooth replies from the car (SoftwareSerial TX on A0 = PC0, 9600 baud): one log line per text line
+  let btRxBusy = false, btLine = '';
+  portC.addListener((value, old) => {
+    if (btRxBusy || !((value ^ old) & 0x01) || (value & 0x01)) return;      // wait for a start bit (falling edge)
+    btRxBusy = true;
+    const t0 = cpu.cycles;
+    let byte = 0;
+    for (let i = 0; i < 8; i++) at(t0 + Math.round((1.5 + i) * BIT), () => { if (cpu.data[R.PORTC] & 0x01) byte |= 1 << i; });
+    at(t0 + Math.round(9.2 * BIT), () => {
+      btRxBusy = false;
+      if (byte === 10) { add('bt', btLine); btLine = ''; } else btLine += String.fromCharCode(byte);
+    });
+  });
+
   // buzzer (A1 = PC1): frequency from edge count per 20 ms window
   let buzEdges = 0, buzWinStart = 0, buzLogged = 0;
   portC.addListener((value, old) => { if ((value ^ old) & 0x02) buzEdges++; });
   const BUZ_WIN = 20 * 16000;
 
   // inputs
-  const BIT = F_CPU / 9600;
   for (const inp of scenario.inputs) {
     const t0 = Math.round(inp.t * F_CPU);
     if (inp.bt !== undefined) {
@@ -231,7 +246,14 @@ function simulate(build, scenario, opts = {}) {
     const Rr = in3 === 1 && in4 === 0 ? 'F' : in3 === 0 && in4 === 1 ? 'B' : in3 === 0 && in4 === 0 ? '-' : 'X';
     return `L${L}${ena} R${Rr}${enb}`;
   };
+  const varList = ['dancePart', 'playStep', 'shoutUntil:2', 'batteryLow', 'batteryStartMv:2', 'footballMode', 'muted', 'playCount']
+    .concat(scenario.vars || []).map((v) => { const [n, sz] = v.split(':'); return { n, sz: +(sz || 1), last: null }; }).filter((v) => syms[v.n] !== undefined);
   const sample = () => {
+    for (const v of varList) {
+      const a = syms[v.n];
+      const val = v.sz === 2 ? cpu.data[a] | (cpu.data[a + 1] << 8) : cpu.data[a];
+      if (val !== v.last) { v.last = val; add('var', v.n + '=' + val); }
+    }
     if (servoAddr !== undefined && cpu.data[servoAddr] & 0x40) {   // only once attach() marked it active
       const ang = servoAngleNow();
       if (ang === svCand) svN++; else { svCand = ang; svN = 1; svSince = cpu.cycles; }
