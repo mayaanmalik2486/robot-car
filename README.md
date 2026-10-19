@@ -15,6 +15,7 @@ chorus routine every chorus), with poses on the phrase ends and full spins that 
 | [`Dances`](Dances) | 39 copies of the main program, each with the choreography for one song. The [song list, what each dance does, and how to dance in time](Dances/README.md) are in that folder. |
 | [`Dances_Before_Choreography`](Dances_Before_Choreography) | All 39 song dances as they were before the choreography (the older dance style), with their song list. |
 | [`Old_Versions`](Old_Versions) | Every earlier version of the main code, oldest first (from the starter tutorial and the first servo test up to v9). |
+| [`IDEAS.md`](IDEAS.md) | The plan for the next modes, how they fit in the memory, and ideas saved for later. |
 | [`Tools`](Tools) | Computer scripts that made and tested the dances in a simulator. **You don't need these** to use the car. |
 
 ## How to put a program on the car
