@@ -79,6 +79,12 @@ public class MainActivity extends Activity implements CarLink.Listener, StickVie
     private char driving = Car.STOP;            // the drive letter being held right now
     private boolean tiltOn, tiltHolding;
     private long lastWarnAt;
+    private boolean slowNow;                    // the speed the car is on (from the car's status, or the last press)
+    private boolean heardStatus, heardSong;     // has the car answered since connecting? (older car programs don't)
+    private long connectedAt;
+    private char lastSent;
+    private String lastHeard = "";
+    private final java.util.ArrayDeque<String> linkLog = new java.util.ArrayDeque<>();
 
     // ------------------------------------------------------------------ start / stop
 
@@ -233,7 +239,14 @@ public class MainActivity extends Activity implements CarLink.Listener, StickVie
         screen.setStroke(dp(2), Ui.LCD_EDGE);
         lcd.setBackground(screen);
         lcd.setPadding(dp(10), dp(5), dp(10), dp(5));
-        lcd.setOnClickListener(v -> onConnectPressed());
+        lcd.setOnClickListener(v -> {                    // tap: connect (never disconnects - that is the 🔗 button)
+            if (!link.isConnected() && !link.isConnecting())
+                onConnectPressed();
+        });
+        lcd.setOnLongClickListener(v -> {               // hold: the link log
+            showLinkLog();
+            return true;
+        });
         lcdConn = lcdText(11, Ui.LCD_DIM);
         lcdMode = lcdText(21, Ui.LCD_TEXT);
         lcdFlags = lcdText(12, Ui.LCD_TEXT);
@@ -348,10 +361,6 @@ public class MainActivity extends Activity implements CarLink.Listener, StickVie
                 final String name = (String) it[1];
                 PadButton b = key(Ui.emojiLabel((String) it[0], name), Ui.KEY, 20);
                 b.setOnClickListener(v -> send(letter));
-                b.setOnLongClickListener(v -> {
-                    toast(name);
-                    return true;
-                });
                 if (!buttonFor.containsKey(letter))
                     buttonFor.put(letter, b);
                 row.addView(b, p);
@@ -414,15 +423,15 @@ public class MainActivity extends Activity implements CarLink.Listener, StickVie
             lcdMode.setText("--");
             lcdFlags.setText("");
         } else {
-            lcdConn.setText("● CONNECTED");
+            showLink();
             lcdMode.setText(modeText());
             lcdFlags.setText((car.muted ? "🔇 " : "🔊 ") + (car.football ? "⚽ " : "📡 ")
-                + (car.slow ? "🐢 " : "🐇 ") + (car.batteryLow ? "🪫 LOW BATTERY" : "🔋"));
+                + (slowNow ? "🐢 " : "🐇 ") + (car.batteryLow ? "🪫 LOW BATTERY" : "🔋"));
         }
         connectButton.setText(on ? "⏏ disconnect" : link.isConnecting() ? "⏳ connecting" : "🔗 connect");
         connectButton.setColor(on ? Ui.KEY : Ui.KEY_ON);
         songChip.setText(on && !car.song.isEmpty() ? "🎵 " + car.song : "");
-        speedButton.setText(car.slow ? "🐢 slow" : "🐇 fast");
+        speedButton.setText(slowNow ? "🐢 slow" : "🐇 fast");
         tiltButton.setText(tiltOn ? "📱 tilt ON" : "📱 tilt");
         tiltButton.setColor(tiltOn ? Ui.KEY_ON : Ui.KEY);
         footballButton.setText(car.football ? "⚽ sensor off" : "⚽ football");
@@ -456,8 +465,53 @@ public class MainActivity extends Activity implements CarLink.Listener, StickVie
         if (link.isConnected()) {
             prefs.edit().putString("device", link.address()).apply();
             car.reset();
+            heardStatus = heardSong = false;
+            slowNow = false;
+            lastSent = 0;
+            connectedAt = SystemClock.uptimeMillis();
+            log("(connected)");
+            ui.removeCallbacks(checkCarProgram);
+            ui.postDelayed(checkCarProgram, 3000);
         }
         showStatus();
+    }
+
+    // 3 s after connecting: has the car answered '?' ? Older car programs never answer
+    // (and don't know the play modes or radar), the ones from before October 20 don't send the song.
+    private final Runnable checkCarProgram = () -> {
+        if (!link.isConnected())
+            return;
+        if (!heardStatus) {
+            showStatus();
+            new AlertDialog.Builder(this)
+                .setTitle("⚠ Old car program")
+                .setMessage("The car is connected, but it doesn't answer the app - so it is running an older program.\n\n"
+                    + "Driving works, but the play modes, radar, horn, kick and the speed button need the newest one.\n\n"
+                    + "Upload Robot_Car_Main (or a song from the Dances folder) from Documents\\Arduino\\robot-car "
+                    + "(the GitHub folder) - NOT the older Robot_Dances folder or the v7.1 sketch.")
+                .setPositiveButton("OK", null)
+                .show();
+        } else if (!heardSong) {
+            showStatus();
+        }
+    };
+
+    // the link log: every letter sent (->) and every line from the car (<-), newest last
+    private void log(String s) {
+        linkLog.addLast(s);
+        while (linkLog.size() > 60)
+            linkLog.removeFirst();
+    }
+
+    private void showLinkLog() {
+        StringBuilder b = new StringBuilder();
+        for (String s : linkLog)
+            b.append(s).append('\n');
+        new AlertDialog.Builder(this)
+            .setTitle("📋 Link log (-> sent, <- from the car)")
+            .setMessage(b.length() == 0 ? "Nothing yet." : b.toString())
+            .setPositiveButton("OK", null)
+            .show();
     }
 
     @Override
@@ -470,6 +524,15 @@ public class MainActivity extends Activity implements CarLink.Listener, StickVie
         String oldMode = car.mode;
         boolean wasLow = car.batteryLow;
         int kind = car.read(line, SystemClock.uptimeMillis());
+        if (kind != CarState.RADAR)
+            log("<- " + line);
+        if (kind == CarState.STATUS) {
+            heardStatus = true;
+            slowNow = car.slow;                            // the car knows best
+            lastHeard = car.mode;
+        } else if (kind == CarState.SONG) {
+            heardSong = true;
+        }
         if (kind == CarState.RADAR) {
             radar.invalidate();
             if (page == PAGE_RADAR || car.mode.equals("RADAR"))
@@ -495,8 +558,8 @@ public class MainActivity extends Activity implements CarLink.Listener, StickVie
             return;
         driving = c;
         if (c == Car.STOP) {
-            link.send(Car.STOP);
-            ui.postDelayed(() -> link.send(Car.STOP), 60);
+            sendRaw(Car.STOP);
+            ui.postDelayed(() -> sendRaw(Car.STOP), 60);
         } else {
             stick.performHapticFeedback(android.view.HapticFeedbackConstants.VIRTUAL_KEY);
             send(c);
@@ -627,8 +690,15 @@ public class MainActivity extends Activity implements CarLink.Listener, StickVie
     // ------------------------------------------------------------------ sending, alerts, help
 
     private void send(char c) {
-        if (c == Car.SPEED_TOGGLE)
-            c = car.slow ? Car.FULL : Car.SLOW;
+        if (c == Car.SPEED_TOGGLE) {                 // works even when the car doesn't say its speed
+            c = slowNow ? Car.FULL : Car.SLOW;
+            if (link.isConnected()) {
+                slowNow = !slowNow;
+                showStatus();
+            }
+        }
+        if (c == Car.RADAR && link.isConnected() && heardStatus && !heardSong)
+            toast("📡 Radar needs the newest car program - upload Robot_Car_Main again");
         if (!link.isConnected()) {
             if (SystemClock.uptimeMillis() - lastWarnAt > 2000) {
                 lastWarnAt = SystemClock.uptimeMillis();
@@ -636,7 +706,26 @@ public class MainActivity extends Activity implements CarLink.Listener, StickVie
             }
             return;
         }
+        sendRaw(c);
+    }
+
+    // every letter goes out through here: sent, logged, and shown on the screen
+    private void sendRaw(char c) {
+        if (!link.isConnected())
+            return;
         link.send(c);
+        log("-> " + c);
+        lastSent = c;
+        showLink();
+    }
+
+    // the top line of the car's screen: connected, the last letter sent and what the car said
+    private void showLink() {
+        if (!link.isConnected())
+            return;
+        String said = !heardStatus ? (SystemClock.uptimeMillis() - connectedAt > 3000 ? "  ⚠ OLD CAR PROGRAM" : "")
+            : !heardSong ? "  (no radar: old program)" : "";
+        lcdConn.setText("● CONNECTED" + (lastSent != 0 ? "   sent " + lastSent : "") + said);
     }
 
     private void alert(String s, boolean urgent) {
@@ -673,7 +762,7 @@ public class MainActivity extends Activity implements CarLink.Listener, StickVie
                 + "Moves: 🔍 search  😈 chaos  🍩 donut  ↩️ 180°  ⏫/⏬ auto  🅿️ brake\n"
                 + "Play: 🚶 follow me  🥅 goalkeeper  🚨 guard  🎵 music  ✋ gestures  🐶 pet\n"
                 + "Radar: the car stands still and sweeps its sensor; dots = things it sees (up to 1.5 m).\n"
-                + "⚽ football = distance sensor off.   🔊 sound on / off.   Hold a button to see its name.\n\n"
+                + "⚽ football = distance sensor off.   🔊 sound on / off.\n📋 Hold the green screen: the link log (every letter sent and what the car answered).\n\n"
                 + "First time: pair HC-05 in the phone's Bluetooth settings (PIN 1234 or 0000), then tap 🔗 connect.")
             .setPositiveButton("OK", null)
             .setNeutralButton("🎮 Controller", (d, w) -> showControllerMap())

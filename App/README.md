@@ -12,7 +12,7 @@ A **real game controller** works too (see below).
 
 ## Download
 
-**[⬇ Download RobotCar.apk](https://github.com/mayaanmalik2486/robot-car/raw/main/App/RobotCar.apk)** (53 KB, version 3.0)
+**[⬇ Download RobotCar.apk](https://github.com/mayaanmalik2486/robot-car/raw/main/App/RobotCar.apk)** (53 KB, version 3.1)
 
 Send this link to anyone - they can download it straight onto their phone:
 `https://github.com/mayaanmalik2486/robot-car/raw/main/App/RobotCar.apk`
@@ -112,6 +112,14 @@ It drives like a racing game:
 The button you press lights up on the screen, and the controller rumbles with the phone when guard
 mode sees an intruder or the battery is low. The Cyclone 2's back buttons can copy any button
 (set them in the GameSir app).
+
+## Something doesn't work?
+
+| What you see | Why, and the fix |
+|---|---|
+| The screen says **⚠ OLD CAR PROGRAM**; play modes, radar, horn or kick do nothing; the speed button won't go back to fast | The car runs an older program that doesn't know these (for example one from the old **Robot_Dances** folder or the v7.1 sketch). Upload **Robot_Car_Main** - or a song from the **Dances** folder - from  (this GitHub folder). |
+| **(no radar: old program)** | The car's program is from before October 20, 2026. Upload the newest one (same as above). |
+| Not sure what's going on | **Hold the green screen**: the link log shows every letter the app sent (->) and every line the car answered (<-). |
 
 ## What the car sends back
 

@@ -283,6 +283,27 @@ const scenarios = [
     },
   },
   {
+    name: 'app-session',
+    duration: 16,
+    // exactly what the phone app sends: '?' on connect, slow, fast, a move, a play mode, radar, stop
+    distance: (t) => 120,
+    inputs: [{ t: 0.5, bt: '?' }, { t: 1.5, bt: 'Q' }, { t: 2.5, bt: 'W' }, { t: 3.5, bt: 'I' }, { t: 6.0, bt: 'S' }, { t: 7.0, bt: 'M' },
+      { t: 9.5, bt: 'S' }, { t: 10.5, bt: 'O' }, { t: 13.0, bt: 'S' }, { t: 14.0, bt: 'P' }],
+    check: (log) => {
+      const bt = kind(log, 'bt').map((e) => e.v);
+      require('fs').writeFileSync(require('path').join(__dirname, '..', 'build', 'app-session-lines.txt'), bt.join('\n') + '\n');
+      return [
+        check('status after ?', bt.includes('~READY|0000'), bt.slice(0, 4).join(' / ')),
+        check('Q shows slow', bt.includes('~READY|0010'), ''),
+        check('W shows fast again', bt.lastIndexOf('~READY|0000') > bt.indexOf('~READY|0010'), ''),
+        check('I = search', bt.some((v) => v.startsWith('~SEARCH') || v.startsWith('~LOOK')), ''),
+        check('M = follow', bt.includes('~FOLLOW|0000'), ''),
+        check('O = radar + dots', bt.includes('~RADAR|0000') && bt.some((v) => v.startsWith('#R:')), ''),
+        check('P = pet', bt.some((v) => v.startsWith('~PET') || v.startsWith('~BORED')), ''),
+      ];
+    },
+  },
+  {
     name: 'follow-me',
     duration: 16,
     // you: straight ahead at 60 cm, then 25 cm, then 10 cm; from 11 s you step out to the left
