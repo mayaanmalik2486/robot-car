@@ -7,6 +7,8 @@ along. Every song has its own **choreography**: signature moves, and a routine f
 that comes back every time that part does, with poses on the phrase ends and full spins that finish
 facing the front.
 
+**Everything the car and app can do, in one guide: [Docs/CAR_AND_APP_GUIDE.md](Docs/CAR_AND_APP_GUIDE.md)** (also as a [PDF](Docs/Robot_Car_Guide.pdf)).
+
 And it has **play modes**: **follow me**, **goalkeeper** (with a kick), **guard** (an alarm that tells
 your phone), **music** (your hand plays notes), **gestures** and a little **robot pet**.
 
@@ -21,6 +23,7 @@ your phone), **music** (your hand plays notes), **gestures** and a little **robo
 |---|---|
 | [`Robot_Car_Main`](Robot_Car_Main) | **The main robot program** (latest version). Upload this one for normal use. Also has the full [wiring and power guide](Robot_Car_Main/POWER_AND_WIRING.md). |
 | [`Dances`](Dances) | 39 copies of the main program, each with the choreography for one song. The [song list, what each dance does, and how to dance in time](Dances/README.md) are in that folder. |
+| [`Docs`](Docs) | The full guide to everything the car and app can do (page + PDF). |
 | [`App`](App) | The phone app (`RobotCar.apk`) and its code. |
 | [`IR_Remote_Addon`](IR_Remote_Addon) | Want the IR remote back? One file + 3 lines, with a guide. |
 | [`UPDATE_ALL_SONGS.bat`](UPDATE_ALL_SONGS.bat) | Changed `Robot_Car_Main`? Double-click this: every song file gets your change (each keeps its own song and choreography), then it checks they all compile. |
