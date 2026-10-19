@@ -13,7 +13,8 @@ chorus routine every chorus), with poses on the phrase ends and full spins that 
 |---|---|
 | [`Robot_Car_Main`](Robot_Car_Main) | **The main robot program** (latest version). Upload this one for normal use. Also has the full [wiring and power guide](Robot_Car_Main/POWER_AND_WIRING.md). |
 | [`Dances`](Dances) | 39 copies of the main program, each with the choreography for one song. The [song list, what each dance does, and how to dance in time](Dances/README.md) are in that folder. |
-| [`Old_Versions`](Old_Versions) | Every earlier version of the code, oldest first (from the starter tutorial and the first servo test up to v9), plus all the song dances from before the choreography. |
+| [`Dances_Before_Choreography`](Dances_Before_Choreography) | All 39 song dances as they were before the choreography (the older dance style), with their song list. |
+| [`Old_Versions`](Old_Versions) | Every earlier version of the main code, oldest first (from the starter tutorial and the first servo test up to v9). |
 | [`Tools`](Tools) | Computer scripts that made and tested the dances in a simulator. **You don't need these** to use the car. |
 
 ## How to put a program on the car
@@ -40,6 +41,7 @@ chorus routine every chorus), with poses on the phrase ends and full spins that 
 | u | smooth brake | 4 | dance (press again ON a beat to line it up) |
 | Y | demo | 1 | chaos |
 | I | search (looks around and drives to open space) | X ("!") | mute / unmute every sound |
+| V | football mode on / off: the distance sensor is ignored, so it never stops for things (push a ball) | | |
 
 **IR remote:**
 

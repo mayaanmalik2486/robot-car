@@ -158,11 +158,28 @@ const scenarios = [
     check: (log) => {
       const m = kind(log, 'motor').map((e) => e.v);
       const st = kind(log, 'state').map((e) => e.v);
-      const inner = Math.floor(255 * 25 / 100);
+      const inner = Math.floor(255 * 30 / 100);
       return [
-        check('G curves left: left wheels at 25 %, right wheels full', m.includes(`LF${inner} RF255`), m.filter((v) => v !== 'L-0 R-0').join(', ')),
-        check('H curves right: right wheels at 25 %, left wheels full', m.includes(`LF255 RF${inner}`), ''),
+        check('G curves left: left wheels backward at 30 %, right wheels full', m.includes(`LB${inner} RF255`), m.filter((v) => v !== 'L-0 R-0').join(', ')),
+        check('H curves right: right wheels backward at 30 %, left wheels full', m.includes(`LF255 RB${inner}`), ''),
         check('the robot is in CURVE_LEFT, then CURVE_RIGHT', st.includes('CURVE_LEFT') && st.includes('CURVE_RIGHT'), st.join(',')),
+      ];
+    },
+  },
+  {
+    name: 'football-mode',
+    duration: 12,
+    distance: () => 15,                                          // a wall 15 cm in front the whole time
+    inputs: [{ t: 0.5, bt: 'W' }, { t: 4.0, bt: 'F' }, { t: 5.0, bt: 'S' }, { t: 5.5, bt: 'V' }, { t: 6.0, bt: 'F' }, { t: 6.5, snapshot: 'football-screen' },
+      { t: 7.5, bt: 'S' }, { t: 8.0, bt: 'v' }, { t: 9.0, bt: 'F' }, { t: 10.5, bt: 'S' }],
+    check: (log) => {
+      const m = kind(log, 'motor');
+      const fwdMs = (a, b) => m.reduce((sum, e, i) => (e.t > a && e.t < b && e.v === 'LF255 RF255' ? sum + ((m[i + 1] ? m[i + 1].t : b) - e.t) : sum), 0);
+      const ser = kind(log, 'serial').map((e) => e.v);
+      return [
+        check('normal: F with a wall 15 cm ahead stops at once', fwdMs(4000, 5000) < 100, `drove ${fwdMs(4000, 5000).toFixed(0)} ms`),
+        check('V = football mode: F keeps driving into the wall', ser.includes('FOOTBALL MODE: sensor off') && fwdMs(6000, 7600) > 1300, `drove ${fwdMs(6000, 7600).toFixed(0)} ms`),
+        check('V again = safety back on: F stops at once', ser.includes('SENSOR ON') && fwdMs(9000, 10500) < 100, `drove ${fwdMs(9000, 10500).toFixed(0)} ms`),
       ];
     },
   },

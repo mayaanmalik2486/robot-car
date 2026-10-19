@@ -1,7 +1,8 @@
 # Old versions
 
 Every earlier version of the robot car code, oldest first. Nothing here is needed to use the car:
-the newest program is in [`Robot_Car_Main`](../Robot_Car_Main) and the newest dances are in [`Dances`](../Dances).
+the newest program is in [`Robot_Car_Main`](../Robot_Car_Main), the newest dances are in [`Dances`](../Dances),
+and the dances from before the choreography are in [`Dances_Before_Choreography`](../Dances_Before_Choreography).
 
 | Folder | What it was |
 |---|---|
@@ -24,4 +25,3 @@ the newest program is in [`Robot_Car_Main`](../Robot_Car_Main) and the newest da
 | `16_V7_1_Robot_Original` | v7.1: the version the big upgrade started from |
 | `17_V8_First_GitHub_Upload` | v8: eyes, search, chaos, dance (first upload to GitHub) |
 | `18_V9_Before_Choreography` | v9: the main program just before the choreography (drum/tune dances, "drift" still called drift) |
-| `Dances_Before_Choreography` | All 39 song dances as they were before the choreography, with their song list |

@@ -37,6 +37,8 @@
     3 donut          U 180-degree turn         u smooth brake
     4 dance          Y demo           1 chaos          I search (looks around)
     X (the "!" button) mute / unmute every sound
+    V football mode on / off: the distance sensor is ignored, so it never stops for
+      obstacles (push a ball, bump into things). Press V again to turn safety back on.
     (4 again while dancing: tap it ON a beat to line the dance up with the music)
 
   IR REMOTE BUTTONS
@@ -131,8 +133,9 @@ const int FULL_SPEED = 255;
 const int SLOW_SPEED_PERCENT = 60;
 const int SLOW_SPEED = FULL_SPEED * SLOW_SPEED_PERCENT / 100;   // = 153
 const int TURN_SPEED_PERCENT = 85;    // spins use 85 % of the current speed
-const int CURVE_INNER_PERCENT = 25;   // CURVE (forward while turning): the inner wheels run at 25 % of the speed.
-                                      // Lower = sharper turn, higher = wider turn (it was 60 = a gentle curve)
+const int CURVE_INNER_PERCENT = -30;  // CURVE (forward while turning): the inner wheels run at this % of the speed.
+                                      // Lower = sharper turn, higher = wider. Below 0 the inner wheels turn
+                                      // BACKWARD (-30 = backward at 30 %) for a really sharp turn. (60 = gentle curve)
 
 // Servo angles (degrees) for the distance-sensor head.
 // If "look left" points right on your robot, swap these two numbers.
@@ -814,6 +817,8 @@ byte lastIRCommand = 0;            // which button that was
 bool btGreeted = false;            // true once the phone has sent its first letter
 bool muted = false;                // phone X: all buzzer sounds off (press again: on)
 unsigned long muteToggledAt = 0;   // (so one press doesn't toggle twice)
+bool footballMode = false;         // phone V: the distance sensor is ignored (no obstacle stops)
+unsigned long footballToggledAt = 0;
 
 // Buzzer
 const uint16_t* tunePos = NULL;    // where we are in the current tune (NULL = silent)
@@ -945,8 +950,8 @@ void right()
 // Curve left while driving forward (left wheels slower)
 void curveLeft()
 {
-    setSpeed(percentOf(currentSpeed, CURVE_INNER_PERCENT), currentSpeed);
-    setWheels(DIR_FORWARD, DIR_FORWARD);
+    setSpeed(percentOf(currentSpeed, abs(CURVE_INNER_PERCENT)), currentSpeed);
+    setWheels(CURVE_INNER_PERCENT < 0 ? DIR_BACKWARD : DIR_FORWARD, DIR_FORWARD);
     goingForward = true;
     forwardSpeed = currentSpeed;
 }
@@ -954,8 +959,8 @@ void curveLeft()
 // Curve right while driving forward (right wheels slower)
 void curveRight()
 {
-    setSpeed(currentSpeed, percentOf(currentSpeed, CURVE_INNER_PERCENT));
-    setWheels(DIR_FORWARD, DIR_FORWARD);
+    setSpeed(currentSpeed, percentOf(currentSpeed, abs(CURVE_INNER_PERCENT)));
+    setWheels(DIR_FORWARD, CURVE_INNER_PERCENT < 0 ? DIR_BACKWARD : DIR_FORWARD);
     goingForward = true;
     forwardSpeed = currentSpeed;
 }
@@ -1488,7 +1493,9 @@ void wantedText(byte area, char* buf)
     if (area == 0)
     {
         flashText(buf, btGreeted ? PSTR("BT:OK") : PSTR("BT:--"), 5);
-        if (muted)
+        if (footballMode)
+            strcat_P(buf, PSTR(" FOOTBALL!"));
+        else if (muted)
             strcat_P(buf, slowMode ? PSTR(" MUTED SLOW") : PSTR(" MUTED FULL"));
         else
             strcat_P(buf, slowMode ? PSTR(" SPEED:SLOW") : PSTR(" SPEED:FULL"));
@@ -2098,6 +2105,9 @@ int filteredDistance()
     int c = readDistance();
 
     int distance = median3(a, b, c);
+
+    if (footballMode)                        // football mode: it still measures (keeps loop() timing the same)
+        distance = NO_ECHO;                  // but acts as if nothing is ever in the way
 
     lastDistance = distance;                 // for the OLED
     obstacleBeepCheck(distance);
@@ -2750,6 +2760,17 @@ void handleBluetooth()
                 if (muted)
                     stopSound();
                 Serial.println(muted ? F("MUTED") : F("SOUND ON"));
+            }
+            break;
+
+        case 'V':                          // football mode on / off (the sensor is ignored)
+        case 'v':                          // (apps send V and v in turn - each press flips it)
+            if (millis() - footballToggledAt >= MUTE_PRESS_GAP_MS)
+            {
+                footballMode = !footballMode;
+                footballToggledAt = millis();
+                playBeep(footballMode ? NOTE_A5 : NOTE_BEEP, 120);
+                Serial.println(footballMode ? F("FOOTBALL MODE: sensor off") : F("SENSOR ON"));
             }
             break;
 
