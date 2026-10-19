@@ -1,7 +1,7 @@
 # Robot Car (Arduino UNO)
 
 A 4-wheel-drive Arduino robot car. You drive it from a phone (Bluetooth) or a small IR remote.
-It stops before it hits things, searches for open space by itself, does donuts, drifts and
+It stops before it hits things, searches for open space by itself, does donuts, curves and
 "chaos" mode, shows eyes on a little OLED screen, and **dances to 39 songs** in time with the
 music while the buzzer plays along. Every song has its own **choreography**: signature moves,
 and a routine for each part of the song that comes back every time that part does (the same
@@ -13,7 +13,7 @@ chorus routine every chorus), with poses on the phrase ends and full spins that 
 |---|---|
 | [`Robot_Car_Main`](Robot_Car_Main) | **The main robot program** (latest version). Upload this one for normal use. Also has the full [wiring and power guide](Robot_Car_Main/POWER_AND_WIRING.md). |
 | [`Dances`](Dances) | 39 copies of the main program, each with the choreography for one song. The [song list, what each dance does, and how to dance in time](Dances/README.md) are in that folder. |
-| [`Old_Versions`](Old_Versions) | Every earlier version of the code, oldest first (from the first servo test up to v7.1). |
+| [`Old_Versions`](Old_Versions) | Every earlier version of the code, oldest first (from the starter tutorial and the first servo test up to v9), plus all the song dances from before the choreography. |
 | [`Tools`](Tools) | Computer scripts that made and tested the dances in a simulator. **You don't need these** to use the car. |
 
 ## How to put a program on the car
@@ -34,7 +34,7 @@ chorus routine every chorus), with poses on the phrase ends and full spins that 
 | Button | Does | Button | Does |
 |---|---|---|---|
 | F / B | forward / backward | L / R | spin left / right |
-| G / H | drift left / right | S | stop |
+| G / H | curve left / right (forward while turning) | S | stop |
 | Q / W | slow / full speed | 2 / J | auto forward / auto backward (stops at obstacles) |
 | 3 | donut | U | 180-degree turn |
 | u | smooth brake | 4 | dance (press again ON a beat to line it up) |
@@ -49,7 +49,7 @@ chorus routine every chorus), with poses on the phrase ends and full spins that 
 | LEFT / RIGHT | short turn | 1 | 180-degree turn |
 | 2 | slow / full speed | 3 | smooth brake |
 | 4 | demo | 5 | dance (again = line up with the beat) |
-| 6 | chaos | 7 / 8 | drift left / right |
+| 6 | chaos | 7 / 8 | curve left / right |
 | 9 | search | * / # | auto forward / auto backward |
 | 0 | donut | | |
 

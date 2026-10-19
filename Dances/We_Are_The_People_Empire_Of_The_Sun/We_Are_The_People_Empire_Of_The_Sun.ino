@@ -8,7 +8,7 @@
   - You can also drive it with the small 17-button IR remote.
   - It has self-driving modes that use the ultrasonic distance sensor
     (HC-SR04) so it stops before it bumps into things, some fun moves
-    (dance, demo, chaos, donut, drift) and a SEARCH mode that turns the
+    (dance, demo, chaos, donut, curve) and a SEARCH mode that turns the
     sensor with the servo to look left, ahead and right, then turns toward
     the side with the most room until the way ahead is open (boxed in: it
     turns 90 degrees at a time until it finds an opening).
@@ -30,7 +30,8 @@
 
   BLUETOOTH LETTERS (sent by the phone app)
     F forward        B backward       L spin left      R spin right
-    G drift left     H drift right    S stop
+    G curve left     H curve right    S stop
+    (CURVE = drive forward while turning, like a car going round a bend)
     Q slow speed     W full speed
     2 auto forward (stops at obstacles)       J auto backward
     3 donut          U 180-degree turn         u smooth brake
@@ -43,7 +44,7 @@
     DOWN backward                    LEFT / RIGHT  short turn (150 ms)
     1 180-degree turn    2 slow/full speed    3 smooth brake
     4 demo   5 dance (again while dancing = line up with the beat)
-    6 chaos  7 drift left   8 drift right   9 search
+    6 chaos  7 curve left   8 curve right   9 search
     * auto forward       # auto backward      0 donut
     Holding an arrow button keeps it going; other buttons act once per press.
     The buzzer borrows the IR receiver's timer, so keep IrReceiver.begin() in
@@ -130,7 +131,8 @@ const int FULL_SPEED = 255;
 const int SLOW_SPEED_PERCENT = 60;
 const int SLOW_SPEED = FULL_SPEED * SLOW_SPEED_PERCENT / 100;   // = 153
 const int TURN_SPEED_PERCENT = 85;    // spins use 85 % of the current speed
-const int DRIFT_SLOW_PERCENT = 60;    // inner wheels run at 60 % when drifting
+const int CURVE_INNER_PERCENT = 25;   // CURVE (forward while turning): the inner wheels run at 25 % of the speed.
+                                      // Lower = sharper turn, higher = wider turn (it was 60 = a gentle curve)
 
 // Servo angles (degrees) for the distance-sensor head.
 // If "look left" points right on your robot, swap these two numbers.
@@ -418,7 +420,7 @@ const byte SONG_CHORDS[][4] PROGMEM = {
 // VERSE: float, nod, float, nod, sway, wave, sway_r, button
 // PRE: figure8, wave, figure8, wave, build, build, shimmy, riser
 // CHORUS: figure8, spin_pose_l, figure8, spin_pose_r, wave, bounce, wave, spin_lr
-// BRIDGE: drift, float, moonwalk, float, sway, wave, sway_r, button
+// BRIDGE: slow_step, float, moonwalk, float, sway, wave, sway_r, button
 // CHORUS (last time): figure8, spin_pose_l, figure8, spin_pose_r, party, bounce,
 //  windmill, spin_lr
 // OUTRO: sway, breathe, freeze
@@ -439,7 +441,7 @@ const byte M_SPIN_POSE_L = 11;   // spin round to the left into a pose
 const byte M_SPIN_POSE_R = 12;   // spin round to the right into a pose
 const byte M_BOUNCE      = 13;   // bounce
 const byte M_SPIN_LR     = 14;   // spin left, spin back
-const byte M_DRIFT       = 15;   // slow-motion step forward and back
+const byte M_SLOW_STEP   = 15;   // slow-motion step forward and back
 const byte M_MOONWALK    = 16;   // slow slide back, then forward
 const byte M_PARTY       = 17;   // spin, spin back, bounce, pose
 const byte M_WINDMILL    = 18;   // big spin round and back
@@ -460,7 +462,7 @@ const byte SONG_MOVES[][STEPS_PER_BAR] PROGMEM = {
     { SPIN_R+ROUND, HOLD,         HOLD,         HOLD,         FREEZE,       HOLD,         HOLD,         HOLD          },   // M_SPIN_POSE_R
     { FWD,          BACK,         POSE,         HOLD,         BACK,         FWD,          POSE,         HOLD          },   // M_BOUNCE
     { SPIN_L,       HOLD,         HOLD,         HOLD,         SPIN_R,       HOLD,         HOLD,         HOLD          },   // M_SPIN_LR
-    { FWD+SOFT,     HOLD,         HOLD,         HOLD,         BACK+SOFT,    HOLD,         HOLD,         HOLD          },   // M_DRIFT
+    { FWD+SOFT,     HOLD,         HOLD,         HOLD,         BACK+SOFT,    HOLD,         HOLD,         HOLD          },   // M_SLOW_STEP
     { BACK+SOFT,    HOLD,         HOLD,         HOLD,         FWD+SOFT,     HOLD,         HOLD,         HOLD          },   // M_MOONWALK
     { SPIN_L,       HOLD,         SPIN_R,       HOLD,         FWD,          BACK,         FREEZE,       HOLD          },   // M_PARTY
     { SPIN_L,       SPIN_L,       SPIN_L,       SPIN_L,       SPIN_R,       SPIN_R,       SPIN_R,       SPIN_R        },   // M_WINDMILL
@@ -564,7 +566,7 @@ const byte SONG_MAP[][5] PROGMEM = {
     { M_BOUNCE,       1, CHORUS,       1, T_HOOK_B },
     { M_WAVE,         1, CHORUS,       1, T_DRIVE  },
     { M_SPIN_LR,      1, CHORUS,       1, T_HOOK_B },
-    { M_DRIFT,        1, BRIDGE,       2, T_GROOVE },
+    { M_SLOW_STEP,    1, BRIDGE,       2, T_GROOVE },
     { M_FLOAT,        1, BRIDGE,       2, T_GROOVE },
     { M_MOONWALK,     1, BRIDGE,       2, T_PULSE  },
     { M_FLOAT,        1, BRIDGE,       2, T_PULSE  },
@@ -572,7 +574,7 @@ const byte SONG_MAP[][5] PROGMEM = {
     { M_WAVE,         1, BRIDGE,       2, T_GROOVE },
     { M_SWAY_R,       1, BRIDGE,       2, T_PULSE  },
     { M_BUTTON,       1, BRIDGE,       2, T_PULSE  },
-    { M_DRIFT,        1, BRIDGE,       2, T_GROOVE },
+    { M_SLOW_STEP,    1, BRIDGE,       2, T_GROOVE },
     { M_FLOAT,        1, BRIDGE,       2, T_GROOVE },
     { M_MOONWALK,     1, BRIDGE,       2, T_PULSE  },
     { M_FLOAT,        1, BRIDGE,       2, T_PULSE  },
@@ -654,8 +656,8 @@ enum RobotState
     AUTO_FORWARD,
     AUTO_BACKWARD,
     DONUT,
-    DRIFT_LEFT,
-    DRIFT_RIGHT,
+    CURVE_LEFT,
+    CURVE_RIGHT,
     DANCE,
     DEMO,
     CHAOS,
@@ -890,18 +892,18 @@ void right()
 }
 
 // Curve left while driving forward (left wheels slower)
-void driftLeft()
+void curveLeft()
 {
-    setSpeed(percentOf(currentSpeed, DRIFT_SLOW_PERCENT), currentSpeed);
+    setSpeed(percentOf(currentSpeed, CURVE_INNER_PERCENT), currentSpeed);
     setWheels(DIR_FORWARD, DIR_FORWARD);
     goingForward = true;
     forwardSpeed = currentSpeed;
 }
 
 // Curve right while driving forward (right wheels slower)
-void driftRight()
+void curveRight()
 {
-    setSpeed(currentSpeed, percentOf(currentSpeed, DRIFT_SLOW_PERCENT));
+    setSpeed(currentSpeed, percentOf(currentSpeed, CURVE_INNER_PERCENT));
     setWheels(DIR_FORWARD, DIR_FORWARD);
     goingForward = true;
     forwardSpeed = currentSpeed;
@@ -1316,8 +1318,8 @@ const char* actionName()
     case AUTO_FORWARD:    return blocked ? PSTR("BLOCKED") : PSTR("AUTO FWD");
     case AUTO_BACKWARD:   return PSTR("AUTO BCK");
     case DONUT:           return PSTR("DONUT");
-    case DRIFT_LEFT:      return blocked ? PSTR("BLOCKED") : PSTR("DRIFT L");
-    case DRIFT_RIGHT:     return blocked ? PSTR("BLOCKED") : PSTR("DRIFT R");
+    case CURVE_LEFT:      return blocked ? PSTR("BLOCKED") : PSTR("CURVE L");
+    case CURVE_RIGHT:     return blocked ? PSTR("BLOCKED") : PSTR("CURVE R");
     case DANCE:           return PSTR("DANCE");
     case DEMO:            return PSTR("DEMO");
     case CHAOS:           return PSTR("CHAOS!");
@@ -1559,12 +1561,12 @@ void setEyeTargets()
             break;
 
         case MANUAL_LEFT:
-        case DRIFT_LEFT:
+        case CURVE_LEFT:
             eyeTarget[E_X] = toLeft;
             break;
 
         case MANUAL_RIGHT:
-        case DRIFT_RIGHT:
+        case CURVE_RIGHT:
             eyeTarget[E_X] = -toLeft;
             break;
 
@@ -1989,7 +1991,7 @@ int median3(int a, int b, int c)
 bool drivingForward()
 {
     return robotState == MANUAL_FORWARD || robotState == AUTO_FORWARD
-        || robotState == DRIFT_LEFT || robotState == DRIFT_RIGHT
+        || robotState == CURVE_LEFT || robotState == CURVE_RIGHT
         || (robotState == CHAOS && chaosStep == CHAOS_STRAIGHT)
         || (robotState == SEARCH && searchStep == AVOID_DRIVE);
 }
@@ -2515,14 +2517,14 @@ void handleRemote(byte cmd)
         startChaos();
         break;
 
-    case CMD_7:                        // drift left
+    case CMD_7:                        // curve left (forward while turning left)
         emergencyStop();
-        robotState = DRIFT_LEFT;
+        robotState = CURVE_LEFT;
         break;
 
-    case CMD_8:                        // drift right
+    case CMD_8:                        // curve right (forward while turning right)
         emergencyStop();
-        robotState = DRIFT_RIGHT;
+        robotState = CURVE_RIGHT;
         break;
 
     case CMD_9:                        // search
@@ -2661,16 +2663,16 @@ void handleBluetooth()
             robotState = MANUAL_RIGHT;
             break;
 
-        case 'G':                          // drift left
-            Serial.println(F("DRIFT LEFT"));
+        case 'G':                          // curve left (forward while turning left)
+            Serial.println(F("CURVE LEFT"));
             emergencyStop();
-            robotState = DRIFT_LEFT;
+            robotState = CURVE_LEFT;
             break;
 
-        case 'H':                          // drift right
-            Serial.println(F("DRIFT RIGHT"));
+        case 'H':                          // curve right (forward while turning right)
+            Serial.println(F("CURVE RIGHT"));
             emergencyStop();
-            robotState = DRIFT_RIGHT;
+            robotState = CURVE_RIGHT;
             break;
 
         case 'S':                          // stop
@@ -2788,16 +2790,16 @@ void updateDriving()
         donut();
         break;
 
-    case DRIFT_LEFT:
+    case CURVE_LEFT:
         if (filteredDistance() > STOP_DISTANCE)
-            driftLeft();
+            curveLeft();
         else
             brakeStop();
         break;
 
-    case DRIFT_RIGHT:
+    case CURVE_RIGHT:
         if (filteredDistance() > STOP_DISTANCE)
-            driftRight();
+            curveRight();
         else
             brakeStop();
         break;
@@ -3549,7 +3551,7 @@ void loop()
 
     handleIR();                // remote commands
 
-    updateDriving();           // auto forward/backward, donut, drift
+    updateDriving();           // auto forward/backward, donut, curve
 
     updateDance();
 
@@ -3586,8 +3588,8 @@ void loop()
         robotState != DANCE &&
         robotState != DEMO &&
         robotState != CHAOS &&
-        robotState != DRIFT_LEFT &&
-        robotState != DRIFT_RIGHT &&
+        robotState != CURVE_LEFT &&
+        robotState != CURVE_RIGHT &&
         robotState != SEARCH &&
         robotState != TURN180 &&
         robotState != BRAKING)

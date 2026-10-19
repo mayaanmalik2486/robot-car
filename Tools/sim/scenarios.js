@@ -150,6 +150,22 @@ const scenarios = [
       ];
     },
   },
+  {
+    name: 'curve-sharper',
+    duration: 9,
+    distance: () => 150,
+    inputs: [{ t: 0.5, bt: 'W' }, { t: 4.0, bt: 'G' }, { t: 4.8, snapshot: 'curve-left-screen' }, { t: 5.5, bt: 'S' }, { t: 6.0, bt: 'H' }, { t: 7.5, bt: 'S' }],
+    check: (log) => {
+      const m = kind(log, 'motor').map((e) => e.v);
+      const st = kind(log, 'state').map((e) => e.v);
+      const inner = Math.floor(255 * 25 / 100);
+      return [
+        check('G curves left: left wheels at 25 %, right wheels full', m.includes(`LF${inner} RF255`), m.filter((v) => v !== 'L-0 R-0').join(', ')),
+        check('H curves right: right wheels at 25 %, left wheels full', m.includes(`LF255 RF${inner}`), ''),
+        check('the robot is in CURVE_LEFT, then CURVE_RIGHT', st.includes('CURVE_LEFT') && st.includes('CURVE_RIGHT'), st.join(',')),
+      ];
+    },
+  },
   ...[
     { name: 'stop-dance-ir-up', inp: { ir: 0x18 }, want: 'MANUAL_FORWARD' },
     { name: 'stop-dance-brake', inp: { bt: 'u' }, want: 'IDLE' },
