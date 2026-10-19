@@ -59,7 +59,7 @@ $jobs | Remove-Job
 "BUILT: $(@($b -split "`n" | Where-Object { $_ -match '^OK' }).Count) of $($list.Count)" | Add-Content $log
 
 # 3. simulate
-$rel = @('dance-full-song', 'curve-sharper', 'turbo-horn-status', 'follow-me', 'goalkeeper', 'guard', 'music', 'gestures', 'pet')
+$rel = @('dance-full-song', 'curve-sharper', 'turbo-horn-status', 'radar', 'follow-me', 'goalkeeper', 'guard', 'music', 'gestures', 'pet')
 $dbg = @('dance-tap-resync', 'dance-hold-button', 'football-mode', 'stop-dance-forward', 'stop-dance-brake', 'stop-dance-180', 'stop-search-backward',
   'faces-donut-dizzy-180', 'mute-button', 'search-stuck-no-echo', 'dance-wall-in-front')
 if ($Scen.Count) { $rel = @($rel | Where-Object { $Scen -contains $_ }); $dbg = @($dbg | Where-Object { $Scen -contains $_ }) }

@@ -10,12 +10,12 @@ facing the front.
 **Everything the car and app can do, in one guide: [Docs/CAR_AND_APP_GUIDE.md](Docs/CAR_AND_APP_GUIDE.md)** (also as a [PDF](Docs/Robot_Car_Guide.pdf)).
 
 And it has **play modes**: **follow me**, **goalkeeper** (with a kick), **guard** (an alarm that tells
-your phone), **music** (your hand plays notes), **gestures** and a little **robot pet**.
+your phone), **music** (your hand plays notes), **gestures** and a little **robot pet** - plus a **radar** that maps the room on its screen and in the app.
 
 ## 📱 The app
 
 **[⬇ Download the Robot Car app](https://github.com/mayaanmalik2486/robot-car/raw/main/App/RobotCar.apk)**
-(Android). Send that link to anyone. How to install and connect: [App/README.md](App/README.md). It looks like a game controller (landscape, thumbstick + emoji buttons) and works with a real game controller too.
+(Android). Send that link to anyone. How to install and connect: [App/README.md](App/README.md). It looks like a game controller (landscape, thumbstick, tilt driving, emoji buttons, a live radar page) and works with a real game controller (like the GameSir Cyclone 2) too.
 
 ## What's in this repo
 
@@ -57,10 +57,11 @@ The app has a button for each of these. (Any "Bluetooth RC car" app works too: t
 | M | follow me | K / k | goalkeeper / kick! |
 | A | guard (alarm) | N | music (your hand plays notes) |
 | E | gestures (tap, double tap, hold close, hold further) | P | pet |
+| O | radar (stands still, sweeps the sensor, draws a radar map) | | |
 | X | mute / unmute every sound | V | football: the distance sensor off (it never stops for things). Search, chaos and the play modes still use it. |
 
 The car answers the app with a status line - `~MODE|1010`: what it is doing, then 1/0 for muted,
-football, slow and low battery. It also warns by itself when the battery is nearly empty.
+football, slow and low battery - plus `#S:` + its song name (when the app asks with `?`) and `#R:` radar dots. It also warns by itself when the battery is nearly empty.
 
 ## Parts and wiring
 

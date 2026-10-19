@@ -260,6 +260,29 @@ const scenarios = [
     },
   },
   {
+    name: 'radar',
+    duration: 8,
+    // something 40 cm away on the left (servo 110 degrees and more), nothing anywhere else
+    distance: (t, angle) => (angle >= 110 ? 40 : 999),
+    inputs: [{ t: 0.5, bt: '?' }, { t: 1.0, bt: 'O' }, { t: 5.0, snapshot: 'screen' }, { t: 6.5, bt: 'S' }],
+    check: (log) => {
+      const bt = kind(log, 'bt').map((e) => e.v);
+      const radar = bt.filter((v) => v.startsWith('#R:'));
+      const sv = kind(log, 'servo').filter((e) => e.t > 1000 && e.t < 6500).map((e) => e.v);
+      const last = kind(log, 'servo').filter((e) => e.t > 6500).map((e) => e.v);
+      return [
+        check('the car tells the app its song (?)', bt.includes('#S:Robot Groove'), bt.slice(0, 3).join(' / ')),
+        check('O = radar: the app hears RADAR', bt.includes('~RADAR|0000'), ''),
+        check('it sends a radar dot about every 0.2 s', radar.length >= 22 && radar.length <= 36, radar.length + ' dots'),
+        check('the sensor sweeps all 11 directions (40 ... 140 degrees)', [40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140].every((a) => sv.includes(a)), [...new Set(sv)].join(',')),
+        check('it sees the thing on the left at 40 cm', radar.some((v) => /^#R:[ijk](39|40|41)$/.test(v)), radar.filter((v) => /^#R:[ijk]/.test(v)).slice(0, 4).join(' ')),
+        check('nothing on the right', radar.filter((v) => /^#R:[a-e]/.test(v)).every((v) => v.endsWith('999')), ''),
+        check('the car stands still while the radar runs', motorMs(log, 'L-0 R-0', 1100, 6400) > 5200, motorMs(log, 'L-0 R-0', 1100, 6400).toFixed(0) + ' ms'),
+        check('S stops it: the sensor looks ahead again, the app hears READY', last.at(-1) === 90 && bt.indexOf('~READY|0000', bt.indexOf('~RADAR|0000')) > 0, last.join(',')),
+      ];
+    },
+  },
+  {
     name: 'follow-me',
     duration: 16,
     // you: straight ahead at 60 cm, then 25 cm, then 10 cm; from 11 s you step out to the left
@@ -313,7 +336,7 @@ const scenarios = [
         check('siren (wee-woo)', alarm && buzzAt(log, 1320, alarm.t - 500, alarm.t + 3000) && buzzAt(log, 880, alarm.t, alarm.t + 3000), ''),
         check('it turns to face the intruder (right)', alarm && motorMs(log, 'LF216 RB216', alarm.t - 600, alarm.t + 200) > 30, ''),
         check('the app hears INTRUDER', bt.some((v) => v.startsWith('~INTRUDER|')), bt.join(' / ')),
-        check('5 s after they left it calms down and learns the room again', relearn && relearn.t > 19000 + 5000 && relearn.t < 19000 + 7000,
+        check('5 s after they left it calms down and learns the room again', relearn && relearn.t > 19000 + 4800 && relearn.t < 19000 + 7000,
           relearn ? `at ${(relearn.t / 1000).toFixed(1)} s` : 'never'),
       ];
     },

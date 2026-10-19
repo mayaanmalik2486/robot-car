@@ -16,6 +16,7 @@ All of these use only the parts already on the car.
 | **Horn** | Y | Beep beeeep (Y was the old demo mode) |
 | **Low battery warning** | - | Checks the power by itself (no wires) and warns on the screen, with a sad tune and in the app. Without extra parts it can only notice when the battery is nearly empty |
 | **Our own phone app** | - | [App](App): download link, a button for everything, live status from the car |
+| **Radar** | O | Stands still, sweeps the sensor 50 degrees each way and draws a radar map on its screen; sends every dot to the app, which draws it too (October 20) |
 | **IR remote add-on** | - | [IR_Remote_Addon](IR_Remote_Addon): the remote taken out of the programs, addable back with one file + 3 lines |
 
 Every mode that needs the distance sensor switches it on, even in football mode (like search and chaos).
@@ -26,8 +27,8 @@ Each play mode can be switched off (`HAS_FOLLOW`, `HAS_KEEPER`, `HAS_GUARD`, `HA
 
 | | Before | After |
 |---|---|---|
-| Main program | 29,590 (91.7 %) | 29,742 (92.2 %) - with all the new modes |
-| Biggest song file | 30,448 (94.4 %) | about 30,600 (95 %) |
+| Main program | 29,590 (91.7 %) | 29,742 (92.2 %) - with all the new modes; 30,656 (95.0 %) with radar too |
+| Biggest song file | 30,448 (94.4 %) | about 30,600 (95 %); about 31,500 (97.7 %) with radar too |
 
 How it fits: the debug messages were switched off (saved 2.9 KB - the car works the same), the IR remote
 was taken out into an add-on (saved 2.1 KB + 430 bytes of RAM) and demo mode was removed (0.5 KB). The new
@@ -39,7 +40,6 @@ decimal (float) maths while the car runs, the Arduino `String` type, and long de
 
 ## Saved for later
 
-- **Radar screen** - the servo sweeps and the screen draws a radar map
 - **Record and replay** - drive a route with the phone, the car repeats it (saved even after switching off)
 - **Emoji buttons** - hearts, angry, crying, sunglasses, wink on the screen
 - **Horn and sound effects** - more sounds: police siren, reversing beep, laser

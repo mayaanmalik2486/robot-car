@@ -1,8 +1,8 @@
 # Robot Car – Everything It Can Do
 
-*Oct 19, 2026 · also as a [PDF](Robot_Car_Guide.pdf)*
+*Updated Oct 20, 2026 · also as a [PDF](Robot_Car_Guide.pdf)*
 
-A 4-wheel Arduino robot car you drive from an Android phone. It avoids walls, dances to 39 songs, plays games, shows a face on its screen, and works with a game controller through the phone.
+A 4-wheel Arduino robot car you drive from an Android phone. It avoids walls, dances to 39 songs, plays games, maps the room with a radar, shows a face on its screen, and works with a game controller through the phone.
 
 ## At a glance
 
@@ -25,15 +25,16 @@ The car is built from cheap, common hobby parts around an Arduino UNO. Each part
 | Passive buzzer | Plays jingles, songs, beeps, the horn and alarms |
 | 3 x 18650 cells (+ 4 x AA for the servo) | Power for the motors, the Arduino and the servo |
 
-The program fills about 92% of the Arduino's memory, so new features have to be small. Each play mode can be switched off in the code to free space.
+The program fills about 95% of the Arduino's memory, so new features have to be small. Each play mode can be switched off in the code to free space.
 
 ## Driving
 
-You drive with the thumbstick in the app (or a game controller): the car moves while you hold it and stops the moment you let go.
+You drive with the thumbstick in the app, by tilting the phone, or with a game controller: the car moves while you hold it and stops the moment you let go.
 
 - **Forward / backward** – push the stick up or down.
 - **Spin left / right** – push it sideways; the car turns on the spot (wheels on each side go opposite ways).
 - **Curve left / right** – push it diagonally up; the car drives forward while turning, like a car round a bend. The inside wheels run backward at 30% for a sharp turn.
+- **Tilt driving** – switch tilt on, hold the pad and tilt the phone like a steering wheel: tip it away to go forward, toward you to go back. Let go and the car stops.
 - **Fast / slow** – two speeds; slow is easier indoors.
 - **Turbo** – a 1.5-second full-power burst with a whoosh sound and "TURBO!" on the screen.
 - **Horn** – "beep beeeep".
@@ -53,6 +54,7 @@ These run by themselves after one tap and keep going until you send another comm
 | Donut | Spins round and round. When you stop it, it shows dizzy eyes and wobbles its head |
 | 180° turn | Turns round to face the other way |
 | Brake | Slows down smoothly instead of stopping dead |
+| Radar | Stands still and sweeps its sensor 50° each way. Its screen draws a radar map with a dot for everything within 1.5 m, and the app draws the same map live |
 
 ## Play modes
 
@@ -85,6 +87,7 @@ In the simulator, every move in all 39 dances landed on the beat (12,624 of 12,6
 
 The car has a personality: the screen shows its mood and the buzzer gives every action a sound.
 
+- **Radar map** – in radar mode the eyes make way for the radar picture: range rings, the sweep line and dots, with "RADAR near 42cm" on top.
 - **Eyes** – two cartoon eyes that blink and look where the sensor is looking. They change with the mode: happy (hello, dance), angry (chaos, guard), focused (search), sleepy (bored pet), surprised (emergency stop) and dizzy (after a donut).
 - **Hello** – when you switch it on, and when the phone sends its first command, it shows "Hello!", plays a tune and waves the servo.
 - **Sounds** – a jingle for each mode, the dance tunes, parking beeps, the horn, the guard siren and warning beeps.
@@ -101,13 +104,15 @@ The car protects itself from crashes and warns you before the battery dies.
 
 ## The app
 
-The car has its own Android app, laid out like a game controller and held sideways. Anyone can download it from one link: [RobotCar.apk](https://github.com/mayaanmalik2486/robot-car/raw/main/App/RobotCar.apk) (45 KB). Install guide: [App/README.md](../App/README.md).
+The car has its own Android app, laid out like a game controller and held sideways. Anyone can download it from one link: [RobotCar.apk](https://github.com/mayaanmalik2486/robot-car/raw/main/App/RobotCar.apk) (53 KB, version 3.0). Install guide: [App/README.md](../App/README.md).
 
-- **Left** – a thumbstick to drive, with a fast/slow button above it.
-- **Right** – four round coloured buttons like a real controller: dance (yellow), kick (blue), horn (red), turbo (green), with a big red STOP above them.
-- **Middle** – a small green screen showing whether it is connected, what the car is doing right now, and mute / football / speed / battery. Under it are emoji buttons for every other mode; hold one to see its name.
-- **Live status** – the car tells the app what it is doing, so the screen is always up to date.
-- **Alerts** – the phone vibrates and shows a message when guard mode sees an intruder or the battery is low.
+- **Left** – the thumbstick, with fast/slow and tilt on/off above it.
+- **Right** – a big red STOP and four round face buttons like a real controller: dance (yellow), kick (blue), horn (red), turbo (green).
+- **Middle** – a small green screen showing whether it is connected, what the car is doing, and mute / football / speed / battery. Under it are three pages: **Moves** (search, chaos, donut, 180°, auto, reverse, brake, horn), **Play** (the six games) and **Radar** (a live radar map and a start/stop button).
+- **Top** – connect, the song this car dances to, football and sound switches, the connected controller, and help.
+- **Buttons that feel real** – every button stands up like a key, sinks when pressed and makes the phone click.
+- **Song and dance clock** – the car tells the app which song it has; while dancing, the screen shows the song and a running clock.
+- **Alerts** – the phone (and a connected controller) vibrates and shows a message when guard mode sees an intruder or the battery is low.
 - **Easy connecting** – pick the HC-05 once; after that the app connects by itself when opened. The screen stays on and full-screen while you play.
 - **Sharing** – a Share button in the help sends the download link to friends.
 
@@ -115,18 +120,22 @@ It works on Android 5 and newer. It cannot work on iPhones, because Apple doesn'
 
 ## Game controller
 
-A game controller like the GameSir Cyclone 2 can drive the car through the phone, but not directly. The car's HC-05 only talks to phones and computers, so the controller connects to the phone (by Bluetooth, or its USB dongle with a USB-C adapter) and the app passes its buttons on to the car.
+A game controller like the GameSir Cyclone 2 can drive the car through the phone, but not directly. The car's HC-05 only talks to phones and computers, so the controller connects to the phone (by Bluetooth, or its USB dongle with a USB-C adapter) and the app passes its buttons on to the car. It drives like a racing game, and the button you press lights up on the screen.
 
 | Controller | Does |
 | --- | --- |
-| Left stick or D-pad | Drive (diagonals curve) |
-| A / B / X / Y | Turbo / horn / kick / dance |
-| LB / RB | Fast-slow / STOP |
-| LT / RT | Brake / turbo |
-| START / SELECT | Search / football |
-| Left stick click | Sound on / off |
+| RT / LT | Gas (forward) / reverse |
+| Left stick | Steer (with RT: curve), or drive with the stick alone |
+| A / B / X / Y | Turbo / STOP / kick / dance |
+| RB | Fast / slow |
+| L3 / R3 (click the sticks) | Horn / brake |
+| D-pad up / right / down / left | Search / chaos / donut / 180° turn |
+| START / SELECT | Radar / football |
+| Hold LB + A / B / X / Y | Follow me / guard / goalkeeper / pet |
+| Hold LB + D-pad up / down / right / left | Music / gestures / auto forward / auto backward |
+| Hold LB + SELECT | Sound on / off |
 
-If the Cyclone 2 asks for a mode, pick its Android or Xbox mode.
+If the Cyclone 2 asks for a mode, pick its Android or Xbox mode. Its back buttons can copy any button (set them in the GameSir app).
 
 ## Extras
 
@@ -134,7 +143,7 @@ Everything lives in one public GitHub repo, [mayaanmalik2486/robot-car](https://
 
 - **IR remote add-on** – the TV-style IR remote was taken out to make room. One file plus 3 lines puts it back in any program, with a 4-step guide ([IR_Remote_Addon](../IR_Remote_Addon)).
 - **Update all songs in one click** – change the main program, double-click UPDATE_ALL_SONGS.bat, and all 39 song programs get the change (each keeps its own dance), then it checks that they all compile.
-- **Simulator tests** – a computer simulator runs the real program and checks the modes, the timing and every dance; the last run passed 386 of 386 checks.
+- **Simulator tests** – a computer simulator runs the real program and checks the modes, the timing and every dance; the last run passed 394 of 394 checks.
 - **Every old version kept** – all earlier versions of the code and the dances from before the choreography are saved in their own folders.
 - **Ready to upload** – every program is already set to Arduino Uno on COM4.
 
@@ -142,10 +151,10 @@ Everything lives in one public GitHub repo, [mayaanmalik2486/robot-car](https://
 
 A few things the car and app can't do yet:
 
-- **Memory is nearly full** (92%) – big new features need something else switched off. The IR add-on fits in every program, but on the biggest song file pet mode has to be switched off to make room.
+- **Memory is nearly full** (95%, up to 97.7% in song files) – big new features need something else switched off. To add the IR remote, radar has to be switched off (and pet too in the bigger song files).
 - **Android only** – no iPhone app is possible with the HC-05.
 - **Battery** – it warns only when nearly empty; a real battery meter needs two resistors.
 - **The sensor sees only straight ahead** – thin, soft or angled things (chair legs, cushions) can be missed.
 - **Not yet tried on a real phone** – the new app and the controller support are built and checked on the computer only.
 
-Ideas saved for later: a radar screen (the servo sweeps and the screen draws a map), record and replay a route, more emoji faces and sound effects, games on the screen (reaction game, Simon says), a wall follower for mazes, a line follower or table-edge stop (if the old sensors are still around), and a real battery meter. More in [IDEAS.md](../IDEAS.md).
+Ideas saved for later: record and replay a route, more emoji faces and sound effects, games on the screen (reaction game, Simon says), a wall follower for mazes, a line follower or table-edge stop (if the old sensors are still around), and a real battery meter. More in [IDEAS.md](../IDEAS.md).

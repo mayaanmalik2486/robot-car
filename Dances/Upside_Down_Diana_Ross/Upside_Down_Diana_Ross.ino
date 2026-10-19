@@ -29,6 +29,8 @@
     it says hello: "Hello!" on the screen + a tune + a little servo wave.
   - PLAY MODES: follow me, goalkeeper (with a kick), guard (an alarm), music
     (your hand plays notes), gestures and a little robot pet - see section 16b.
+  - RADAR: stands still, sweeps the sensor and draws a radar map on the screen
+    (and sends it to the app).
   - It tells the app what it is doing, and warns when the battery is nearly empty.
 
   BLUETOOTH LETTERS (sent by the phone app - the Robot Car app has a button for each)
@@ -48,7 +50,10 @@
     PLAY MODES (they use the distance sensor, even in football mode):
     M follow me      K goalkeeper (k = kick!)      A guard (alarm)
     N music (your hand plays notes)      E gestures (tap / hold your hand)      P pet
-    ? the app asks what the car is doing (the car answers "~MODE|flags")
+    O radar: the sensor sweeps left and right and the screen draws a radar map
+      (the app draws it too)
+    ? the app asks what the car is doing (the car answers "~MODE|flags",
+      then "#S:" + the song name)
     The car also warns when the battery is nearly empty (screen + sad tune).
 
   IR REMOTE: taken out to make room for the play modes. To add it back, see
@@ -223,6 +228,7 @@ const bool HAS_GUARD = true;           // A  guard
 const bool HAS_MUSIC = true;           // N  music: your hand plays notes
 const bool HAS_GESTURE = true;         // E  gesture control
 const bool HAS_PET = true;             // P  pet
+const bool HAS_RADAR = true;           // O  radar
 
 const int SEE_CM = 150;                // play modes: something closer than this is "seen"
 
@@ -256,6 +262,12 @@ const unsigned long PET_BORED_MS = 25000;    // nobody played with it for this l
 const unsigned long PET_SLEEP_MS = 45000;    // ... and this long: it falls asleep
 const int PET_HAND_CM = 25;                  // a hand closer than this (while it sits) = petting
 const int PET_SPEED_PERCENT = 50;            // how fast it wanders
+
+// RADAR: the car stands still; the sensor sweeps from right to left and back,
+// 10 degrees a step, and the screen draws a dot for everything it sees
+const int RADAR_RANGE_CM = 150;              // the edge of the radar picture
+const unsigned long RADAR_STEP_MS = 160;     // time per step (servo move + a fresh measurement)
+const byte RADAR_STEPS = 11;                 // 11 directions: 50 degrees right ... ahead ... 50 degrees left
 
 // TURBO: a full-power burst forward (it still stops for obstacles, unless football mode is on)
 const unsigned long TURBO_MS = 1500;
@@ -680,6 +692,7 @@ enum RobotState
     MUSIC,
     GESTURE,
     PET,
+    RADAR,
     TURBO
 };
 
@@ -771,6 +784,8 @@ byte playCount = 0;                  // taps / countdown / the note playing
 bool playFlag = false;               // guard: sweeping toward the left / gestures: moving forward
 int playSeen[5];                     // what the sensor saw at each angle
 int playCm = 0;                      // guard: how far away the intruder was
+byte radarCm[RADAR_STEPS];           // radar: what the sensor saw in each direction (cm, 255 = nothing)
+bool radarDirty = false;             // radar: a new dot - draw the picture again
 
 const byte FOLLOW_TRACK = 0;         // follow me: you're in front - keep the distance
 const byte FOLLOW_LOOK = 1;          // lost you: looking around
@@ -1413,6 +1428,7 @@ bool sensorOff()
     case MUSIC:
     case GESTURE:
     case PET:
+    case RADAR:
         return false;              // these need to see
 
     default:
@@ -1449,6 +1465,7 @@ const char* actionName()
     case PET:             return playStep == PET_SLEEP ? PSTR("Zzz...") : playStep == PET_BORED ? PSTR("BORED")
                                : playStep == PET_HAPPY ? PSTR("PURR <3") : PSTR("PET");
     case TURBO:           return PSTR("TURBO!");
+    case RADAR:           return PSTR("RADAR");
     case SEARCH:
         if (searchStep == AVOID_LOOK_LEFT)   return PSTR("LOOK L");
         if (searchStep == AVOID_LOOK_RIGHT)  return PSTR("LOOK R");
@@ -1561,6 +1578,26 @@ void wantedText(byte area, char* buf)
             songNameText(buf);
         else
             danceInfoText(buf);
+        return;
+    }
+
+    if (HAS_RADAR && area == 0 && robotState == RADAR)    // "RADAR near  42cm"
+    {
+        byte nearest = 255;
+        for (byte k = 0; k < RADAR_STEPS; k++)
+            nearest = min(nearest, radarCm[k]);
+
+        flashText(buf, PSTR("RADAR"), 16);
+        if (nearest < RADAR_RANGE_CM)
+        {
+            strcpy_P(buf + 5, PSTR(" near "));
+            itoa(nearest, buf + 11, 10);
+            strcat_P(buf, PSTR("cm"));
+            byte length = strlen(buf);
+            while (length < 16)
+                buf[length++] = ' ';
+            buf[16] = '\0';
+        }
         return;
     }
 
@@ -1848,6 +1885,9 @@ void setEyeTargets()
             eyeTarget[E_TIRED] = 10;
             eyeTarget[E_OPEN] = 60;
             break;
+
+        case RADAR:                                     // (the radar picture is on the screen instead)
+            break;
         }
     }
 
@@ -2056,6 +2096,68 @@ void drawEyesNow()
     eyesDrawnAt = millis();
 }
 
+// RADAR PICTURE (in the eye area, rows 1 - 6): the car at the bottom middle, dotted
+// rings at half and full range, the sweep line, and a dot for everything the sensor saw.
+const byte RADAR_X = 64;             // where the car is on the screen
+const byte RADAR_Y = 55;
+const byte RADAR_R = 46;             // the full range, in pixels
+const byte RADAR_SIN[6] PROGMEM = {0, 11, 22, 32, 41, 49};   // sin and cos of 0, 10 ... 50 degrees (x 64)
+const byte RADAR_COS[6] PROGMEM = {64, 63, 60, 55, 49, 41};
+
+// The servo angle for radar direction k (0 = 50 degrees right, 5 = ahead, 10 = 50 degrees left)
+int radarAngle(byte k)
+{
+    int degrees = ((int)k - 5) * 10;
+    return SERVO_CENTER + (SERVO_LEFT > SERVO_CENTER ? degrees : -degrees);
+}
+
+// Puts a dot r pixels away in direction k into one screen row (page = its 128 columns).
+// big = a 3x3 dot, else 1 pixel.
+void radarDot(uint8_t* page, byte row, byte k, byte r, bool big)
+{
+    int8_t side = (int8_t)k - 5;                 // + = left
+    byte a = abs(side);
+    byte sx = (r * pgm_read_byte(RADAR_SIN + a)) >> 6;
+    byte x = RADAR_X + (side > 0 ? -sx : sx);
+    byte y = RADAR_Y - ((r * pgm_read_byte(RADAR_COS + a)) >> 6);
+
+    for (int8_t dx = -big; dx <= big; dx++)
+    {
+        for (int8_t dy = -big; dy <= big; dy++)
+        {
+            byte py = y + dy - row * 8;          // (outside this row: a big number, skipped)
+            if (py < 8)
+                page[x + dx] |= 1 << py;
+        }
+    }
+}
+
+// Draws the radar picture, one screen row at a time
+void drawRadar()
+{
+    uint8_t page[128];
+
+    for (byte row = EYES_TOP_ROW; row <= EYES_BOTTOM_ROW; row++)
+    {
+        memset(page, 0, sizeof(page));
+
+        for (byte k = 0; k < RADAR_STEPS; k++)
+        {
+            radarDot(page, row, k, RADAR_R / 2, false);         // the rings (dotted)
+            radarDot(page, row, k, RADAR_R, false);
+            if (radarCm[k] < RADAR_RANGE_CM)                    // something there: a big dot
+                radarDot(page, row, k, (int)radarCm[k] * RADAR_R / RADAR_RANGE_CM, true);
+        }
+        for (byte r = 6; r < RADAR_R; r += 5)                   // the sweep line: where the sensor looks now
+            radarDot(page, row, playLook, r, false);
+        radarDot(page, row, 5, 1, true);                        // the car
+
+        oled.drawTile(0, row, 16, page);
+        for (byte tile = 0; tile < 16; tile++)                  // (so the eyes get drawn again afterwards)
+            setTileState((row - EYES_TOP_ROW) * 16 + tile, TILE_PART);
+    }
+}
+
 // Called from loop(): animates the eyes, or updates one text row
 void updateDisplay()
 {
@@ -2069,14 +2171,27 @@ void updateDisplay()
     if (danceTurnStopMs && (long)(danceTurnStopMs - millis()) < (long)(DANCE_DRAW_GUARD_US / 1000))   // ... or just before a ROUND spin stops
         return;
 
-    setEyeTargets();
-
-    if (millis() - eyesDrawnAt >= EYES_FRAME_MS && (stepEyes() || !eyesDrawn))
+    if (HAS_RADAR && robotState == RADAR)
     {
-        drawEyes();
-        eyesDrawn = true;
-        eyesDrawnAt = millis();
-        return;
+        if (radarDirty)                  // the radar picture instead of the eyes
+        {
+            drawRadar();
+            radarDirty = false;
+            eyesDrawn = false;           // (the eyes are drawn again afterwards)
+            return;
+        }
+    }
+    else
+    {
+        setEyeTargets();
+
+        if (millis() - eyesDrawnAt >= EYES_FRAME_MS && (stepEyes() || !eyesDrawn))
+        {
+            drawEyes();
+            eyesDrawn = true;
+            eyesDrawnAt = millis();
+            return;
+        }
     }
 
     for (byte i = 0; i < 2; i++)
@@ -2699,7 +2814,7 @@ bool sameDriving(char c)
 bool isModeLetter(char c)
 {
     return c == 'I' || c == '1' || c == '2' || c == 'J' || c == '3' || c == '4' || c == 'U'
-        || c == 'M' || c == 'K' || c == 'A' || c == 'N' || c == 'E' || c == 'P' || c == 'T';
+        || c == 'M' || c == 'K' || c == 'A' || c == 'N' || c == 'E' || c == 'P' || c == 'T' || c == 'O';
 }
 
 // Is the mode for this letter already running?
@@ -2721,6 +2836,7 @@ bool modeAlreadyRunning(char c)
         case 'E': return robotState == GESTURE;
         case 'P': return robotState == PET;
         case 'T': return robotState == TURBO;
+        case 'O': return robotState == RADAR;
     }
     return false;
 }
@@ -2954,8 +3070,22 @@ void handleCommand(char c)
             }
             break;
 
+        case 'O':                          // radar
+            if (HAS_RADAR)
+            {
+                startPlayMode(RADAR);
+                memset(radarCm, 255, sizeof(radarCm));
+                playLook = 5;              // starts looking ahead, then sweeps
+                radarDirty = true;
+                playSound(TUNE_HAPPY);
+            }
+            break;
+
         case '?':                          // the app asks what the car is doing
             sendStatus();
+            BT.print(F("#S:"));            // ... and which song this car dances to
+            BT.print((const __FlashStringHelper*)SONG_NAME);
+            BT.print('\n');
             break;
 
         case 'I':                          // search
@@ -4213,6 +4343,32 @@ void updateTurbo()
     }
 }
 
+// RADAR: every step, keep what the sensor saw, tell the app ("#R:direction,cm"),
+// and turn the sensor 10 degrees on (right to left, then back)
+void updateRadar()
+{
+    if (millis() - playTimer < RADAR_STEP_MS)
+        return;
+
+    radarCm[playLook] = min(lastDistance, 255);
+    radarDirty = true;
+
+    char line[10] = "#R:";               // e.g. "#R:f42" = straight ahead (f), 42 cm
+    line[3] = 'a' + playLook;            // a = 50 degrees right ... f = ahead ... k = 50 degrees left
+    itoa(lastDistance, line + 4, 10);
+    BT.print(line);
+    BT.print('\n');
+
+    if (playLook == RADAR_STEPS - 1)
+        playFlag = false;                // reached the left end: back to the right
+    else if (playLook == 0)
+        playFlag = true;
+    playLook = playFlag ? playLook + 1 : playLook - 1;
+
+    scanner.write(radarAngle(playLook));
+    playTimer = millis();
+}
+
 // Runs the play mode that is on (called from loop())
 void updatePlayModes()
 {
@@ -4224,6 +4380,7 @@ void updatePlayModes()
     case MUSIC:    if (HAS_MUSIC) updateMusic();       break;
     case GESTURE:  if (HAS_GESTURE) updateGesture();   break;
     case PET:      if (HAS_PET) updatePet();           break;
+    case RADAR:    if (HAS_RADAR) updateRadar();       break;
     case TURBO:    updateTurbo();                      break;
     default:       break;
     }

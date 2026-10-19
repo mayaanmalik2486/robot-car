@@ -18,7 +18,7 @@ const MOTOR_STABLE = 4;           // state must hold 1 ms to count
 const STATE_STABLE = 2;
 
 function loadProgram(binPath) {
-  const prog = new Uint16Array(0x4000);
+  const prog = new Uint16Array(0x8000);   // 64 KB: room for the debug build too (simulator only - the real UNO has 32 KB)
   new Uint8Array(prog.buffer).set(fs.readFileSync(binPath));
   return prog;
 }
