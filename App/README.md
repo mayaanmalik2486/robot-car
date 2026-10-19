@@ -117,7 +117,7 @@ mode sees an intruder or the battery is low. The Cyclone 2's back buttons can co
 
 | What you see | Why, and the fix |
 |---|---|
-| The screen says **⚠ OLD CAR PROGRAM**; play modes, radar, horn or kick do nothing; the speed button won't go back to fast | The car runs an older program that doesn't know these (for example one from the old **Robot_Dances** folder or the v7.1 sketch). Upload **Robot_Car_Main** - or a song from the **Dances** folder - from  (this GitHub folder). |
+| The screen says **⚠ OLD CAR PROGRAM**; play modes, radar, horn or kick do nothing; the speed button won't go back to fast | The car runs an older program that doesn't know these (for example one from the old **Robot_Dances** folder or the v7.1 sketch). Upload **Robot_Car_Main** - or a song from the **Dances** folder - from `Documents\Arduino\robot-car` (this GitHub folder). |
 | **(no radar: old program)** | The car's program is from before October 20, 2026. Upload the newest one (same as above). |
 | Not sure what's going on | **Hold the green screen**: the link log shows every letter the app sent (->) and every line the car answered (<-). |
 
