@@ -200,18 +200,18 @@ const scenarios = [
   },
   {
     name: 'shout-moment',
-    duration: DANCE_AT + 7,
+    duration: DANCE_AT + 13,
     distance: () => 150,
-    inputs: [{ t: 0.5, bt: 'W' }, { t: DANCE_AT, bt: '4' }, { t: DANCE_AT + 4.6, snapshot: 'feedback-screen' }],
+    inputs: [{ t: 0.5, bt: 'W' }, { t: DANCE_AT, bt: '4' }, { t: DANCE_AT + 8.6, snapshot: 'feedback-screen' }],
     check: (log) => {
       const anchor = DANCE_AT * 1000 + 20;
       const bar = (60000 / song.bpm) * 4;
-      const want = anchor + 2 * bar;                               // SONG_SHOUT_STEPS = {16} (= bar 2) in the test copy
+      const want = anchor + 4 * bar;                               // SONG_SHOUT_STEPS = {32} (= bar 4) in the test copy
       const s = kind(log, 'serial').find((e) => e.v === 'FEEDBACK!');
       const zap = kind(log, 'buzzer').filter((e) => e.t > want - 30 && e.t < want + 350 && e.v >= 1700);
-      const moves = kind(log, 'motor').filter((e) => e.t > want && e.t < want + 2000);
+      const moves = kind(log, 'motor').filter((e) => e.t > want && e.t < want + 4000);
       return [
-        check('the special moment fires at the start of bar 2', s && Math.abs(s.t - want) < 80, s ? `${(s.t - want).toFixed(0)} ms from the bar start` : 'never'),
+        check('the special moment fires at the start of bar 4', s && Math.abs(s.t - want) < 80, s ? `${(s.t - want).toFixed(0)} ms from the bar start` : 'never'),
         check('it plays the electric zap', zap.length >= 3, `${zap.length} zap notes`),
         check('the dance keeps going during it', moves.length >= 2, `${moves.length} moves`),
       ];

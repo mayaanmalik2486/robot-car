@@ -6,12 +6,15 @@ const fs = require('fs');
 function parseSong(sketchPath) {
   const src = fs.readFileSync(sketchPath, 'utf8');
   const num = (re, what) => { const m = src.match(re); if (!m) throw new Error('cannot find ' + what); return parseFloat(m[1]); };
+  const block = (re, what) => { const m = src.match(re); if (!m) throw new Error('cannot find ' + what); return m[1]; };
   const bpm = num(/const float SONG_BPM = ([\d.]+)/, 'SONG_BPM');
   const bpb = src.match(/const byte BEATS_PER_BAR = (\d+)/);
   const beatsPerBar = bpb ? +bpb[1] : 4;
   const speed = num(/const int DANCE_SPEED = (\d+)/, 'DANCE_SPEED');
   const twistPct = num(/DANCE_TWIST_PERCENT = (\d+)/, 'DANCE_TWIST_PERCENT');
   const curvePct = num(/DANCE_CURVE_PERCENT = (\d+)/, 'DANCE_CURVE_PERCENT');
+  const softPct = num(/DANCE_SOFT_PERCENT = (\d+)/, 'DANCE_SOFT_PERCENT');
+  const turn180 = num(/const unsigned long TURN180_TIME = (\d+)/, 'TURN180_TIME');
   const name = src.match(/const char SONG_NAME\[\] PROGMEM = "([^"]*)"/)[1];
   const sm = src.match(/const char SONG_SHOUT\[\] PROGMEM = "([^"]*)"/);
   const shout = sm ? sm[1] : '';
@@ -19,24 +22,25 @@ function parseSong(sketchPath) {
   const shoutSteps = ss ? ss[1].split(',').map((x) => +x.trim()).filter((x) => x >= 0) : [];
 
   const consts = {};
-  for (const m of src.matchAll(/const byte (\w+) = (0x[0-9A-Fa-f]+|\d+);/g)) consts[m[1]] = parseInt(m[2]);
+  for (const m of src.matchAll(/const byte (\w+)\s*=\s*(0x[0-9A-Fa-f]+|\d+);/g)) consts[m[1]] = parseInt(m[2]);
   const evalExpr = (e) => e.trim().split('+').reduce((a, t) => {
     const k = t.trim();
     if (!(k in consts)) throw new Error('unknown name in dance table: ' + k);
     return a + consts[k];
   }, 0);
 
-  const pb = src.match(/DANCE_PATTERNS\[\]\[STEPS_PER_BAR\] PROGMEM = \{([\s\S]*?)\n\};/)[1];
+  // the song's own dance steps (SONG_MOVES) and the choreography (SONG_MAP)
+  const pb = block(/SONG_MOVES\[\]\[STEPS_PER_BAR\] PROGMEM = \{([\s\S]*?)\r?\n\};/, 'SONG_MOVES');
   const patterns = [...pb.matchAll(/\{([^}]*)\}/g)].map((m) => m[1].split(',').map(evalExpr));
-  const mb = src.match(/SONG_MAP\[\]\[\d\] PROGMEM = \{([\s\S]*?)\n\};/)[1];
+  const mb = block(/SONG_MAP\[\]\[\d\] PROGMEM = \{([\s\S]*?)\r?\n\};/, 'SONG_MAP');
   const map = [...mb.matchAll(/\{\s*(\w+),\s*(\d+),\s*([\w+]+)(?:,\s*(\w+),\s*(\w+))?\s*\}/g)].map((m) => ({
     pattern: m[1], p: consts[m[1]], bars: +m[2], part: m[3].replace(/\+POWER$/, ''), power: /\+POWER$/.test(m[3]),
     chords: m[4] !== undefined ? +m[4] : null, tune: m[5] !== undefined ? consts[m[5]] : null }));
 
   // the buzzer tune (if the sketch has one)
   let tune = null;
-  const tp = src.match(/TUNE_PATTERNS\[\]\[STEPS_PER_BAR\] PROGMEM = \{([\s\S]*?)\n\};/);
-  const sc = src.match(/SONG_CHORDS\[\]\[4\] PROGMEM = \{([\s\S]*?)\n\};/);
+  const tp = src.match(/TUNE_PATTERNS\[\]\[STEPS_PER_BAR\] PROGMEM = \{([\s\S]*?)\r?\n\};/);
+  const sc = src.match(/SONG_CHORDS\[\]\[4\] PROGMEM = \{([\s\S]*?)\r?\n\};/);
   if (tp && sc && map[0].tune !== null) {
     tune = {
       patterns: [...tp[1].matchAll(/\{([^}]*)\}/g)].map((m) => m[1].split(',').map(evalExpr)),
@@ -57,9 +61,10 @@ function parseSong(sketchPath) {
   const pm = src.match(/const int DANCE_POWER_SPEED = (\d+)/);
   const powerSpeed = pm ? +pm[1] : speed;
   const C = consts;
-  const motorAt = (move, s) => { const t = Math.floor(s * twistPct / 100), i = Math.floor(s * curvePct / 100); return ({
-    [C.POSE]: 'L-0 R-0', [C.LOOK_L]: 'L-0 R-0', [C.LOOK_R]: 'L-0 R-0',
-    [C.FWD]: `LF${s} RF${s}`, [C.BACK]: `LB${s} RB${s}`, [C.DASH]: 'LF255 RF255',
+  const fullTurnMs = (sp) => Math.floor(turn180 * 2 * Math.floor(255 * 85 / 100) / sp);    // fullTurnMs() in the sketch
+  const motorAt = (move, s, backFull) => { const t = Math.floor(s * twistPct / 100), i = Math.floor(s * curvePct / 100); return ({
+    [C.POSE]: 'L-0 R-0', [C.LOOK_L]: 'L-0 R-0', [C.LOOK_R]: 'L-0 R-0', [C.FREEZE]: 'L-0 R-0',
+    [C.FWD]: `LF${s} RF${s}`, [C.BACK]: backFull ? 'LB255 RB255' : `LB${s} RB${s}`, [C.DASH]: 'LF255 RF255',
     [C.SPIN_L]: `LB${s} RF${s}`, [C.SPIN_R]: `LF${s} RB${s}`,
     [C.TWIST_L]: `LB${t} RF${t}`, [C.TWIST_R]: `LF${t} RB${t}`,
     [C.SWAY_L]: `LF${i} RF${s}`, [C.SWAY_R]: `LF${s} RF${i}`,
@@ -70,24 +75,34 @@ function parseSong(sketchPath) {
   const steps = [];
   let k = 0;
   map.forEach((e, partIndex) => {
+    if (!patterns[e.p]) throw new Error('unknown dance step ' + e.pattern);
     for (let b = 0; b < e.bars; b++) {
       for (let st = 0; st < stepsPerBar; st++) {
         const code = patterns[e.p][st];
-        steps.push({ k, tMs: k * stepUs / 1000, move: code & 0x0f, sound: code & 0xf0, partIndex, part: e.part, speed: e.power ? powerSpeed : speed });
+        const sp = e.power ? powerSpeed : speed;
+        const soft = !!(code & C.SOFT);
+        steps.push({ k, tMs: k * stepUs / 1000, move: code & 0x0f, soft, round: !!(code & C.ROUND), partIndex, part: e.part,
+          speed: soft ? Math.floor(sp * softPct / 100) : sp });
         k++;
       }
     }
   });
 
-  // expected motor changes
+  // expected motor changes (a ROUND spin stops by itself after one turn)
   const changes = [];
-  let prev = 'L-0 R-0';
+  let prev = 'L-0 R-0', afterDash = false, stopAt = null;
   for (const st of steps) {
     if (st.move === C.HOLD) continue;
-    const m = motorAt(st.move, st.speed);
+    if (stopAt !== null && stopAt < st.tMs && prev !== 'L-0 R-0') { changes.push({ tMs: stopAt, motor: 'L-0 R-0', k: -1, roundStop: true }); prev = 'L-0 R-0'; }
+    stopAt = null;
+    const backFull = st.move === C.BACK && afterDash && !st.soft;
+    if (![C.POSE, C.FREEZE, C.LOOK_L, C.LOOK_R].includes(st.move)) afterDash = st.move === C.DASH;
+    const m = motorAt(st.move, st.speed, backFull);
     if (m !== prev) { changes.push({ tMs: st.tMs, motor: m, k: st.k }); prev = m; }
+    if (st.round && (st.move === C.SPIN_L || st.move === C.SPIN_R)) stopAt = st.tMs + fullTurnMs(st.speed);
   }
   const totalMs = steps.length * stepUs / 1000;
+  if (stopAt !== null && stopAt < totalMs && prev !== 'L-0 R-0') changes.push({ tMs: stopAt, motor: 'L-0 R-0', k: -1, roundStop: true });
   const partStarts = [];
   { let acc = 0; map.forEach((e, idx) => { partStarts.push({ idx, tMs: acc * stepUs / 1000 }); acc += e.bars * stepsPerBar; }); }
 

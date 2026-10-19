@@ -4,6 +4,7 @@
 // usage: node make-dances.js ..\results\songs.json ..\..\Dances [onlyId]
 const fs = require('fs');
 const path = require('path');
+const CHOREO = require('./choreo');
 
 const MAIN = path.join(__dirname, '..', '..', 'Robot_Car_Main', 'Robot_Car_Main.ino');
 
@@ -29,6 +30,7 @@ const SONGS = {
   feet_dont_fail:    { folder: 'Feet_Dont_Fail_Me_Now_Joy_Crookes',      screen: "Feet Don't Fail Me Now - Joy Crookes", style: 'hype' },
   kabhi_kabhi_aditi: { folder: 'Kabhi_Kabhi_Aditi_Rashid_Ali',          screen: 'Kabhi Kabhi Aditi',            style: 'bollywood' },
   bolve:             { folder: 'Bolve_Madan_Maddi',          screen: 'Bolve - Madan Maddi',          style: 'bollywood', power: { minEnergy: 4, style: 'explosive', speed: 250 } },
+  robot_groove:      { main: true, screen: 'Robot Groove', style: 'groove' },
   badtameez_dil:     { folder: 'Badtameez_Dil_Pritam',       screen: 'Badtameez Dil - YJHD',         style: 'bollywood', power: { minEnergy: 5, style: 'explosive', speed: 250 } },
   flashing_lights:   { folder: 'Flashing_Lights_Kanye_West',      screen: 'Flashing Lights - Kanye West', style: 'groove' },
   touch_the_sky:     { folder: 'Touch_The_Sky_Kanye_West',        screen: 'Touch The Sky - Kanye West',   style: 'hype' },
@@ -52,18 +54,6 @@ const SONGS = {
 };
 const SPEED_BOOST = 20;                      // the improved dances move a bit faster and quicker
 
-// Pattern families: for each style, which patterns to use at each energy level (1 calm .. 5 the best part)
-const FAMILY = {
-  ballad:    { 1: ['P_STILL', 'P_ROCK'], 2: ['P_GLIDE_L', 'P_GLIDE_R'], 3: ['P_ROCK', 'P_SWING'], 4: ['P_SWING', 'P_GLIDE_L', 'P_SWING', 'P_GLIDE_R'], 5: ['P_SPIN', 'P_SWING', 'P_PARTY', 'P_SWING'] },
-  epic:      { 1: ['P_PULSE', 'P_LOOK'], 2: ['P_MARCH'], 3: ['P_MARCH', 'P_STEP'], 4: ['P_STEP', 'P_SPIN', 'P_STEP', 'P_PARTY'], 5: ['P_DROP', 'P_PARTY', 'P_SPIN', 'P_PUMP'] },
-  mystery:   { 1: ['P_LOOK'], 2: ['P_LOOK', 'P_PULSE'], 3: ['P_STEP', 'P_WIGGLE'], 4: ['P_SWING', 'P_PARTY'], 5: ['P_DROP', 'P_SPIN', 'P_PARTY', 'P_SHUFFLE'] },
-  groove:    { 1: ['P_ROCK'], 2: ['P_ROCK', 'P_GLIDE_L', 'P_ROCK', 'P_GLIDE_R'], 3: ['P_WIGGLE', 'P_SWING'], 4: ['P_SWING', 'P_BOUNCE', 'P_SHUFFLE', 'P_WIGGLE'], 5: ['P_PARTY', 'P_SHUFFLE', 'P_SPIN', 'P_BOUNCE'] },
-  rock:      { 1: ['P_PULSE'], 2: ['P_MARCH', 'P_STEP'], 3: ['P_STEP', 'P_PUMP'], 4: ['P_PUMP', 'P_SPIN'], 5: ['P_PUMP', 'P_DROP', 'P_PUMP', 'P_SPIN'] },
-  bollywood: { 1: ['P_ROCK'], 2: ['P_GLIDE_L', 'P_GLIDE_R'], 3: ['P_BHANGRA', 'P_SWING'], 4: ['P_BHANGRA', 'P_PARTY'], 5: ['P_BHANGRA', 'P_DROP', 'P_BHANGRA', 'P_SPIN'] },
-  hype:      { 1: ['P_PULSE', 'P_ROCK'], 2: ['P_STEP', 'P_WIGGLE'], 3: ['P_BOUNCE', 'P_SWING'], 4: ['P_SHUFFLE', 'P_PARTY', 'P_BOUNCE', 'P_SPIN'], 5: ['P_DROP', 'P_PARTY', 'P_SHUFFLE', 'P_SPIN'] },
-  cruise:    { 1: ['P_SNAP', 'P_JAZZ'], 2: ['P_GLIDE_L', 'P_SNAP', 'P_GLIDE_R', 'P_JAZZ'], 3: ['P_SLIDE', 'P_GLIDE_L', 'P_JAZZ', 'P_GLIDE_R'], 4: ['P_SWING', 'P_JAZZ', 'P_SLIDE', 'P_SWING'], 5: ['P_SWING', 'P_SPIN', 'P_JAZZ', 'P_SWING'] },
-  explosive: { 1: ['P_BOUNCE', 'P_BHANGRA'], 2: ['P_BHANGRA', 'P_BOUNCE', 'P_WIGGLE', 'P_PUMP'], 3: ['P_BHANGRA', 'P_SHUFFLE', 'P_PUMP', 'P_SPIN'], 4: ['P_PARTY', 'P_BHANGRA', 'P_SPIN', 'P_SHUFFLE'], 5: ['P_DROP', 'P_SPIN', 'P_PARTY', 'P_PUMP'] },
-};
 const SPEED = { ballad: 180, epic: 200, mystery: 190, groove: 190, rock: 220, bollywood: 210, hype: 220, explosive: 240, cruise: 170 };
 
 // Songs where the name could mean more than one track: say which one was used
@@ -134,14 +124,16 @@ const mmss = (t) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart
 const plain = (s) => s.replace(/[^\x20-\x7e]/g, '');                     // for comments and the guide
 const cstr = (s) => s.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/[^\x20-\x7e]/g, '');
 
-// Turn the research timeline into { pattern, bars, part } entries
-function buildMap(s, style, cfg = {}) {
+// Turn the research timeline into the choreography: { step, bars, part } entries.
+// Each part of the song dances its routine from choreo.js; the routine starts again
+// every time that part comes back, so repeated parts get the same moves.
+function buildMap(id, s, style, cfg = {}) {
   const beatsPerBar = 4;                                       // the robot always counts 4 beats per bar
   const barSec = 60 / s.bpm * beatsPerBar;
   const first = Math.max(0, s.first_beat_s || 0);
   const totalBars = Math.max(1, Math.round((s.duration_s - first) / barSec));
-  const fam = FAMILY[style];
-  const chunk = cfg.chunk || (barSec >= 2.5 ? 1 : 2);                          // change pattern every bar (slow songs) or 2 bars
+  const spec = CHOREO.SONGS[id] || CHOREO.SONGS.robot_groove;
+  const kit = CHOREO.KITS[spec.kit];
 
   // section boundaries on the bar grid
   const secs = [];
@@ -157,41 +149,67 @@ function buildMap(s, style, cfg = {}) {
   secs[secs.length - 1].b = totalBars;
   const clean = secs.filter((x) => x.b > x.a);
 
-  // one pattern per bar
+  // the routine for a part: the song's own, else the kit's, following the fallbacks (hook -> chorus ...)
+  const routineFor = (label, isLast) => {
+    if (isLast && spec[label + '_last']) return { name: label + '_last', list: spec[label + '_last'] };
+    for (const from of [spec, kit])                              // the song's own routines first, then the kit's
+      for (let l = label, n = 0; l && n < 6; l = CHOREO.FALLBACK[l], n++)
+        if (from[l]) return { name: l, list: from[l] };
+    return { name: 'verse', list: kit.verse };
+  };
+  const TRANSITION = new Set(['riser', 'fill', 'fill_hit', 'build', 'button']);
+  const LEAD_IN = new Set(['riser', 'fill_hit']);
+
   const bars = [];
+  const used = {};                                              // which routine each part used (for the description)
   clean.forEach((sec, si) => {
     const n = sec.b - sec.a;
     const next = clean[si + 1];
+    const isLast = !clean.slice(si + 1).some((x) => x.label === sec.label);
+    const r = routineFor(sec.label, isLast);
+    const key = PART[sec.label] || 'VERSE';
+    (used[key + (isLast && r.name.endsWith('_last') ? ' (last time)' : '')] ||= r.list);
     const power = cfg.power && sec.energy >= cfg.power.minEnergy;
-    const list = power ? FAMILY[cfg.power.style][sec.energy] : fam[sec.energy];
-    const ch = power ? 1 : chunk;
     for (let k = 0; k < n; k++) {
-      let p = list[Math.floor(k / ch) % list.length];
-      if (sec.label === 'intro' && si === 0 && k < Math.min(2, n - 1)) p = style === 'mystery' ? 'P_LOOK' : style === 'cruise' ? 'P_SNAP' : 'P_PULSE';
-      if (sec.label === 'build') p = (k >= n - 2) ? 'P_BUILD' : (fam[3][Math.floor(k / chunk) % fam[3].length]);
-      if (k === 0 && sec.energy >= 4 && /chorus|drop|hook/.test(sec.label) && style !== 'cruise') p = 'P_DROP';     // the best part starts with a bang
-      if (k === n - 1 && next && next.energy > sec.energy && next.energy >= 4 && n >= 2 && sec.label !== 'build') p = 'P_FILL';
+      let step = r.list[k % r.list.length];
+      if (k === n - 1 && step === 'strut_f') step = 'swagger';      // never leave the car out front
+      if (k < n - 1 && LEAD_IN.has(step)) step = 'button';          // a lead-in move only right before the next part: mid-part it's a pose
+      // the last bar before a bigger part: a lead-in move
+      if (k === n - 1 && n >= 2 && next && next.energy >= 4 && next.energy > sec.energy && !TRANSITION.has(step)) step = spec.fill || 'riser';
       const chords = CHORD_SET[sec.label] !== undefined ? CHORD_SET[sec.label] : 0;
-      bars.push({ p, part: (PART[sec.label] || 'VERSE') + (power ? '+POWER' : ''), sec, chords, tune: tuneFor(style, sec, k, n) });
+      bars.push({ step, part: key + (power ? '+POWER' : ''), sec, chords, tune: tuneFor(style, sec, k, n), power });
     }
   });
-  bars[bars.length - 1].p = 'P_FINALE';
+  bars[bars.length - 1].step = spec.finale || 'finale';
   bars[bars.length - 1].tune = 'T_END';
 
-  // squash repeats into { pattern, bars, part, chords, tune }
+  // squash repeats into { step, bars, part, chords, tune }
   const map = [];
   for (const b of bars) {
     const last = map[map.length - 1];
-    if (last && last.p === b.p && last.part === b.part && last.chords === b.chords && last.tune === b.tune && last.bars < 255) last.bars++;
-    else map.push({ p: b.p, bars: 1, part: b.part, chords: b.chords, tune: b.tune });
+    if (last && last.step === b.step && last.part === b.part && last.chords === b.chords && last.tune === b.tune && last.bars < 255) last.bars++;
+    else map.push({ step: b.step, bars: 1, part: b.part, chords: b.chords, tune: b.tune });
   }
-  return { map, beatsPerBar, barSec, totalBars, first, clean };
+  return { map, bars, beatsPerBar, barSec, totalBars, first, clean, spec, used };
+}
+
+// This song's dance steps, in order of first use, as C: name, code and description
+function songSteps(spec, bars) {
+  const names = [];
+  for (const b of bars) if (!names.includes(b.step)) names.push(b.step);
+  return names.map((n) => {
+    const [text, say] = (spec.own && spec.own[n]) || CHOREO.MOVES[n];
+    return { n, cname: 'M_' + n.toUpperCase(), steps: CHOREO.parseStep(n, text), say };
+  });
 }
 
 function songBlock(id, s, cfg) {
   const style = cfg.style || guessStyle(s);
-  const { map, beatsPerBar, barSec, totalBars, first, clean } = buildMap(s, style, cfg);
+  const { map, bars, beatsPerBar, barSec, totalBars, first, clean, spec, used } = buildMap(id, s, style, cfg);
   const speed = Math.min(240, SPEED[style] + (cfg.keepMoves ? 0 : SPEED_BOOST));
+  const powerSpeed = cfg.power ? cfg.power.speed : speed;
+  const steps = songSteps(spec, bars);
+  const warnings = checkSteps(id, steps, bars, s.bpm, speed, powerSpeed);
   const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
   const keyName = NOTE_NAMES[s.key % 12] + (s.minor ? ' minor' : ' major');
   const bpm = Math.round(s.bpm * 100) / 100;
@@ -227,12 +245,52 @@ function songBlock(id, s, cfg) {
   L.push(`    { ${s.chords.bridge.join(', ')} },                                // 2 bridge`);
   L.push('};');
   L.push('');
-  L.push('// The song from start to end: { dance pattern, how many bars, part name, chords, tune pattern }');
+  L.push('');
+  L.push('// THE CHOREOGRAPHY');
+  L.push(...wrap(`// ${spec.story}`));
+  L.push('// Each part dances its routine (one step per bar) and starts it again every time that part comes back:');
+  for (const [part, list] of Object.entries(used)) L.push(...wrap(`//   ${part}: ${list.join(', ')}`));
+  L.push('');
+  L.push('// This song\'s dance steps: one bar each, 8 half-beat steps ("1 & 2 & 3 & 4 &")');
+  const w = Math.max(...steps.map((x) => x.cname.length));
+  steps.forEach((x, i) => L.push(`const byte ${(x.cname + ' ').padEnd(w + 1)}= ${String(i).padStart(2)};   // ${x.say}`));
+  L.push('const byte SONG_MOVES[][STEPS_PER_BAR] PROGMEM = {');
+  const cw = Math.max(...steps.flatMap((x) => CHOREO.stepCode(x.steps).map((c) => c.length)));
+  for (const x of steps) L.push(`    { ${CHOREO.stepCode(x.steps).map((c, i) => (c + (i < 7 ? ',' : '')).padEnd(cw + 2)).join('')}},   // ${x.cname}`);
+  L.push('};');
+  L.push('');
+  L.push('// The song from start to end: { dance step, how many bars, part name, chords, tune pattern }');
   L.push('const byte SONG_MAP[][5] PROGMEM = {');
-  for (const e of map) L.push(`    { ${(e.p + ',').padEnd(11)} ${String(e.bars).padStart(2)}, ${(e.part + ',').padEnd(13)} ${e.chords}, ${e.tune.padEnd(8)} },`);
+  const sw = Math.max(...map.map((e) => ('M_' + e.step).length)) + 1;
+  for (const e of map) L.push(`    { ${('M_' + e.step.toUpperCase() + ',').padEnd(sw)} ${String(e.bars).padStart(2)}, ${(e.part + ',').padEnd(13)} ${e.chords}, ${e.tune.padEnd(8)} },`);
   L.push('};');
   L.push('// ----- SONG END -----');
-  return { text: L.join('\r\n'), style, speed, map, totalBars, barSec, beatsPerBar, bpm, keyName };
+  return { text: L.join('\r\n'), style, speed, map, totalBars, barSec, beatsPerBar, bpm, keyName, warnings, story: spec.story, steps: steps.length };
+}
+
+// Checks one song: every ROUND spin has time to go once round before the next move,
+// and the whole dance brings the car back to where it started
+function checkSteps(id, steps, bars, bpm, speed, powerSpeed) {
+  const warn = [];
+  const stepMs = 60000 / bpm / 2;
+  const turnMs = (sp) => 455 * 2 * Math.floor(255 * 85 / 100) / sp;          // fullTurnMs() in the sketch
+  const powerUse = new Set(bars.filter((b) => b.power).map((b) => b.step));
+  for (const x of steps) {
+    x.steps.forEach((st, i) => {
+      if (!st.round) return;
+      let holds = 0;
+      while (i + 1 + holds < 8 && x.steps[i + 1 + holds].move === 'HOLD') holds++;
+      const window = (holds + 1) * stepMs;
+      for (const sp of [speed].concat(powerUse.has(x.n) ? [powerSpeed] : [])) {
+        const need = turnMs(st.soft ? Math.floor(sp * 0.6) : sp) + 25;
+        if (window < need) warn.push(`${id}: ${x.n} round spin needs ${need.toFixed(0)} ms, has ${window.toFixed(0)} ms`);
+      }
+    });
+  }
+  const byName = Object.fromEntries(steps.map((x) => [x.n, x.steps]));
+  const end = CHOREO.travel(bars.map((b) => byName[b.step]));
+  if (Math.hypot(end.x, end.y) > 0.5 || Math.abs(end.a) > 0.1) warn.push(`${id}: the dance ends ${Math.hypot(end.x, end.y).toFixed(2)} steps away, turned ${(end.a * 180 / Math.PI).toFixed(0)}`);
+  return warn;
 }
 
 function main() {
@@ -251,68 +309,79 @@ function main() {
   const i0 = template.indexOf(startTag), i1 = template.indexOf(endTag);
   if (i0 < 0 || i1 < 0) throw new Error('song markers not found in the main sketch');
   const made = [];
+  const warnings = [];
   for (const s of research) {
     if (only && s.id !== only) continue;
     const cfg = SONGS[s.id];
     if (!cfg) { console.log('no config for ' + s.id); continue; }
     const blk = songBlock(s.id, cfg.halfTime ? { ...s, bpm: s.bpm / 2 } : s, cfg);
+    warnings.push(...blk.warnings);
     let out = template.slice(0, i0) + blk.text.replace(/\r\n/g, nl) + template.slice(i1 + endTag.length);
     out = out.replace(/ROBOT CAR  -  v9    dance song: .*/, `ROBOT CAR  -  v9    dance song: ${plain(cfg.screen)}`);
-    const dir = path.join(outRoot, cfg.folder);
-    fs.mkdirSync(dir, { recursive: true });
-    const file = path.join(dir, cfg.folder + '.ino');
+    let file = MAIN;                                        // the main sketch's own demo dance
+    if (!cfg.main) {
+      const dir = path.join(outRoot, cfg.folder);
+      fs.mkdirSync(dir, { recursive: true });
+      file = path.join(dir, cfg.folder + '.ino');
+      made.push({ id: s.id, file, folder: cfg.folder, style: blk.style, speed: blk.speed, bpm: blk.bpm, bars: blk.totalBars, seconds: +(blk.totalBars * blk.barSec).toFixed(1), entries: blk.map.length, beatsPerBar: blk.beatsPerBar,
+        track: `${plain(s.track.title)} - ${plain(s.track.artist)}`, length: mmss(s.duration_s), first: +(s.first_beat_s || 0).toFixed(2), bpmConf: s.bpm_confidence, structConf: s.structure_confidence, best: plain(s.best_part || ''), note: NOTES[s.id] || '', keyName: blk.keyName, story: blk.story });
+    }
     fs.writeFileSync(file, out);
-    made.push({ id: s.id, file, folder: cfg.folder, style: blk.style, speed: blk.speed, bpm: blk.bpm, bars: blk.totalBars, seconds: +(blk.totalBars * blk.barSec).toFixed(1), entries: blk.map.length, beatsPerBar: blk.beatsPerBar,
-      track: `${plain(s.track.title)} - ${plain(s.track.artist)}`, length: mmss(s.duration_s), first: +(s.first_beat_s || 0).toFixed(1), bpmConf: s.bpm_confidence, structConf: s.structure_confidence, best: plain(s.best_part || ''), note: NOTES[s.id] || '', keyName: blk.keyName });
-    console.log(`${cfg.folder}: ${blk.style}, ${blk.bpm} BPM, ${blk.totalBars} bars (${mmss(blk.totalBars * blk.barSec)}), ${blk.map.length} map entries`);
+    console.log(`${cfg.folder || 'Robot_Car_Main'}: ${blk.style}, ${blk.bpm} BPM, ${blk.totalBars} bars (${mmss(blk.totalBars * blk.barSec)}), ${blk.steps} dance steps, ${blk.map.length} map entries`);
   }
   fs.writeFileSync(path.join(__dirname, '..', 'results', 'songs-made.json'), JSON.stringify(made, null, 1));
   if (!only) writeReadme(outRoot, made);
+  console.log(warnings.length ? 'WARNINGS:\n  ' + warnings.join('\n  ') : 'no warnings');
 }
 
-// A short guide next to the song folders
+// The song list next to the song folders (Dances/README.md)
 function writeReadme(outRoot, made) {
   const order = Object.keys(SONGS);
   made.sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
   const sure = (c) => (c === 'high' ? 'checked' : c === 'medium' ? 'fairly sure' : 'best guess');
-  const L = [];
-  L.push('ROBOT DANCES - one full robot program per song');
-  L.push('==============================================');
-  L.push('');
-  L.push('Each folder is the COMPLETE robot program (driving, search, chaos, eyes...),');
-  L.push('the only difference is the song its dance follows. Open the folder of the song');
-  L.push('you want in the Arduino IDE (File > Open > the .ino file inside) and upload it.');
-  L.push('');
-  L.push('HOW TO DANCE IN TIME');
-  L.push('  1. Put the car on the floor with some free space around it.');
-  L.push('  2. Play the song on a speaker, laptop or another phone.');
-  L.push('  3. Press dance (phone app: 4, remote: 5) exactly on the FIRST BEAT.');
-  L.push('     The robot then dances the whole song: calm moves in calm parts,');
-  L.push('     its best moves in the chorus / drop, and the buzzer plays a tune that');
-  L.push("     follows the song's chords (bass notes on the beat + a melody on top).");
-  L.push('  4. If it slowly drifts off the beat, tap dance again exactly ON a beat -');
-  L.push('     it lines itself up with your tap (it does not restart).');
-  L.push('  5. The screen shows the song name, the part (INTRO / VERSE / CHORUS / DROP!)');
-  L.push('     and the time in the song - it should match the time on your music player.');
-  L.push('  6. If the moves are a bit too fast or slow for your version of the song,');
-  L.push('     change SONG_BPM in section 3c of that file (a little at a time).');
-  L.push('');
-  L.push('THE SONGS (the exact version each dance is timed to)');
-  for (const m of made) {
-    L.push('');
-    L.push(`  ${m.folder}`);
-    L.push(`     ${m.track}  (${m.length})`);
-    L.push(`     tempo ${m.bpm} BPM (${sure(m.bpmConf)}), key ${m.keyName}, song parts ${sure(m.structConf)}, dance style: ${m.style}`);
-    L.push(`     press dance ${m.first > 0.05 ? `about ${m.first} s after the song starts (first beat)` : 'right when the song starts'}`);
-    if (m.note) L.push(`     NOTE: ${m.note}`);
-  }
-  L.push('');
-  L.push("The buzzer tune is my own tune in each song's key - not the real melody (that is");
-  L.push('copyrighted). MUTE: press the phone X ("!") button - every sound goes off, press again = on.');
-  L.push('(The screen shows MUTED. To silence only one dance, set DANCE_SOUND to DANCE_SOUND_OFF.)');
-  L.push('The dance never drives forward into something closer than 30 cm.');
-  L.push('');
-  fs.writeFileSync(path.join(outRoot, 'HOW_TO_USE_THESE_DANCES.txt'), L.join('\r\n') + '\r\n');
+  const cell = (t) => t.replace(/\|/g, '/');
+  const L = [
+    '# Robot Dances',
+    '',
+    'Each folder here is the **complete robot program** (driving, search, chaos, eyes...).',
+    'The only difference between them is the song and its **choreography**. Open the `.ino` file',
+    "inside the song's folder in the Arduino IDE and upload it.",
+    '',
+    '## How the choreography works',
+    '',
+    "Every song has its own dance steps (its signature moves) and a routine for each part of the song.",
+    'A routine starts again every time that part comes back, so **every chorus has the same chorus',
+    'routine**, like a real dance: you will recognise it. Phrases end on a pose, the bar before a big',
+    'part is a lead-in move, and the last bar is a finale. Spins marked *round* go exactly once round',
+    'and stop facing the front (timed like the 180 turn), and every step brings the car back to its',
+    'spot, so it dances in place. The routines are written out in plain words at the top of each file',
+    '(THE CHOREOGRAPHY) and the steps are in `SONG_MOVES`, so you can change them.',
+    '',
+    '## How to dance in time',
+    '',
+    '1. Put the car on the floor with some free space around it.',
+    '2. Play the song on a speaker, laptop or another phone.',
+    '3. Press dance (phone app: **4**, IR remote: **5**) exactly on the **first beat**',
+    '   (the table says how long after the song starts that is).',
+    '4. If it slowly drifts off the beat, tap dance again exactly **on** a beat.',
+    '   It lines itself up with your tap (it does not restart).',
+    '5. The screen shows the song name, the part (INTRO / VERSE / CHORUS / DROP!) and the',
+    '   time in the song, which should match the time on your music player.',
+    '6. If the moves are a bit too fast or slow for your version of the song, change',
+    '   `SONG_BPM` in section 3c of that file (a little at a time).',
+    '',
+    "The buzzer plays an original tune in each song's key (bass notes on the beat plus a melody",
+    'on top), not the real melody. **Mute:** phone **X** (the "!" button) turns every sound off,',
+    'press again to turn it back on. The dance never drives forward into anything closer than 30 cm.',
+    '',
+    `## The songs (${made.length})`,
+    '',
+    '| Folder | Song (exact version the dance is timed to) | The dance | Tempo / key | Press dance | Notes |',
+    '|---|---|---|---|---|---|',
+    ...made.map((m) => `| \`${m.folder}\` | ${cell(m.track)}  (${m.length}) | ${cell(m.story)} | ${m.bpm} BPM (${sure(m.bpmConf)}), ${m.keyName} | ${m.first > 0.05 ? `about ${m.first} s after the song starts` : 'right when the song starts'} | ${cell(m.note)} |`),
+    '',
+  ];
+  fs.writeFileSync(path.join(outRoot, 'README.md'), L.join('\n'));
 }
 
 main();

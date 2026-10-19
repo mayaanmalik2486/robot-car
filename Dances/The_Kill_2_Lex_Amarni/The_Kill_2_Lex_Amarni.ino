@@ -12,15 +12,18 @@
     sensor with the servo to look left, ahead and right, then turns toward
     the side with the most room until the way ahead is open (boxed in: it
     turns 90 degrees at a time until it finds an opening).
-  - DANCE follows a whole song: calm moves in the calm parts, its best
-    moves in the chorus / drop, in time with the beat, while the buzzer
-    plays the drum beat. The song is set in section 3c (THE SONG).
+  - DANCE follows a whole song with real choreography, in time with the
+    beat: the song's own dance steps (signature moves), a routine for each
+    part of the song that comes back every time that part does, poses at
+    the ends of phrases and spins that go exactly once round. The buzzer
+    plays a tune that follows the song's chords. The song and its
+    choreography are in section 3c (THE SONG).
   - SEARCH and CHAOS keep going by themselves until you send another command
     (holding or releasing the phone button doesn't stop them).
   - A small OLED screen shows what the robot is doing and how far away
     things are. While the servo moves (hello wave, SEARCH) it shows two
     cute eyes that look where the sensor looks and blink.
-  - A buzzer plays a jingle for each mode, drum beats for the dance,
+  - A buzzer plays a jingle for each mode, a tune for the dance,
     parking-sensor beeps that speed up as you get close, and warning beeps.
   - When you switch it on, and when your phone sends its first command,
     it says hello: "Hello!" on the screen + a tune + a little servo wave.
@@ -59,8 +62,8 @@
     plus Servo, SoftwareSerial and Wire (come with the Arduino IDE).
 
   HOW THE PROGRAM IS ORGANISED (top to bottom)
-    1 libraries   2 pins   3 settings   3b dance moves + patterns
-    3c THE SONG (tempo + the dance from start to end)
+    1 libraries   2 pins   3 settings   3b dance moves
+    3c THE SONG (tempo, the song's dance steps, the choreography from start to end)
     4 remote codes   5 robot "memory"
     6 motors      7 buzzer   8 OLED screen   9 distance sensor   10 servo
    11 greeting    12 timed moves   13 stop / start helpers   14 IR remote
@@ -241,6 +244,7 @@ const unsigned long WAVE_STEP_MS = 220;        // speed of the hello wave
 const bool DANCE_HEAD = true;                  // the sensor head turns with the dance moves (false = it stays still)
 const int DANCE_TWIST_PERCENT = 70;            // TWIST moves turn at 70 % of the dance speed
 const int DANCE_CURVE_PERCENT = 35;            // SWAY / BACK curves: the inner wheels run at 35 %
+const int DANCE_SOFT_PERCENT = 60;             // SOFT moves (smooth, slow-motion style) run at 60 % of the dance speed
 const unsigned long DANCE_TAP_GAP_MS = 400;    // a new tap of the dance button (not just holding it)
 const unsigned long SONG_NAME_SCROLL_MS = 350; // a long song name scrolls one letter this often
 const unsigned long SHOUT_MS = 2000;           // the special moment's text stays on the screen this long
@@ -255,17 +259,18 @@ const unsigned long DANCE_BASS_MAX_MS = 140;   // bass notes are short and punch
 
 
 //======================================================
-// 3b. DANCE MOVES, DRUM SOUNDS AND DANCE PATTERNS
+// 3b. DANCE MOVES
 //
 //     The dance follows a beat grid: every beat is split into 2 steps,
-//     so one bar of 4 beats = 8 steps. Each step is one move + one drum
-//     sound, written like  FWD+KICK  (forward, with a bass drum).
-//     A pattern is one bar (8 steps). The song (next section) says which
-//     pattern to dance for how many bars, from the start of the song to the end.
+//     so one bar of 4 beats = 8 steps ("1 & 2 & 3 & 4 &"). Each step is
+//     one move, written like  FWD,  FWD+SOFT  or  SPIN_L+ROUND.
+//     Each song has its OWN dance steps (SONG_MOVES, one bar each) and its
+//     choreography (SONG_MAP): which step to dance in which bar, from the
+//     start of the song to the end - both are in section 3c.
 //======================================================
 
 // Moves
-const byte POSE = 0;       // stand still
+const byte POSE = 0;       // stand still (the head bobs to the beat)
 const byte FWD = 1;        // forward
 const byte BACK = 2;       // backward
 const byte SPIN_L = 3;     // spin left on the spot
@@ -276,72 +281,18 @@ const byte SWAY_L = 7;     // curve forward to the left
 const byte SWAY_R = 8;     // curve forward to the right
 const byte BACK_L = 9;     // curve backward - exactly undoes SWAY_L
 const byte BACK_R = 10;    // curve backward - exactly undoes SWAY_R
-const byte DASH = 11;      // forward at full speed
+const byte DASH = 11;      // forward at full speed (a hit)
 const byte LOOK_L = 12;    // stand still, sensor head looks left
 const byte LOOK_R = 13;    // stand still, sensor head looks right
 const byte HOLD = 14;      // keep doing the last move
+const byte FREEZE = 15;    // sharp stop, head straight ahead: strike a pose
 
-// Drum sounds (the buzzer plays the beat - drums only, no tunes)
-const byte QUIET = 0x00;   // no sound
-const byte TICK = 0x10;    // hi-hat "ts"
-const byte TAP = 0x20;     // wood block "tok"
-const byte KICK = 0x30;    // bass drum "boom"
-const byte CLAP = 0x40;    // snare / clap "pah"
-const byte HIT = 0x50;     // big accent "ta-daa"
+// Add these to a move
+const byte SOFT = 0x80;    // FWD+SOFT: smooth and slow, like slow motion (DANCE_SOFT_PERCENT of the speed)
+const byte ROUND = 0x40;   // SPIN_L+ROUND: spin exactly once round and stop facing the front again
+                           // (timed like the 180 turn - TURN180_TIME. Give it a few HOLD steps after it.)
 
 const byte STEPS_PER_BAR = 8;
-
-// The pattern library. Steps 1, 3, 5, 7 are the beats you clap to.
-// Patterns that move the car also bring it back, so it dances on the spot.
-const byte P_STILL = 0;    // calm: stand still, soft pulse
-const byte P_LOOK = 1;     // calm: look left, look right
-const byte P_PULSE = 2;    // calm: stand still, heartbeat drum
-const byte P_ROCK = 3;     // gentle: rock left and right
-const byte P_GLIDE_L = 4;  // gentle: glide forward-left and back
-const byte P_GLIDE_R = 5;  // gentle: glide forward-right and back
-const byte P_MARCH = 6;    // steady: step forward, step back
-const byte P_STEP = 7;     // groove: forward-back on the beat
-const byte P_WIGGLE = 8;   // groove: shimmy left-right
-const byte P_SWING = 9;    // groove: swing left, swing right
-const byte P_BOUNCE = 10;  // lively: bounce forward and back
-const byte P_SHUFFLE = 11; // lively: zig-zag shuffle
-const byte P_PUMP = 12;    // hype: fast forward-back (head-bang)
-const byte P_PARTY = 13;   // hype: spin, spin, bounce, pose
-const byte P_SPIN = 14;    // hype: big spins both ways
-const byte P_DROP = 15;    // hype: dash, spins, accents (for drops and big choruses)
-const byte P_BHANGRA = 16; // lively: shoulder shimmy + bounce, dhol-style drums
-const byte P_BUILD = 17;   // build-up: drums get busier, shimmy gets faster
-const byte P_FILL = 18;    // end of a part: spin with a drum roll, pose
-const byte P_FINALE = 19;  // the very last bar: spin and a big final pose
-const byte P_JAZZ = 20;    // jazzy: little shimmy, then a cool look left and right
-const byte P_SNAP = 21;    // jazzy: stand, look around on the off-beats (finger-snap feel)
-const byte P_SLIDE = 22;   // jazzy: slow slide forward, pose, slide back, pose
-
-const byte DANCE_PATTERNS[][STEPS_PER_BAR] PROGMEM = {
-    { POSE+TAP,     HOLD,         HOLD,         HOLD,         HOLD+TICK,    HOLD,         HOLD,         HOLD        },  // P_STILL
-    { LOOK_L+TAP,   HOLD,         HOLD,         HOLD,         LOOK_R+TAP,   HOLD,         HOLD,         HOLD        },  // P_LOOK
-    { POSE+KICK,    HOLD,         HOLD+TICK,    HOLD,         HOLD+KICK,    HOLD,         HOLD+TICK,    HOLD        },  // P_PULSE
-    { TWIST_L+KICK, HOLD,         POSE+TICK,    HOLD,         TWIST_R+KICK, HOLD,         POSE+TICK,    HOLD        },  // P_ROCK
-    { SWAY_L+KICK,  HOLD,         HOLD+TICK,    HOLD,         BACK_L+KICK,  HOLD,         HOLD+TICK,    HOLD        },  // P_GLIDE_L
-    { SWAY_R+KICK,  HOLD,         HOLD+TICK,    HOLD,         BACK_R+KICK,  HOLD,         HOLD+TICK,    HOLD        },  // P_GLIDE_R
-    { FWD+KICK,     HOLD,         POSE+TAP,     HOLD,         BACK+KICK,    HOLD,         POSE+TAP,     HOLD        },  // P_MARCH
-    { FWD+KICK,     POSE+TICK,    BACK+CLAP,    POSE+TICK,    FWD+KICK,     POSE+TICK,    BACK+CLAP,    POSE+TICK   },  // P_STEP
-    { TWIST_L+KICK, TWIST_R+TICK, TWIST_L+CLAP, TWIST_R+TICK, TWIST_L+KICK, TWIST_R+TICK, TWIST_L+CLAP, TWIST_R+TICK},  // P_WIGGLE
-    { SWAY_L+KICK,  HOLD+TICK,    BACK_L+CLAP,  HOLD+TICK,    SWAY_R+KICK,  HOLD+TICK,    BACK_R+CLAP,  HOLD+TICK   },  // P_SWING
-    { FWD+KICK,     BACK+TICK,    POSE+CLAP,    HOLD+TICK,    BACK+KICK,    FWD+TICK,     POSE+CLAP,    HOLD+TICK   },  // P_BOUNCE
-    { SWAY_L+KICK,  BACK_L+TICK,  SWAY_R+CLAP,  BACK_R+TICK,  SWAY_L+KICK,  BACK_L+TICK,  SWAY_R+CLAP,  BACK_R+TICK },  // P_SHUFFLE
-    { FWD+KICK,     BACK+TICK,    FWD+CLAP,     BACK+TICK,    FWD+KICK,     BACK+TICK,    FWD+CLAP,     BACK+TICK   },  // P_PUMP
-    { SPIN_L+KICK,  HOLD+TICK,    SPIN_R+CLAP,  HOLD+TICK,    FWD+KICK,     BACK+TICK,    POSE+HIT,     HOLD        },  // P_PARTY
-    { SPIN_R+KICK,  HOLD+TICK,    HOLD+CLAP,    HOLD+TICK,    SPIN_L+KICK,  HOLD+TICK,    HOLD+CLAP,    POSE+TICK   },  // P_SPIN
-    { DASH+HIT,     BACK+KICK,    POSE+TICK,    HOLD+TICK,    SPIN_L+CLAP,  HOLD+TICK,    SPIN_R+KICK,  POSE+CLAP   },  // P_DROP
-    { TWIST_L+KICK, TWIST_R+TAP,  TWIST_L+TAP,  TWIST_R+CLAP, FWD+KICK,     BACK+TAP,     FWD+TAP,      BACK+CLAP   },  // P_BHANGRA
-    { POSE+TICK,    HOLD+TICK,    TWIST_L+TICK, TWIST_R+TICK, TWIST_L+CLAP, TWIST_R+CLAP, TWIST_L+CLAP, TWIST_R+CLAP},  // P_BUILD
-    { SPIN_R+CLAP,  HOLD+CLAP,    HOLD+CLAP,    HOLD+CLAP,    SPIN_L+KICK,  HOLD+KICK,    POSE+HIT,     HOLD        },  // P_FILL
-    { SPIN_L+KICK,  HOLD+KICK,    HOLD+KICK,    HOLD+KICK,    POSE+HIT,     HOLD,         HOLD,         HOLD        },  // P_FINALE
-    { TWIST_L+TAP,  HOLD,         TWIST_R+TICK, HOLD,         POSE+TAP,     LOOK_L,       HOLD+TICK,    LOOK_R      },  // P_JAZZ
-    { POSE+TAP,     LOOK_L,       HOLD+TICK,    POSE,         HOLD+TAP,     LOOK_R,       HOLD+TICK,    POSE        },  // P_SNAP
-    { FWD+KICK,     HOLD,         HOLD+TICK,    POSE,         BACK+TAP,     HOLD,         HOLD+TICK,    POSE        },  // P_SLIDE
-};
 
 // Names of the song parts (shown on the screen while dancing)
 const byte INTRO = 0;
@@ -423,6 +374,8 @@ const byte DANCE_SOUND_OFF = 2;    // a silent dance
 //     dance exactly on the FIRST BEAT. If the robot drifts off the beat later,
 //     tap dance again exactly on a beat - it lines itself up with your tap.
 //     Moves too fast or too slow for the song? Change SONG_BPM a little.
+//     To change the dance: edit a step in SONG_MOVES (8 moves = one bar),
+//     or pick a different step for some bars in SONG_MAP.
 //======================================================
 
 // ----- SONG START (each song file has its own version of this part) -----
@@ -454,50 +407,108 @@ const byte SONG_CHORDS[][4] PROGMEM = {
     { 6, 7, 1, 1 },                                // 2 bridge
 };
 
-// The song from start to end: { dance pattern, how many bars, part name, chords, tune pattern }
+
+// THE CHOREOGRAPHY
+// Bouncy UK cloud rap: bounce on every beat, sharp hits on the hook and a shimmy answer.
+// Each part dances its routine (one step per bar) and starts it again every time that part comes back:
+// INTRO: nod, peek, nod, riser
+// HOOK: hits, shimmy, bounce, spin_pose_l, hits, shimmy, bounce, spin_pose_r
+// VERSE: bounce, nod, swagger, nod, bounce, shimmy_half, swagger, button
+// BRIDGE: wave, riser
+// OUTRO: bounce, nod, bounce, nod, sway, breathe, sway_r, breathe, look_lr, freeze
+
+// This song's dance steps: one bar each, 8 half-beat steps ("1 & 2 & 3 & 4 &")
+const byte M_NOD         =  0;   // head bob on every beat
+const byte M_PEEK        =  1;   // quick peeks left and right, snapping back
+const byte M_RISER       =  2;   // shimmy, hit, pose (into the big part)
+const byte M_HITS        =  3;   // a hit on every beat
+const byte M_SHIMMY      =  4;   // shoulder shimmy
+const byte M_BOUNCE      =  5;   // bounce
+const byte M_SPIN_POSE_L =  6;   // spin round to the left into a pose
+const byte M_SPIN_POSE_R =  7;   // spin round to the right into a pose
+const byte M_SWAGGER     =  8;   // step forward, look left, step back, look right
+const byte M_SHIMMY_HALF =  9;   // shimmy, then bob
+const byte M_BUTTON      = 10;   // bob, bob, POSE (end of a phrase)
+const byte M_WAVE        = 11;   // smooth body wave
+const byte M_SWAY        = 12;   // slow sway left and right
+const byte M_BREATHE     = 13;   // gentle head bob on beats 1 and 3
+const byte M_SWAY_R      = 14;   // slow sway right and left
+const byte M_LOOK_LR     = 15;   // look left, look right
+const byte M_FINALE      = 16;   // final spin round, and round the other way
+const byte SONG_MOVES[][STEPS_PER_BAR] PROGMEM = {
+    { POSE,         HOLD,         POSE,         HOLD,         POSE,         HOLD,         POSE,         HOLD          },   // M_NOD
+    { LOOK_L,       HOLD,         FREEZE,       HOLD,         LOOK_R,       HOLD,         FREEZE,       HOLD          },   // M_PEEK
+    { TWIST_L,      TWIST_R,      TWIST_L,      TWIST_R,      DASH,         BACK,         FREEZE,       HOLD          },   // M_RISER
+    { DASH,         FREEZE,       BACK,         FREEZE,       DASH,         FREEZE,       BACK,         FREEZE        },   // M_HITS
+    { TWIST_L,      TWIST_R,      TWIST_L,      TWIST_R,      TWIST_L,      TWIST_R,      TWIST_L,      TWIST_R       },   // M_SHIMMY
+    { FWD,          BACK,         POSE,         HOLD,         BACK,         FWD,          POSE,         HOLD          },   // M_BOUNCE
+    { SPIN_L+ROUND, HOLD,         HOLD,         HOLD,         FREEZE,       HOLD,         HOLD,         HOLD          },   // M_SPIN_POSE_L
+    { SPIN_R+ROUND, HOLD,         HOLD,         HOLD,         FREEZE,       HOLD,         HOLD,         HOLD          },   // M_SPIN_POSE_R
+    { FWD,          HOLD,         POSE,         LOOK_L,       BACK,         HOLD,         POSE,         LOOK_R        },   // M_SWAGGER
+    { TWIST_L,      TWIST_R,      TWIST_L,      TWIST_R,      POSE,         HOLD,         POSE,         HOLD          },   // M_SHIMMY_HALF
+    { POSE,         HOLD,         POSE,         HOLD,         FREEZE,       HOLD,         HOLD,         HOLD          },   // M_BUTTON
+    { TWIST_L+SOFT, TWIST_L+SOFT, TWIST_R+SOFT, TWIST_R+SOFT, TWIST_R+SOFT, TWIST_R+SOFT, TWIST_L+SOFT, TWIST_L+SOFT  },   // M_WAVE
+    { TWIST_L+SOFT, HOLD,         HOLD,         HOLD,         TWIST_R+SOFT, HOLD,         HOLD,         HOLD          },   // M_SWAY
+    { POSE,         HOLD,         HOLD,         HOLD,         POSE,         HOLD,         HOLD,         HOLD          },   // M_BREATHE
+    { TWIST_R+SOFT, HOLD,         HOLD,         HOLD,         TWIST_L+SOFT, HOLD,         HOLD,         HOLD          },   // M_SWAY_R
+    { LOOK_L,       HOLD,         HOLD,         HOLD,         LOOK_R,       HOLD,         HOLD,         HOLD          },   // M_LOOK_LR
+    { SPIN_L+ROUND, HOLD,         HOLD,         HOLD,         SPIN_R+ROUND, HOLD,         HOLD,         HOLD          },   // M_FINALE
+};
+
+// The song from start to end: { dance step, how many bars, part name, chords, tune pattern }
 const byte SONG_MAP[][5] PROGMEM = {
-    { P_PULSE,     2, INTRO,        0, T_GROOVE },
-    { P_SWING,     1, INTRO,        0, T_PULSE  },
-    { P_FILL,      1, INTRO,        0, T_PULSE  },
-    { P_DROP,      1, HOOK,         1, T_HOOK_A },
-    { P_SHUFFLE,   1, HOOK,         1, T_HOOK_B },
-    { P_PARTY,     1, HOOK,         1, T_HOOK_A },
-    { P_PARTY,     1, HOOK,         1, T_HOOK_B },
-    { P_BOUNCE,    1, HOOK,         1, T_HOOK_A },
-    { P_BOUNCE,    1, HOOK,         1, T_HOOK_B },
-    { P_SPIN,      1, HOOK,         1, T_HOOK_A },
-    { P_SPIN,      1, HOOK,         1, T_HOOK_B },
-    { P_BOUNCE,    2, VERSE,        0, T_GROOVE },
-    { P_SWING,     2, VERSE,        0, T_PULSE  },
-    { P_BOUNCE,    2, VERSE,        0, T_GROOVE },
-    { P_SWING,     2, VERSE,        0, T_PULSE  },
-    { P_BOUNCE,    2, VERSE,        0, T_GROOVE },
-    { P_SWING,     1, VERSE,        0, T_PULSE  },
-    { P_FILL,      1, VERSE,        0, T_PULSE  },
-    { P_DROP,      1, HOOK,         1, T_HOOK_A },
-    { P_DROP,      1, HOOK,         1, T_HOOK_B },
-    { P_PARTY,     1, HOOK,         1, T_DRIVE  },
-    { P_PARTY,     1, HOOK,         1, T_HOOK_B },
-    { P_SHUFFLE,   1, HOOK,         1, T_HOOK_A },
-    { P_SHUFFLE,   1, HOOK,         1, T_HOOK_B },
-    { P_SPIN,      1, HOOK,         1, T_DRIVE  },
-    { P_SPIN,      1, HOOK,         1, T_HOOK_B },
-    { P_DROP,      1, HOOK,         1, T_HOOK_A },
-    { P_DROP,      1, HOOK,         1, T_HOOK_B },
-    { P_PARTY,     1, HOOK,         1, T_DRIVE  },
-    { P_PARTY,     1, HOOK,         1, T_HOOK_B },
-    { P_SHUFFLE,   1, HOOK,         1, T_HOOK_A },
-    { P_SHUFFLE,   1, HOOK,         1, T_HOOK_B },
-    { P_SHUFFLE,   1, BRIDGE,       2, T_HOOK_A },
-    { P_FILL,      1, BRIDGE,       2, T_HOOK_B },
-    { P_DROP,      1, HOOK,         1, T_HOOK_A },
-    { P_DROP,      1, HOOK,         1, T_HOOK_B },
-    { P_BOUNCE,    2, OUTRO,        0, T_GROOVE },
-    { P_SWING,     2, OUTRO,        0, T_PULSE  },
-    { P_BOUNCE,    2, OUTRO,        0, T_GROOVE },
-    { P_SWING,     2, OUTRO,        0, T_PULSE  },
-    { P_BOUNCE,    1, OUTRO,        0, T_GROOVE },
-    { P_FINALE,    1, OUTRO,        0, T_END    },
+    { M_NOD,          1, INTRO,        0, T_GROOVE },
+    { M_PEEK,         1, INTRO,        0, T_GROOVE },
+    { M_NOD,          1, INTRO,        0, T_PULSE  },
+    { M_RISER,        1, INTRO,        0, T_PULSE  },
+    { M_HITS,         1, HOOK,         1, T_HOOK_A },
+    { M_SHIMMY,       1, HOOK,         1, T_HOOK_B },
+    { M_BOUNCE,       1, HOOK,         1, T_HOOK_A },
+    { M_SPIN_POSE_L,  1, HOOK,         1, T_HOOK_B },
+    { M_HITS,         1, HOOK,         1, T_HOOK_A },
+    { M_SHIMMY,       1, HOOK,         1, T_HOOK_B },
+    { M_BOUNCE,       1, HOOK,         1, T_HOOK_A },
+    { M_SPIN_POSE_R,  1, HOOK,         1, T_HOOK_B },
+    { M_BOUNCE,       1, VERSE,        0, T_GROOVE },
+    { M_NOD,          1, VERSE,        0, T_GROOVE },
+    { M_SWAGGER,      1, VERSE,        0, T_PULSE  },
+    { M_NOD,          1, VERSE,        0, T_PULSE  },
+    { M_BOUNCE,       1, VERSE,        0, T_GROOVE },
+    { M_SHIMMY_HALF,  1, VERSE,        0, T_GROOVE },
+    { M_SWAGGER,      1, VERSE,        0, T_PULSE  },
+    { M_BUTTON,       1, VERSE,        0, T_PULSE  },
+    { M_BOUNCE,       1, VERSE,        0, T_GROOVE },
+    { M_NOD,          1, VERSE,        0, T_GROOVE },
+    { M_SWAGGER,      1, VERSE,        0, T_PULSE  },
+    { M_RISER,        1, VERSE,        0, T_PULSE  },
+    { M_HITS,         1, HOOK,         1, T_HOOK_A },
+    { M_SHIMMY,       1, HOOK,         1, T_HOOK_B },
+    { M_BOUNCE,       1, HOOK,         1, T_DRIVE  },
+    { M_SPIN_POSE_L,  1, HOOK,         1, T_HOOK_B },
+    { M_HITS,         1, HOOK,         1, T_HOOK_A },
+    { M_SHIMMY,       1, HOOK,         1, T_HOOK_B },
+    { M_BOUNCE,       1, HOOK,         1, T_DRIVE  },
+    { M_SPIN_POSE_R,  1, HOOK,         1, T_HOOK_B },
+    { M_HITS,         1, HOOK,         1, T_HOOK_A },
+    { M_SHIMMY,       1, HOOK,         1, T_HOOK_B },
+    { M_BOUNCE,       1, HOOK,         1, T_DRIVE  },
+    { M_SPIN_POSE_L,  1, HOOK,         1, T_HOOK_B },
+    { M_HITS,         1, HOOK,         1, T_HOOK_A },
+    { M_SHIMMY,       1, HOOK,         1, T_HOOK_B },
+    { M_WAVE,         1, BRIDGE,       2, T_HOOK_A },
+    { M_RISER,        1, BRIDGE,       2, T_HOOK_B },
+    { M_HITS,         1, HOOK,         1, T_HOOK_A },
+    { M_SHIMMY,       1, HOOK,         1, T_HOOK_B },
+    { M_BOUNCE,       1, OUTRO,        0, T_GROOVE },
+    { M_NOD,          1, OUTRO,        0, T_GROOVE },
+    { M_BOUNCE,       1, OUTRO,        0, T_PULSE  },
+    { M_NOD,          1, OUTRO,        0, T_PULSE  },
+    { M_SWAY,         1, OUTRO,        0, T_GROOVE },
+    { M_BREATHE,      1, OUTRO,        0, T_GROOVE },
+    { M_SWAY_R,       1, OUTRO,        0, T_PULSE  },
+    { M_BREATHE,      1, OUTRO,        0, T_PULSE  },
+    { M_LOOK_LR,      1, OUTRO,        0, T_GROOVE },
+    { M_FINALE,       1, OUTRO,        0, T_END    },
 };
 // ----- SONG END -----
 
@@ -589,6 +600,8 @@ unsigned int danceStepCount = 0;   // steps since the dance started (for the spe
 unsigned long shoutUntil = 0;      // the special moment's text is on the screen until this time
 bool danceHeadBobLeft = false;     // the head bob goes left and right in turn
 byte danceMove = POSE;             // the move it is doing right now
+unsigned long danceTurnStopMs = 0; // a ROUND spin stops at this time (millis, 0 = no ROUND spin going)
+bool danceAfterDash = false;       // the last driving move was a DASH (the next BACK snaps back at full speed)
 unsigned long danceNextUs = 0;     // when the next step is due (micros)
 unsigned long danceBeatUs = 0;     // when the last beat was (micros), to line up with your taps
 unsigned long danceStartMs = 0;    // when the dance started (for the clock on the screen)
@@ -1501,6 +1514,14 @@ void setEyeTargets()
                 eyeTarget[E_W] = EYE_W + 4;
                 eyeTarget[E_H] = EYE_H + 6;
             }
+
+            if (danceMove == FREEZE)                    // striking a pose: a cool, steady stare
+            {
+                eyeTarget[E_Y] = 0;
+                eyeTarget[E_X] = 0;
+                eyeTarget[E_HAPPY] = 8;
+                eyeTarget[E_H] = EYE_H - 4;
+            }
             break;
         }
 
@@ -1744,6 +1765,8 @@ void updateDisplay()
     // While dancing, don't start drawing just before the next step: a picture
     // can take up to 60 ms, and the step would come late (off the beat)
     if (danceMode && (long)(danceNextUs - micros()) < (long)DANCE_DRAW_GUARD_US)
+        return;
+    if (danceTurnStopMs && (long)(danceTurnStopMs - millis()) < (long)(DANCE_DRAW_GUARD_US / 1000))   // ... or just before a ROUND spin stops
         return;
 
     setEyeTargets();
@@ -2231,6 +2254,8 @@ void startDance()
     danceStepCount = 0;
     shoutUntil = 0;
     danceMove = POSE;
+    danceTurnStopMs = 0;
+    danceAfterDash = false;
     danceNextUs = micros();
     danceBeatUs = danceNextUs;
     danceStartMs = millis();
@@ -2697,11 +2722,28 @@ void danceWheels(int leftSpeed, int rightSpeed, int dir)
     goingForward = false;
 }
 
-// Does one dance move (and turns the sensor head with it)
-void doDanceMove(byte move)
+// Both sides of the car turn opposite ways: a spin or twist on the spot
+void danceTurn(int speed, bool toLeft)
+{
+    setSpeed(speed, speed);
+    setWheels(toLeft ? DIR_BACKWARD : DIR_FORWARD, toLeft ? DIR_FORWARD : DIR_BACKWARD);
+    goingForward = false;
+}
+
+// How long one full turn takes at this speed (the 180 turn is timed at the normal turn speed)
+unsigned long fullTurnMs(int speed)
+{
+    return TURN180_TIME * 2 * percentOf(FULL_SPEED, TURN_SPEED_PERCENT) / speed;
+}
+
+// Does one dance move (and turns the sensor head with it).
+// soft = the smooth, slow-motion version of the move; round = a spin of exactly one turn.
+void doDanceMove(byte move, bool soft, bool round)
 {
     if (move == HOLD)                          // keep doing the last move
         return;
+
+    danceTurnStopMs = 0;                       // a new move ends any ROUND spin
 
     // never dance forward into something
     bool goesForward = (move == FWD || move == DASH || move == SWAY_L || move == SWAY_R);
@@ -2710,7 +2752,14 @@ void doDanceMove(byte move)
 
     danceMove = move;
 
+    // a step back right after a DASH snaps back just as hard, so the car ends where it started
+    bool backFull = (move == BACK && danceAfterDash && !soft);
+    if (move != POSE && move != FREEZE && move != LOOK_L && move != LOOK_R)
+        danceAfterDash = (move == DASH);
+
     int speed = danceSpeedNow();               // faster in the POWER parts
+    if (soft)
+        speed = percentOf(speed, DANCE_SOFT_PERCENT);
     int twist = percentOf(speed, DANCE_TWIST_PERCENT);
     int inner = percentOf(speed, DANCE_CURVE_PERCENT);
     int head = SERVO_CENTER;
@@ -2718,20 +2767,24 @@ void doDanceMove(byte move)
     switch (move)
     {
     case FWD:     forward(speed);         break;
-    case BACK:    backward(speed);        break;
+    case BACK:    backward(backFull ? FULL_SPEED : speed);   break;
     case DASH:    forward(FULL_SPEED);    break;
-    case SPIN_L:  left();   head = SERVO_LEFT;   break;    // spins use the dance speed while dancing
-    case SPIN_R:  right();  head = SERVO_RIGHT;  break;
-    case TWIST_L: setSpeed(twist, twist);  setWheels(DIR_BACKWARD, DIR_FORWARD);  goingForward = false;  head = SERVO_LEFT;   break;
-    case TWIST_R: setSpeed(twist, twist);  setWheels(DIR_FORWARD, DIR_BACKWARD);  goingForward = false;  head = SERVO_RIGHT;  break;
+    case SPIN_L:  danceTurn(speed, true);    head = SERVO_LEFT;   break;
+    case SPIN_R:  danceTurn(speed, false);   head = SERVO_RIGHT;  break;
+    case TWIST_L: danceTurn(twist, true);    head = SERVO_LEFT;   break;
+    case TWIST_R: danceTurn(twist, false);   head = SERVO_RIGHT;  break;
     case SWAY_L:  danceWheels(inner, speed, DIR_FORWARD);         head = SERVO_LEFT;   break;
     case SWAY_R:  danceWheels(speed, inner, DIR_FORWARD);         head = SERVO_RIGHT;  break;
     case BACK_L:  danceWheels(inner, speed, DIR_BACKWARD);        break;
     case BACK_R:  danceWheels(speed, inner, DIR_BACKWARD);        break;
     case LOOK_L:  stop();   head = SERVO_LEFT;   break;
     case LOOK_R:  stop();   head = SERVO_RIGHT;  break;
+    case FREEZE:  stop();   if (DANCE_HEAD) scanner.write(SERVO_CENTER);   return;   // a pose: head dead ahead, no bob
     default:      stop();                 break;            // POSE
     }
+
+    if (round && (move == SPIN_L || move == SPIN_R))
+        danceTurnStopMs = (millis() + fullTurnMs(speed)) | 1;  // (| 1: never exactly 0)
 
     // Head bob: on the straight moves the head turns a bit left, then right
     if (DANCE_HEAD_BOB && head == SERVO_CENTER)
@@ -2795,17 +2848,15 @@ void playTuneStep(byte tunePattern, byte chord)
     playBeep(noteFrequency(midi), ms);
 }
 
-// Plays one drum sound
-void playDrum(byte sound)
+// The drum beat (DANCE_SOUND_DRUMS): kick on beats 1 and 3, clap on 2 and 4, hi-hat in between
+void playDrumStep()
 {
-    switch (sound)
-    {
-    case TICK:  playBeep(NOTE_BEEP, 12);    break;
-    case TAP:   playBeep(NOTE_A5, 30);      break;
-    case KICK:  playSound(SOUND_KICK);      break;
-    case CLAP:  playSound(SOUND_CLAP);      break;
-    case HIT:   playSound(SOUND_HIT);       break;
-    }
+    if (danceStep % 2)
+        playBeep(NOTE_BEEP, 12);
+    else if (danceStep % 4 == 0)
+        playSound(SOUND_KICK);
+    else
+        playSound(SOUND_CLAP);
 }
 
 // Moves on to the next step. Returns false when the song is over.
@@ -2860,6 +2911,12 @@ void updateDance()
     if (!danceMode)
         return;
 
+    if (danceTurnStopMs && (long)(millis() - danceTurnStopMs) >= 0)   // a ROUND spin has gone once round: stop, facing the front
+    {
+        danceTurnStopMs = 0;
+        stop();
+    }
+
     long late = (long)(micros() - danceNextUs);
 
     if (late < 0)                              // not time for the next step yet
@@ -2890,10 +2947,10 @@ void updateDance()
 
     danceNextUs += DANCE_STEP_US;
 
-    byte pattern = pgm_read_byte(&SONG_MAP[dancePart][0]);
-    byte code = pgm_read_byte(&DANCE_PATTERNS[pattern][danceStep]);
+    byte step = pgm_read_byte(&SONG_MAP[dancePart][0]);        // which of the song's dance steps (SONG_MOVES)
+    byte code = pgm_read_byte(&SONG_MOVES[step][danceStep]);
 
-    doDanceMove(code & 0x0F);
+    doDanceMove(code & 0x0F, code & SOFT, code & ROUND);
 
     // the song's special moment (e.g. "FEEDBACK!"): text on the screen + a zap
     bool shoutNow = false;
@@ -2918,7 +2975,7 @@ void updateDance()
     }
     else if (DANCE_SOUND == DANCE_SOUND_DRUMS)
     {
-        playDrum(code & 0xF0);
+        playDrumStep();
     }
 
     if (!nextDanceStep())

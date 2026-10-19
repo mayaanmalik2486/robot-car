@@ -7,7 +7,9 @@ screen, and check that every dance move lands on the beat and every buzzer note 
 
 | File | What it does |
 |---|---|
-| `tools/make-dances.js` | Makes one dance program per song from `Robot_Car_Main` and the song data |
+| `tools/choreo.js` | **The choreography**: the dictionary of dance steps and every song's routines |
+| `tools/check-choreo.js` | Checks every step brings the car back to its spot and every routine is valid |
+| `tools/make-dances.js` | Makes one dance program per song from `Robot_Car_Main`, the song data and the choreography |
 | `results/songs.json` | Song data: tempo, key, chords and song parts (intro / verse / chorus...) |
 | `tools/build.js` | Compiles a sketch with the Arduino IDE's compiler (Windows) |
 | `tools/test-dances.ps1` | Builds every dance and plays each whole song in the simulator |
