@@ -7,6 +7,7 @@ const { makeRoom } = require('./room');
 const kind = (log, k) => log.filter((e) => e.kind === k);
 const check = (name, pass, detail) => ({ name, pass: !!pass, detail });
 const song = parseSong(process.env.SKETCH);
+const footballPings = [];                                // when the sensor was pinged (football test)
 const DANCE_AT = 4.0;                                  // seconds: when '4' is sent
 const songSec = song.totalMs / 1000;
 
@@ -168,18 +169,21 @@ const scenarios = [
   },
   {
     name: 'football-mode',
-    duration: 12,
-    distance: () => 15,                                          // a wall 15 cm in front the whole time
+    duration: 16,
+    distance: (t) => { footballPings.push(t * 1000); return 15; },        // a wall 15 cm in front the whole time
     inputs: [{ t: 0.5, bt: 'W' }, { t: 4.0, bt: 'F' }, { t: 5.0, bt: 'S' }, { t: 5.5, bt: 'V' }, { t: 6.0, bt: 'F' }, { t: 6.5, snapshot: 'football-screen' },
-      { t: 7.5, bt: 'S' }, { t: 8.0, bt: 'v' }, { t: 9.0, bt: 'F' }, { t: 10.5, bt: 'S' }],
+      { t: 7.5, bt: 'S' }, { t: 8.0, bt: 'I' }, { t: 10.0, bt: 'S' }, { t: 11.0, bt: 'v' }, { t: 13.0, bt: 'F' }, { t: 14.5, bt: 'S' }],
     check: (log) => {
       const m = kind(log, 'motor');
       const fwdMs = (a, b) => m.reduce((sum, e, i) => (e.t > a && e.t < b && e.v === 'LF255 RF255' ? sum + ((m[i + 1] ? m[i + 1].t : b) - e.t) : sum), 0);
-      const ser = kind(log, 'serial').map((e) => e.v);
+      const pings = (a, b) => footballPings.filter((t) => t > a && t < b).length;
+      const ser = kind(log, 'serial');
+      const searchSaw = ser.some((e) => e.t > 8000 && e.t < 10000 && /^SEARCH/.test(e.v) && e.v !== 'SEARCH');
       return [
         check('normal: F with a wall 15 cm ahead stops at once', fwdMs(4000, 5000) < 100, `drove ${fwdMs(4000, 5000).toFixed(0)} ms`),
-        check('V = football mode: F keeps driving into the wall', ser.includes('FOOTBALL MODE: sensor off') && fwdMs(6000, 7600) > 1300, `drove ${fwdMs(6000, 7600).toFixed(0)} ms`),
-        check('V again = safety back on: F stops at once', ser.includes('SENSOR ON') && fwdMs(9000, 10500) < 100, `drove ${fwdMs(9000, 10500).toFixed(0)} ms`),
+        check('V = football mode: the sensor is completely off (no pings) and F keeps driving', pings(5700, 7500) === 0 && fwdMs(6000, 7600) > 1300, `${pings(5700, 7500)} pings, drove ${fwdMs(6000, 7600).toFixed(0)} ms`),
+        check('search still uses the sensor in football mode', pings(8100, 10000) > 5 && searchSaw, `${pings(8100, 10000)} pings, ${ser.filter((e) => e.t > 8000 && e.t < 10000 && /^SEARCH/.test(e.v)).map((e) => e.v).slice(0, 2).join(' | ')}`),
+        check('V again = sensor back on: F stops at once', pings(11200, 13000) > 5 && fwdMs(13000, 14500) < 100, `${pings(11200, 13000)} pings, drove ${fwdMs(13000, 14500).toFixed(0)} ms`),
       ];
     },
   },

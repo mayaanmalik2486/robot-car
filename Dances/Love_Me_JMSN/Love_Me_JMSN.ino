@@ -37,8 +37,9 @@
     3 donut          U 180-degree turn         u smooth brake
     4 dance          Y demo           1 chaos          I search (looks around)
     X (the "!" button) mute / unmute every sound
-    V football mode on / off: the distance sensor is ignored, so it never stops for
-      obstacles (push a ball, bump into things). Press V again to turn safety back on.
+    V football mode on / off: the distance sensor is switched OFF (like X for the buzzer),
+      so it never stops for obstacles (push a ball, bump into things). SEARCH and CHAOS
+      still use the sensor. Press V again to switch the sensor back on.
     (4 again while dancing: tap it ON a beat to line the dance up with the music)
 
   IR REMOTE BUTTONS
@@ -712,7 +713,7 @@ byte lastIRCommand = 0;            // which button that was
 bool btGreeted = false;            // true once the phone has sent its first letter
 bool muted = false;                // phone X: all buzzer sounds off (press again: on)
 unsigned long muteToggledAt = 0;   // (so one press doesn't toggle twice)
-bool footballMode = false;         // phone V: the distance sensor is ignored (no obstacle stops)
+bool footballMode = false;         // phone V: the distance sensor is off (except in SEARCH and CHAOS)
 unsigned long footballToggledAt = 0;
 
 // Buzzer
@@ -1254,6 +1255,13 @@ void flashText(char* buf, const char* textP, byte width)
         buf[length++] = ' ';
 }
 
+// Football mode (phone V) switches the distance sensor off - except in SEARCH and CHAOS,
+// which need it to see where they're going
+bool sensorOff()
+{
+    return footballMode && robotState != SEARCH && robotState != CHAOS;
+}
+
 // Short name of what the robot is doing (max 8 letters, stored in flash)
 const char* actionName()
 {
@@ -1291,6 +1299,12 @@ const char* actionName()
 // The distance as 8 letters, for example "  42 cm " or " --- cm "
 void distanceText(char* buf)
 {
+    if (sensorOff())
+    {
+        flashText(buf, PSTR("SENS OFF"), 8);
+        return;
+    }
+
     if (lastDistance >= NO_ECHO)
     {
         flashText(buf, PSTR(" --- cm "), 8);
@@ -1991,6 +2005,12 @@ void updateParkingBeeps()
 // Three pings and keep the middle one - this ignores the odd bad reading
 int filteredDistance()
 {
+    if (sensorOff())                         // football mode: no pings at all, nothing is ever "in the way"
+    {
+        lastDistance = NO_ECHO;
+        return NO_ECHO;
+    }
+
     int a = readDistance();
     delay(PING_GAP_MS);
 
@@ -2000,9 +2020,6 @@ int filteredDistance()
     int c = readDistance();
 
     int distance = median3(a, b, c);
-
-    if (footballMode)                        // football mode: it still measures (keeps loop() timing the same)
-        distance = NO_ECHO;                  // but acts as if nothing is ever in the way
 
     lastDistance = distance;                 // for the OLED
     obstacleBeepCheck(distance);

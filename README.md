@@ -41,7 +41,7 @@ chorus routine every chorus), with poses on the phrase ends and full spins that 
 | u | smooth brake | 4 | dance (press again ON a beat to line it up) |
 | Y | demo | 1 | chaos |
 | I | search (looks around and drives to open space) | X ("!") | mute / unmute every sound |
-| V | football mode on / off: the distance sensor is ignored, so it never stops for things (push a ball) | | |
+| V | football mode on / off: the distance sensor is switched off, so it never stops for things (push a ball). Search and chaos still use it. | | |
 
 **IR remote:**
 
