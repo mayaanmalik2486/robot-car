@@ -1,11 +1,15 @@
 # Robot Car (Arduino UNO)
 
+<img src="Docs/robot-car-photo.jpg" alt="The Robot Car" width="560">
+
 A 4-wheel-drive Arduino robot car you drive from your phone with its own app. It stops before it hits
 things, searches for open space by itself, does donuts, curves, turbo bursts and "chaos" mode, shows
 eyes on a little OLED screen, and **dances to 39 songs** in time with the music while the buzzer plays
 along. Every song has its own **choreography**: signature moves, and a routine for each part of the song
 that comes back every time that part does, with poses on the phrase ends and full spins that finish
 facing the front.
+
+**The car's CV - every detail in one page: [Docs/ROBOT_CAR_CV.md](Docs/ROBOT_CAR_CV.md)** (also as a [PDF](Docs/Robot_Car_CV.pdf)).
 
 **Everything the car and app can do, in one guide: [Docs/CAR_AND_APP_GUIDE.md](Docs/CAR_AND_APP_GUIDE.md)** (also as a [PDF](Docs/Robot_Car_Guide.pdf)).
 
@@ -17,13 +21,19 @@ your phone), **music** (your hand plays notes), **gestures** and a little **robo
 **[⬇ Download the Robot Car app](https://github.com/mayaanmalik2486/robot-car/raw/main/App/RobotCar.apk)**
 (Android). Send that link to anyone. How to install and connect: [App/README.md](App/README.md). It looks like a game controller (landscape, thumbstick, tilt driving, emoji buttons, a live radar page) and works with a real game controller (like the GameSir Cyclone 2) too.
 
+| Scan to download the app | Scan to open this page |
+| :---: | :---: |
+| <img src="Docs/qr/qr-app-download.png" width="160" alt="QR: download the app"> | <img src="Docs/qr/qr-github-repo.png" width="160" alt="QR: this GitHub page"> |
+
+More QR codes (app guide, CV, full guide, song list) are in [Docs/qr](Docs/qr).
+
 ## What's in this repo
 
 | Folder | What it is |
 |---|---|
 | [`Robot_Car_Main`](Robot_Car_Main) | **The main robot program** (latest version). Upload this one for normal use. Also has the full [wiring and power guide](Robot_Car_Main/POWER_AND_WIRING.md). |
 | [`Dances`](Dances) | 39 copies of the main program, each with the choreography for one song. The [song list, what each dance does, and how to dance in time](Dances/README.md) are in that folder. |
-| [`Docs`](Docs) | The full guide to everything the car and app can do (page + PDF). |
+| [`Docs`](Docs) | The car's CV and the full guide (pages + PDFs), photos and QR codes. |
 | [`App`](App) | The phone app (`RobotCar.apk`) and its code. |
 | [`IR_Remote_Addon`](IR_Remote_Addon) | Want the IR remote back? One file + 3 lines, with a guide. |
 | [`UPDATE_ALL_SONGS.bat`](UPDATE_ALL_SONGS.bat) | Changed `Robot_Car_Main`? Double-click this: every song file gets your change (each keeps its own song and choreography), then it checks they all compile. |

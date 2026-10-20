@@ -14,7 +14,9 @@ A **real game controller** works too (see below).
 
 **[⬇ Download RobotCar.apk](https://github.com/mayaanmalik2486/robot-car/raw/main/App/RobotCar.apk)** (53 KB, version 3.1)
 
-Send this link to anyone - they can download it straight onto their phone:
+<img src="../Docs/qr/qr-app-download.png" width="160" align="right" alt="QR: download the app">
+
+Scan the QR code with a phone camera, or send this link to anyone - they can download it straight onto their phone:
 `https://github.com/mayaanmalik2486/robot-car/raw/main/App/RobotCar.apk`
 (The app also has a **Share app** button in ❔ help that sends the link.)
 Already have an older version? Just install this one over it.
