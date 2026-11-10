@@ -1,8 +1,9 @@
 package io.github.mayaanmalik2486.robotcar;
 
 /**
- * The letters the car understands (see Robot_Car_Main.ino, section 15), and the rule that
- * turns a stick position into a driving letter.
+ * The car's language (see Robot_Car_Main.ino, section 15): the letters it understands, the
+ * steering codes that set the speed of each side, and the rule that turns a stick position
+ * into a driving letter.
  */
 final class Car {
 
@@ -42,7 +43,24 @@ final class Car {
     static final char ASK = '?';                // "what are you doing?" - the car answers with its status + song
 
     /** Never sent: the app picks SLOW or FULL, whichever the car isn't on. */
-    static final char SPEED_TOGGLE = '\u0001';
+    static final char SPEED_TOGGLE = '%';
+
+    /** Steering: the fastest a side can go. Speeds run from -WHEEL_MAX (backward) to WHEEL_MAX. */
+    static final int WHEEL_MAX = 31;
+
+    /**
+     * Steering code for one side of the car: a number above 127, so the car can tell it from
+     * a letter. Bit 6 = the right side, the low 6 bits = the speed + 32 (32 = stop).
+     */
+    static int wheel(boolean rightSide, int speed) {
+        speed = Math.max(-WHEEL_MAX, Math.min(WHEEL_MAX, speed));
+        return 0x80 | (rightSide ? 0x40 : 0) | (speed + 32);
+    }
+
+    /** A letter that starts something that drives the wheels by itself (so the sticks must leave it alone). */
+    static boolean takesTheWheels(char c) {
+        return "I12J34UMKANEPOkuT".indexOf(c) >= 0;
+    }
 
     /** The driving letter for a stick position (x, y from -1 to 1, y down = positive). */
     static char direction(float x, float y) {

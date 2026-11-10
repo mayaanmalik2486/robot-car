@@ -21,5 +21,7 @@ screen, and check that every dance move lands on the beat and every buzzer note 
 | `sim/dancecheck.js` | Works out where every dance move and buzzer note should be |
 | `sim/room.js` | A pretend room with walls, for testing search mode |
 
+The app has its own tests too: `App/tests/run-tests.ps1` (the driving brain, the layout, Android versions, and the web page's copy of the brain). It writes `build/app-replay.json`, a drive by the app's real driving brain, which the `app-replay` scenario plays to the real car program.
+
 Setup: Node.js, the Arduino IDE (with Arduino AVR Boards 1.8.8 installed), then
 `npm install` inside `pkg-avr8js`.

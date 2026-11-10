@@ -3,10 +3,11 @@ package io.github.mayaanmalik2486.robotcar;
 import java.util.Arrays;
 
 /**
- * What the car has told us. It sends three kinds of lines:
+ * What the car has told us. It sends four kinds of lines:
  * <pre>
  *   ~MODE|1010   what it is doing, then 1/0 for: muted, football, slow, low battery
  *   #S:name      the song this car dances to (an answer to '?')
+ *   #V:2         "I know steering" - the app may set the speed of each side (an answer to '?')
  *   #R:f42       radar: direction a..k (a = 50 degrees right, f = ahead, k = 50 degrees left), cm (999 = nothing)
  * </pre>
  */
@@ -16,6 +17,7 @@ final class CarState {
     static final int STATUS = 1;
     static final int SONG = 2;
     static final int RADAR = 3;
+    static final int VERSION = 4;
 
     static final int RADAR_STEPS = 11;
     static final int RADAR_RANGE_CM = 150;
@@ -26,6 +28,7 @@ final class CarState {
     boolean slow;
     boolean batteryLow;
     String song = "";
+    boolean steers;                                    // the car program knows the steering codes
     long modeSince;                                    // when the mode last changed (the dance clock)
 
     final int[] radarCm = new int[RADAR_STEPS];
@@ -39,6 +42,7 @@ final class CarState {
     void reset() {
         mode = "";
         song = "";
+        steers = false;
         muted = football = slow = batteryLow = false;
         Arrays.fill(radarCm, 999);
         Arrays.fill(radarAt, 0);
@@ -64,6 +68,14 @@ final class CarState {
         if (line.startsWith("#S:")) {
             song = line.substring(3).trim();
             return SONG;
+        }
+        if (line.startsWith("#V:")) {
+            try {
+                steers = Integer.parseInt(line.substring(3).trim()) >= 2;
+            } catch (NumberFormatException e) {
+                return NOTHING;
+            }
+            return VERSION;
         }
         if (line.startsWith("#R:") && line.length() >= 5) {
             int k = line.charAt(3) - 'a';

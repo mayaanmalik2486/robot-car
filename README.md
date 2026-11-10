@@ -19,7 +19,9 @@ your phone), **music** (your hand plays notes), **gestures** and a little **robo
 ## 📱 The app
 
 **[⬇ Download the Robot Car app](https://github.com/mayaanmalik2486/robot-car/raw/main/App/RobotCar.apk)**
-(Android). Send that link to anyone. How to install and connect: [App/README.md](App/README.md). It looks like a game controller (landscape, thumbstick, tilt driving, emoji buttons, a live radar page) and works with a real game controller (like the GameSir Cyclone 2) too.
+(Android, version 4.0). Send that link to anyone. How to install and connect: [App/README.md](App/README.md). It looks and feels like a game controller, steers smoothly like a real RC car (one stick, two sticks or tilt), and is mapped to the **GameSir Cyclone 2** - both sticks, both triggers, every button, all changeable, with a live drawing of the controller.
+
+**On a computer?** The same remote runs in Chrome or Edge: [Web/README.md](Web/README.md) (open `Web/index.html`) - with the mouse, the keyboard or the controller.
 
 | Scan to download the app | Scan to open this page |
 | :---: | :---: |
@@ -34,7 +36,8 @@ More QR codes (app guide, CV, full guide, song list) are in [Docs/qr](Docs/qr).
 | [`Robot_Car_Main`](Robot_Car_Main) | **The main robot program** (latest version). Upload this one for normal use. Also has the full [wiring and power guide](Robot_Car_Main/POWER_AND_WIRING.md). |
 | [`Dances`](Dances) | 39 copies of the main program, each with the choreography for one song. The [song list, what each dance does, and how to dance in time](Dances/README.md) are in that folder. |
 | [`Docs`](Docs) | The car's CV and the full guide (pages + PDFs), photos and QR codes. |
-| [`App`](App) | The phone app (`RobotCar.apk`) and its code. |
+| [`App`](App) | The phone app (`RobotCar.apk`), its code and its tests. |
+| [`Web`](Web) | The same remote as a web page, for computers (Chrome / Edge). |
 | [`IR_Remote_Addon`](IR_Remote_Addon) | Want the IR remote back? One file + 3 lines, with a guide. |
 | [`UPDATE_ALL_SONGS.bat`](UPDATE_ALL_SONGS.bat) | Changed `Robot_Car_Main`? Double-click this: every song file gets your change (each keeps its own song and choreography), then it checks they all compile. |
 | [`Dances_Before_Choreography`](Dances_Before_Choreography) | All 39 song dances as they were before the choreography (the older dance style), with their song list. |
@@ -70,8 +73,12 @@ The app has a button for each of these. (Any "Bluetooth RC car" app works too: t
 | O | radar (stands still, sweeps the sensor, draws a radar map) | | |
 | X | mute / unmute every sound | V | football: the distance sensor off (it never stops for things). Search, chaos and the play modes still use it. |
 
+**Smooth steering** (the Robot Car app 4.0 and the web remote): codes above 127 set the speed of each side of the car,
+`128 + 64 x side + speed + 32` (side 0 = left, 1 = right; speed -31 ... 31, 0 = stop). The car still stops for walls, and
+stops by itself if these codes stop coming for 0.6 s (phone out of range). Simple RC apps keep using the letters.
+
 The car answers the app with a status line - `~MODE|1010`: what it is doing, then 1/0 for muted,
-football, slow and low battery - plus `#S:` + its song name (when the app asks with `?`) and `#R:` radar dots. It also warns by itself when the battery is nearly empty.
+football, slow and low battery - plus `#S:` + its song name and `#V:2` ("I know steering") when the app asks with `?`, and `#R:` radar dots. It also warns by itself when the battery is nearly empty.
 
 ## Parts and wiring
 

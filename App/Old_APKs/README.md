@@ -1,6 +1,6 @@
 # Old app versions
 
-Every version of the Robot Car app, oldest first. The newest one is always `../RobotCar.apk`.
+Every version of the Robot Car app, oldest first. The newest one is always `../RobotCar.apk` (now 4.0, November 10 2026: smooth steering, the GameSir Cyclone 2 map, settings, the controller screen).
 
 | File | Version | What it was |
 |---|---|---|

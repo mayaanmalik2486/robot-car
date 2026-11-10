@@ -104,12 +104,13 @@ The car protects itself from crashes and warns you before the battery dies.
 
 ## The app
 
-The car has its own Android app, laid out like a game controller and held sideways. Anyone can download it from one link: [RobotCar.apk](https://github.com/mayaanmalik2486/robot-car/raw/main/App/RobotCar.apk) (53 KB, version 3.0). Install guide: [App/README.md](../App/README.md).
+The car has its own Android app, laid out like a game controller and held sideways. Anyone can download it from one link: [RobotCar.apk](https://github.com/mayaanmalik2486/robot-car/raw/main/App/RobotCar.apk) (version 4.0). Install guide: [App/README.md](../App/README.md). On a computer, the same remote runs in Chrome or Edge: [Web/README.md](../Web/README.md).
 
-- **Left** – the thumbstick, with fast/slow and tilt on/off above it.
-- **Right** – a big red STOP and four round face buttons like a real controller: dance (yellow), kick (blue), horn (red), turbo (green).
+- **Steering** – smooth, like a real RC car: the app sets the speed of each side of the car (push a little = slowly, steer a little = a wide bend). One stick, two sticks (throttle + steering) or tilt.
+- **Left** – the stick (with two sticks: the throttle stick).
+- **Right** – a big red STOP and the action keys: horn, kick, turbo, dance (with two sticks: the steering stick).
 - **Middle** – a small green screen showing whether it is connected, what the car is doing, and mute / football / speed / battery. Under it are three pages: **Moves** (search, chaos, donut, 180°, auto, reverse, brake, horn), **Play** (the six games) and **Radar** (a live radar map and a start/stop button).
-- **Top** – connect, the song this car dances to, football and sound switches, the connected controller, and help.
+- **Top** – connect, the song this car dances to, the connected controller, fast / slow, the driving style, settings and help.
 - **Buttons that feel real** – every button stands up like a key, sinks when pressed and makes the phone click.
 - **Song and dance clock** – the car tells the app which song it has; while dancing, the screen shows the song and a running clock.
 - **Alerts** – the phone (and a connected controller) vibrates and shows a message when guard mode sees an intruder or the battery is low.
@@ -120,22 +121,22 @@ It works on Android 5 and newer. It cannot work on iPhones, because Apple doesn'
 
 ## Game controller
 
-A game controller like the GameSir Cyclone 2 can drive the car through the phone, but not directly. The car's HC-05 only talks to phones and computers, so the controller connects to the phone (by Bluetooth, or its USB dongle with a USB-C adapter) and the app passes its buttons on to the car. It drives like a racing game, and the button you press lights up on the screen.
+A game controller like the GameSir Cyclone 2 can drive the car through the phone, but not directly. The car's HC-05 only talks to phones and computers, so the controller connects to the phone (by Bluetooth, or its USB dongle with a USB-C adapter) and the app passes its buttons on to the car. It drives like an RC car - throttle on one thumb, steering on the other - and the button you press lights up on the screen. Every button can be changed (Settings > Controller buttons), and a live drawing of the controller shows what each one does.
 
 | Controller | Does |
 | --- | --- |
-| RT / LT | Gas (forward) / reverse |
-| Left stick | Steer (with RT: curve), or drive with the stick alone |
-| A / B / X / Y | Turbo / STOP / kick / dance |
-| RB | Fast / slow |
-| L3 / R3 (click the sticks) | Horn / brake |
+| Left stick up / down | Throttle (as fast as you push) |
+| Right stick left / right | Steering (no throttle = spin on the spot) |
+| RT / LT | Turbo / smooth brake |
+| A / B / X / Y | Dance / STOP / kick / horn |
+| RB | Football mode |
+| L3 / R3 (click the sticks) | Auto forward / auto backward |
 | D-pad up / right / down / left | Search / chaos / donut / 180° turn |
-| START / SELECT | Radar / football |
+| START / SELECT | Radar / mute |
 | Hold LB + A / B / X / Y | Follow me / guard / goalkeeper / pet |
-| Hold LB + D-pad up / down / right / left | Music / gestures / auto forward / auto backward |
-| Hold LB + SELECT | Sound on / off |
+| Hold LB + D-pad up / down / left / right | Music / gestures / slow / fast |
 
-If the Cyclone 2 asks for a mode, pick its Android or Xbox mode. Its back buttons can copy any button (set them in the GameSir app).
+Connect the Cyclone 2 by Bluetooth in its Android mode (hold HOME + A for 2 s, light yellow), or plug its 2.4 GHz dongle into the phone with a USB-C adapter (light green). Its back buttons M1 / M2 can copy any button (set them in the GameSir app).
 
 ## Extras
 
@@ -151,10 +152,10 @@ Everything lives in one public GitHub repo, [mayaanmalik2486/robot-car](https://
 
 A few things the car and app can't do yet:
 
-- **Memory is nearly full** (95%, up to 97.7% in song files) – big new features need something else switched off. To add the IR remote, radar has to be switched off (and pet too in the bigger song files).
+- **Memory is nearly full** (96.4%, up to 99% in song files - the fullest has 312 bytes left) – big new features need something else switched off. To add the IR remote, radar has to be switched off (and pet too in the bigger song files).
 - **Android only** – no iPhone app is possible with the HC-05.
 - **Battery** – it warns only when nearly empty; a real battery meter needs two resistors.
 - **The sensor sees only straight ahead** – thin, soft or angled things (chair legs, cushions) can be missed.
-- **Not yet tried on a real phone** – the new app and the controller support are built and checked on the computer only.
+- **Not yet tried on a real phone** – app 4.0, the steering and the controller support are built and checked on the computer (unit tests, layout tests, the simulator), not yet on a real phone, car and Cyclone 2.
 
 Ideas saved for later: record and replay a route, more emoji faces and sound effects, games on the screen (reaction game, Simon says), a wall follower for mazes, a line follower or table-edge stop (if the old sensors are still around), and a real battery meter. More in [IDEAS.md](../IDEAS.md).

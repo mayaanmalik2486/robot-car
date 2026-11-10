@@ -13,7 +13,12 @@ $env:PATH = "$ab\jdk\bin;$env:PATH"
 $src = Join-Path $PSScriptRoot 'source'
 $out = Join-Path $PSScriptRoot 'build'
 $apk = Join-Path $PSScriptRoot 'RobotCar.apk'
-if (Test-Path $out) { Remove-Item -Recurse -Force $out }
+function Clean($dir) {               # (Windows sometimes holds a file a moment longer: try again)
+  for ($i = 0; $i -lt 10 -and (Test-Path $dir); $i++) {
+    try { Remove-Item -Recurse -Force $dir -ErrorAction Stop } catch { Start-Sleep -Milliseconds 500 }
+  }
+}
+Clean $out
 New-Item -ItemType Directory -Force "$out\classes" | Out-Null
 
 function Run($exe, [string[]]$argv) {
@@ -45,5 +50,5 @@ Run "$bt\apksigner.bat" @('sign', '--ks', "$key\robotcar.jks", '--ks-pass', "fil
 Write-Host '6/6 check'
 Run "$bt\apksigner.bat" @('verify', '--verbose', $apk)
 Run "$bt\aapt2.exe" @('dump', 'badging', $apk)
-Remove-Item -Recurse -Force $out
+Clean $out
 Write-Host "DONE: $apk ($([math]::Round((Get-Item $apk).Length / 1KB)) KB)"

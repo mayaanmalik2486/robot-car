@@ -28,6 +28,18 @@ function silentFrom(log, from, to) {
   return (!before || before.v === 0) && !b.some((e) => e.t > from && e.t <= to && e.v > 0);
 }
 const check = (name, pass, detail) => ({ name, pass: !!pass, detail });
+// steering: the two codes that set the left and right side's speed (-31 ... 31), like the app sends them
+const wheels = (l, r) => String.fromCharCode(0x80 | (l + 32)) + String.fromCharCode(0xc0 | (r + 32));
+// ... sent again every 0.2 s from 'from' to 'to' (seconds), the way the app does while you hold the stick
+const held = (from, to, l, r) => Array.from({ length: Math.round((to - from) / 0.2) }, (_, i) => ({ t: +(from + i * 0.2).toFixed(2), bt: wheels(l, r) }));
+// the app's own drive: [[ms, code], ...] -> one input per moment
+const appReplay = (() => {
+  const file = require('path').join(__dirname, '..', 'build', 'app-replay.json');
+  if (!require('fs').existsSync(file)) return [];
+  const at = new Map();
+  for (const [ms, code] of JSON.parse(require('fs').readFileSync(file, 'utf8'))) at.set(ms, (at.get(ms) || '') + String.fromCharCode(code));
+  return [...at].map(([ms, bt]) => ({ t: ms / 1000, bt }));
+})();
 const song = parseSong(process.env.SKETCH);
 const footballPings = [];                                // when the sensor was pinged (football test)
 const DANCE_AT = 4.0;                                  // seconds: when '4' is sent
@@ -233,6 +245,88 @@ const scenarios = [
         `states after: ${st.map((e) => e.v).join(',')}; head ${head}`)];
     },
   })),
+  // ---------------- steering: the app sets the speed of each side (codes above 127) ----------------
+  {
+    name: 'steering',
+    duration: 17,
+    // a wall 20 cm ahead from 9.2 s to 12 s
+    distance: (t) => (t >= 9.2 && t < 12 ? 20 : 150),
+    inputs: [{ t: 0.5, bt: '?' },
+      ...held(2.0, 3.0, 31, 31),              // straight on, full speed
+      ...held(3.0, 4.0, 31, 16),              // a bend to the right: the right side slower
+      ...held(4.0, 5.0, -20, 20),             // spin left on the spot
+      { t: 5.0, bt: wheels(0, 0) + 'S' },     // let go: stop
+      { t: 6.0, bt: wheels(31, 31) },         // one command, then the app goes quiet (out of range)
+      ...held(8.5, 10.5, 31, 31),             // forward - a wall appears
+      ...held(10.6, 11.6, -20, -20),          // backing away from the wall is allowed
+      { t: 11.7, bt: wheels(0, 0) + 'S' },
+      { t: 12.5, bt: 'I' }, ...held(14.0, 15.0, 12, 12), { t: 15.0, bt: wheels(0, 0) + 'S' }],   // steering stops search
+    check: (log) => {
+      const bt = kind(log, 'bt').map((e) => e.v);
+      const st = kind(log, 'state');
+      const quiet = motorMs(log, 'LF255 RF255', 6000, 8400);
+      const after = st.filter((e) => e.t > 13900).map((e) => e.v);
+      return [
+        check('the car says it knows steering (#V:2)', bt.includes('#V:2') && bt.indexOf('#V:2') === bt.indexOf('#S:' + song.name) + 1, bt.slice(0, 4).join(' / ')),
+        check('both sides full forward', motorMs(log, 'LF255 RF255', 2000, 3050) > 850, `${motorMs(log, 'LF255 RF255', 2000, 3050).toFixed(0)} ms`),
+        check('a bend: left full, right at half speed', motorMs(log, 'LF255 RF135', 3000, 4050) > 850, `${motorMs(log, 'LF255 RF135', 3000, 4050).toFixed(0)} ms`),
+        check('spin on the spot: left backward, right forward', motorMs(log, 'LB167 RF167', 4000, 5050) > 850, ''),
+        check('the app hears DRIVE, then READY when you let go', bt.includes('~DRIVE|0000') && bt.indexOf('~READY|0000', bt.indexOf('~DRIVE|0000')) > 0, ''),
+        check('let go: stopped within 0.1 s', motorMs(log, 'L-0 R-0', 5000, 6000) > 900, `${motorMs(log, 'L-0 R-0', 5000, 6000).toFixed(0)} ms stopped`),
+        check('the app goes quiet: the car stops by itself after 0.6 s', quiet > 550 && quiet < 760 && st.some((e) => e.t > 6500 && e.t < 6900 && e.v === 'IDLE'), `drove ${quiet.toFixed(0)} ms`),
+        check('a wall ahead: it stops and says BLOCKED', motorMs(log, 'LF255 RF255', 9400, 10500) < 30 && bt.includes('~BLOCKED|0000'), `${motorMs(log, 'LF255 RF255', 9400, 10500).toFixed(0)} ms forward after the wall`),
+        check('backing away from the wall works', motorMs(log, 'LB167 RB167', 10600, 11650) > 850, ''),
+        check('steering stops search mode', after.includes('STEERING') && !after.includes('SEARCH') && motorMs(log, 'LF103 RF103', 14000, 15050) > 800, after.join(',')),
+        check('ends stopped and READY', st[st.length - 1].v === 'IDLE' && kind(log, 'motor').pop().v === 'L-0 R-0', ''),
+      ];
+    },
+  },
+  {
+    name: 'speed-brake-fixes',
+    duration: 13,
+    distance: () => 150,
+    inputs: [{ t: 0.5, bt: 'W' }, { t: 2.0, bt: 'B' }, { t: 3.0, bt: 'Q' }, { t: 4.0, bt: 'S' }, { t: 4.5, bt: 'L' }, { t: 5.0, bt: 'W' }, { t: 5.5, bt: 'S' },
+      { t: 6.5, bt: 'G' }, { t: 7.5, bt: 'u' }, { t: 10.0, bt: 'QWQF' }, { t: 11.0, bt: 'SW' }],
+    check: (log) => {
+      const m = kind(log, 'motor');
+      const braking = m.filter((e) => e.t > 7500 && e.t < 9500).map((e) => e.v);
+      const st = kind(log, 'state').map((e) => e.v);
+      return [
+        check('Q while backing up: slow at once (no new B needed)', motorMs(log, 'LB255 RB255', 2000, 3000) > 850 && motorMs(log, 'LB153 RB153', 3000, 4000) > 850,
+          `${motorMs(log, 'LB153 RB153', 3000, 4000).toFixed(0)} ms slow`),
+        check('W while spinning: fast at once', motorMs(log, 'LB130 RF130', 4500, 5000) > 350 && motorMs(log, 'LB216 RF216', 5000, 5500) > 350, ''),
+        check('smooth brake in a curve: each side slows from its own speed (no jump to full power)',
+          braking.length > 10 && !braking.some((v) => /LB(1dd|2dd)/.test(v)) && braking[braking.length - 1] === 'L-0 R-0' && st.includes('BRAKING'),
+          braking.slice(0, 6).join(', ')),
+        check('four letters at once (QWQF) are all read: slow, then forward', motorMs(log, 'LF153 RF153', 10000, 11000) > 800, `${motorMs(log, 'LF153 RF153', 10000, 11000).toFixed(0)} ms`),
+      ];
+    },
+  },
+  {
+    // the codes the app's own driving brain sends for a little drive (written by the app tests: App/tests/run-tests.ps1),
+    // played to the real car program
+    name: 'app-replay',
+    duration: 13,
+    distance: () => 150,
+    inputs: [{ t: 0.5, bt: '?' }, ...appReplay],
+    check: (log) => {
+      if (!appReplay.length) return [check('the drive written by the app tests (run App/tests/run-tests.ps1 first)', false, 'Tools/build/app-replay.json is missing')];
+      const st = kind(log, 'state');
+      const ms = (v, from, to) => motorMs(log, v, from, to);
+      const end = kind(log, 'motor').filter((e) => e.t > 10000);
+      return [
+        check('full throttle: both sides full forward', ms('LF255 RF255', 2000, 3050) > 880, `${ms('LF255 RF255', 2000, 3050).toFixed(0)} ms`),
+        check('full throttle + full right: left full, right backward at 30 %', ms('LF255 RB79', 3000, 4050) > 880, `${ms('LF255 RB79', 3000, 4050).toFixed(0)} ms`),
+        check('no throttle + full left: spin on the spot at 85 %', ms('LB231 RF231', 4000, 5050) > 880, `${ms('LB231 RF231', 4000, 5050).toFixed(0)} ms`),
+        check('full backward', ms('LB255 RB255', 5000, 6050) > 880, `${ms('LB255 RB255', 5000, 6050).toFixed(0)} ms`),
+        check('let go: stopped and READY', ms('L-0 R-0', 6000, 7000) > 900 && st.some((e) => e.t > 6000 && e.t < 6200 && e.v === 'IDLE'), `${ms('L-0 R-0', 6000, 7000).toFixed(0)} ms stopped`),
+        check('half throttle: both sides at 175', ms('LF175 RF175', 7000, 8050) > 880, `${ms('LF175 RF175', 7000, 8050).toFixed(0)} ms`),
+        check('donut, then STOP 0.5 s later: it really stops (a plain S would be ignored that soon)',
+          st.some((e) => e.v === 'DONUT') && end.length > 0 && end[0].t < 10120 && end[end.length - 1].v === 'L-0 R-0' && st[st.length - 1].v === 'IDLE',
+          end.map((e) => `${e.t.toFixed(0)}:${e.v}`).join(' ')),
+      ];
+    },
+  },
   // ---------------- play modes (no debug messages needed: they read motors, servo, buzzer, variables) ----------------
   {
     name: 'turbo-horn-status',

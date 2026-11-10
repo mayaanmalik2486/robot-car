@@ -27,8 +27,8 @@ Each play mode can be switched off (`HAS_FOLLOW`, `HAS_KEEPER`, `HAS_GUARD`, `HA
 
 | | Before | After |
 |---|---|---|
-| Main program | 29,590 (91.7 %) | 29,742 (92.2 %) - with all the new modes; 30,656 (95.0 %) with radar too |
-| Biggest song file | 30,448 (94.4 %) | about 30,600 (95 %); about 31,500 (97.7 %) with radar too |
+| Main program | 29,590 (91.7 %) | 29,742 (92.2 %) - with all the new modes; 30,656 (95.0 %) with radar too; 31,092 (96.4 %) with smooth steering (Nov 10) |
+| Biggest song file | 30,448 (94.4 %) | about 30,600 (95 %); about 31,500 (97.7 %) with radar too; 31,944 (99.0 %, 312 bytes left) with smooth steering |
 
 How it fits: the debug messages were switched off (saved 2.9 KB - the car works the same), the IR remote
 was taken out into an add-on (saved 2.1 KB + 430 bytes of RAM) and demo mode was removed (0.5 KB). The new

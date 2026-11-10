@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#0D0F13">
+<title>Robot Car</title>
+<link rel="icon" href="../App/icon-512.png">
+<style>
+:root {
+  --bg: #0D0F13; --panel: #161A21; --key: #262C36; --key-hi: #2E3540; --key-lo: #13161B; --edge: #353D4A;
+  --text: #ECEFF4; --label: #8D96A7; --faint: #586070; --accent: #FF7A1A; --accent-key: #3A2414; --stop: #D93C42;
+  --lcd: #07120B; --lcd-text: #8CF5A8; --lcd-dim: #3D8A55; --warn: #FFC857;
+  --a: #5BD46A; --b: #FF6464; --x: #52A6FF; --y: #FFD23F;
+  --font: "Bahnschrift", "DIN Alternate", "Roboto Condensed", "Arial Narrow", system-ui, sans-serif;
+  --mono: "Cascadia Mono", "Consolas", "SF Mono", ui-monospace, monospace;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font-family: var(--font); overflow: hidden;
+  user-select: none; -webkit-user-select: none; touch-action: none; }
+#screen { position: fixed; inset: 0; }
+#screen > * { position: absolute; }
+
+/* a key: a raised top on a darker base; pressed = it sinks */
+.key { border: 0; padding: 0 6px 4px; margin: 0; color: var(--text); font: 600 14px/1.1 var(--font); letter-spacing: .02em;
+  background: linear-gradient(var(--key-hi), var(--key)); border-radius: 12px; cursor: pointer;
+  box-shadow: inset 0 0 0 1px var(--edge), 0 3px 0 var(--key-lo); transition: transform 60ms, box-shadow 60ms, filter 60ms;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; overflow: hidden; }
+.key:hover { filter: brightness(1.08); }
+.key:active, .key.flash { transform: translateY(3px) scale(.97); box-shadow: inset 0 0 0 1px var(--edge), 0 0 0 var(--key-lo); }
+.key:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.key.on { color: var(--accent); box-shadow: inset 0 0 0 2px var(--accent), 0 3px 0 var(--key-lo); background: linear-gradient(#3B2A1D, var(--accent-key)); }
+.key > span { white-space: nowrap; }
+.key small { display: block; font-size: 10.5px; font-weight: 500; color: var(--label); letter-spacing: .06em; text-transform: uppercase; margin-top: 2px; }
+.key .emoji { font-size: 20px; line-height: 1; margin-bottom: 4px; }
+.key.stop { background: linear-gradient(#E9575C, var(--stop)); box-shadow: 0 3px 0 #6E1E21; font-size: 18px; letter-spacing: .12em; }
+.key.round { border-radius: 50%; }
+.badge { position: absolute; top: 5px; left: 6px; font: 600 10px/15px var(--font); padding: 0 6px; border-radius: 8px; background: rgba(0,0,0,.4); color: var(--label); }
+.round .badge { left: 50%; transform: translateX(-50%); top: 4px; }
+.icon { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+#song { display: flex; align-items: center; color: var(--label); font: 500 13px var(--font); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-left: 4px; }
+canvas { display: block; touch-action: none; }
+.page { display: none; }
+.page.show { display: block; }
+.page > * { position: absolute; }
+
+/* dialogs */
+dialog { background: var(--panel); color: var(--text); border: 1px solid var(--edge); border-radius: 16px; padding: 0; max-width: min(720px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px); width: 100%; font: 15px/1.5 var(--font); box-shadow: 0 24px 64px rgba(0,0,0,.6); }
+dialog::backdrop { background: rgba(5,6,8,.72); }
+dialog.wide { max-width: calc(100vw - 32px); height: calc(100vh - 32px); }
+.sheet { display: flex; flex-direction: column; height: 100%; max-height: calc(100vh - 34px); }
+.sheet header { display: flex; align-items: center; gap: 8px; padding: 16px 16px 8px; }
+.sheet header h2 { flex: 1; margin: 0; font: 600 20px var(--font); letter-spacing: .02em; }
+.sheet .body { overflow: auto; padding: 0 16px 16px; }
+.sheet .key { height: 44px; min-width: 88px; padding: 0 16px 4px; }
+.section { color: var(--accent); font: 600 12px var(--font); letter-spacing: .14em; margin: 24px 0 8px; }
+.card { background: #1B2028; border-radius: 12px; padding: 12px 16px; margin-top: 8px; }
+.card .row { display: flex; align-items: center; gap: 16px; }
+.card .row > :first-child { flex: 1; }
+.sub { color: var(--label); font-size: 12px; }
+.seg { display: flex; gap: 8px; margin-top: 8px; }
+.seg .key { flex: 1; height: 48px; }
+input[type=range] { width: 100%; accent-color: var(--accent); height: 32px; margin: 4px 0 0; }
+.switch { appearance: none; width: 44px; height: 26px; border-radius: 13px; background: var(--edge); position: relative; cursor: pointer; transition: background .15s; flex: none; }
+.switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--label); transition: transform .15s, background .15s; }
+.switch:checked { background: rgba(255,122,26,.45); }
+.switch:checked::after { transform: translateX(18px); background: var(--accent); }
+.val { color: var(--accent); font-variant-numeric: tabular-nums; }
+pre { font: 12px/1.5 var(--mono); color: var(--lcd-text); background: var(--lcd); border-radius: 12px; padding: 12px; margin: 0; white-space: pre-wrap; }
+.help p { margin: 0 0 12px; color: #C9CED8; }
+.help b { color: var(--text); }
+kbd { font: 600 11px var(--mono); background: var(--key); border: 1px solid var(--edge); border-bottom-width: 3px; border-radius: 6px; padding: 1px 6px; color: var(--text); }
+#padCanvas { width: 100%; flex: 1; min-height: 240px; }
+.hint { color: var(--label); font-size: 13px; text-align: center; padding: 8px 16px 16px; }
+.toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: #232933; color: var(--text); border: 1px solid var(--edge);
+  padding: 10px 18px; border-radius: 24px; font: 500 14px var(--font); box-shadow: 0 12px 32px rgba(0,0,0,.5); opacity: 0; transition: opacity .2s;
+  pointer-events: none; max-width: calc(100vw - 32px); text-align: center; z-index: 10; }
+.toast.show { opacity: 1; }
+.jobs { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+.jobs .key { height: 44px; }
+</style>
+</head>
+<body>
+<div id="screen" aria-label="Robot Car remote"></div>
+
+<dialog id="settings"><div class="sheet">
+  <header><h2>Settings</h2><button class="key" data-close>Done</button></header>
+  <div class="body" id="settingsBody"></div>
+</div></dialog>
+
+<dialog id="controller" class="wide"><div class="sheet" style="height:100%">
+  <header><h2 id="padTitle">Controller</h2>
+    <button class="key" id="padShift">LB layer</button><button class="key" id="padRemap">Remap</button><button class="key" id="padReset">Reset</button>
+    <button class="key" data-close>Done</button></header>
+  <canvas id="padCanvas"></canvas>
+  <div class="hint" id="padHint"></div>
+</div></dialog>
+
+<dialog id="jobs"><div class="sheet">
+  <header><h2 id="jobsTitle">Choose a job</h2><button class="key" data-close>Cancel</button></header>
+  <div class="body"><div class="jobs" id="jobsList"></div></div>
+</div></dialog>
+
+<dialog id="help"><div class="sheet">
+  <header><h2>Robot Car</h2><button class="key" data-close>OK</button></header>
+  <div class="body help" id="helpBody"></div>
+</div></dialog>
+
+<dialog id="message"><div class="sheet">
+  <header><h2 id="msgTitle"></h2><button class="key" data-close>OK</button></header>
+  <div class="body" id="msgBody"></div>
+</div></dialog>
+
+<div class="toast" id="toast"></div>
+
+<script src="logic.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

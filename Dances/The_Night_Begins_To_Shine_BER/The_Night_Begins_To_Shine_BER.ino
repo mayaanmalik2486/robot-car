@@ -53,7 +53,11 @@
     O radar: the sensor sweeps left and right and the screen draws a radar map
       (the app draws it too)
     ? the app asks what the car is doing (the car answers "~MODE|flags",
-      then "#S:" + the song name)
+      then "#S:" + the song name, then "#V:2" = "I know STEERING")
+    STEERING (Robot Car app 4 and newer): codes above 127 are not letters - each one
+      sets the speed of one side of the car (128 + 64 for the right side + speed 1..63,
+      32 = stop). That gives smooth steering, like a real RC car. The car still stops
+      for obstacles, and stops by itself if the app goes quiet for 0.6 s.
     The car also warns when the battery is nearly empty (screen + sad tune).
 
   IR REMOTE: taken out to make room for the play modes. To add it back, see
@@ -282,6 +286,11 @@ const int BATTERY_LOW_MV = 4300;             // ... or below this (millivolts)
 // Phone apps send the letter while you hold a button and 'S' when you let go.
 // For this long after a mode letter, that 'S' is ignored so the mode keeps going.
 const unsigned long BUTTON_RELEASE_IGNORE_MS = 1500;
+
+// STEERING (the Robot Car app, version 4 and newer): the app sets the speed of each side
+// of the car itself and sends it again every 0.2 s while you drive. If nothing arrives
+// for this long (phone out of range, app closed), the car stops by itself.
+const unsigned int STEER_SILENCE_MS = 600;
 
 
 // Buzzer: if your buzzer board gets warm or clicks while it should be silent,
@@ -701,6 +710,7 @@ enum RobotState
     SEARCH,
     TURN180,
     BRAKING,
+    STEERING,        // the app steers: it sets the speed of each side of the car
     FOLLOW,          // the play modes (keep them last in this list)
     KEEPER,
     GUARD,
@@ -729,7 +739,12 @@ bool donutMode = false;
 
 // Smooth brake
 bool braking = false;
-int brakePWM = FULL_SPEED;
+
+// Steering from the app: the speed of each side, -31 (full backward) ... 0 ... 31 (full forward)
+int8_t steerLeft = 0;
+int8_t steerRight = 0;
+bool steerAhead = false;           // the car as a whole is going forward (so an obstacle matters)
+unsigned int steerAt = 0;          // when the app last sent a speed (the car stops if it goes quiet)
 
 // 180-degree turn
 bool turning180 = false;
@@ -869,6 +884,8 @@ unsigned long lastActiveAt = 0;    // last time the robot was doing something (s
 // Motors: are we driving forward right now, and how fast? (for the brake jerk)
 bool goingForward = false;
 int forwardSpeed = 0;
+byte speedLeft = 0;                // the speed each side is set to right now (the smooth brake starts from these)
+byte speedRight = 0;
 
 // Greeting
 bool greetingOnScreen = false;
@@ -898,20 +915,22 @@ int percentOf(int speed, int percent)
 // Speed of the left and right wheels (0-255)
 void setSpeed(int leftSpeed, int rightSpeed)
 {
+    speedLeft = leftSpeed;
+    speedRight = rightSpeed;
     analogWrite(ENA, leftSpeed);
     analogWrite(ENB, rightSpeed);
 }
 
-// Which way each side turns
+// Which way each side turns (above 0 = forward, below 0 = backward, 0 = stop)
 void setWheels(int leftDir, int rightDir)
 {
     // Left side:  forward = IN1 LOW + IN2 HIGH
-    digitalWrite(IN1, leftDir == DIR_BACKWARD ? HIGH : LOW);
-    digitalWrite(IN2, leftDir == DIR_FORWARD ? HIGH : LOW);
+    digitalWrite(IN1, leftDir < 0 ? HIGH : LOW);
+    digitalWrite(IN2, leftDir > 0 ? HIGH : LOW);
 
     // Right side: forward = IN3 HIGH + IN4 LOW
-    digitalWrite(IN3, rightDir == DIR_FORWARD ? HIGH : LOW);
-    digitalWrite(IN4, rightDir == DIR_BACKWARD ? HIGH : LOW);
+    digitalWrite(IN3, rightDir > 0 ? HIGH : LOW);
+    digitalWrite(IN4, rightDir < 0 ? HIGH : LOW);
 }
 
 // Spin speed: the dance uses a fixed speed, everything else 85 % of currentSpeed
@@ -1032,11 +1051,42 @@ int autoSpeed()
     return percentOf(currentSpeed, AUTO_SPEED_PERCENT);
 }
 
-// Q / W on the phone and button 2 on the remote use this
+// Q / W on the phone and button 2 on the remote use this.
+// The new speed counts at once, also while backing up or spinning.
 void setSlowMode(bool on)
 {
     slowMode = on;
     currentSpeed = on ? SLOW_SPEED : FULL_SPEED;
+
+    if (robotState == MANUAL_BACKWARD)
+        backward(currentSpeed);
+    else if (robotState == MANUAL_LEFT)
+        left();
+    else if (robotState == MANUAL_RIGHT)
+        right();
+}
+
+// STEERING: one side's speed, -31 ... 31, as a motor speed (1 = 15 ... 31 = 255)
+byte steerSpeed(int8_t side)
+{
+    byte amount = abs(side);
+
+    return amount ? amount * 8 + 7 : 0;
+}
+
+// STEERING: each side at the speed the app asked for - but never forward into a wall
+void steerWheels(int distance)
+{
+    if (steerAhead && distance <= STOP_DISTANCE)
+    {
+        brakeStop();
+        return;
+    }
+
+    setSpeed(steerSpeed(steerLeft), steerSpeed(steerRight));
+    setWheels(steerLeft, steerRight);
+    goingForward = steerAhead;
+    forwardSpeed = speedLeft;
 }
 
 
@@ -1454,24 +1504,26 @@ bool sensorOff()
 // Short name of what the robot is doing (max 8 letters, stored in flash)
 const char* actionName()
 {
+    static const char BLOCKED[] PROGMEM = "BLOCKED";
     bool blocked = lastDistance <= STOP_DISTANCE;
 
     switch (robotState)
     {
     case IDLE:            return PSTR("READY");
-    case MANUAL_FORWARD:  return blocked ? PSTR("BLOCKED") : PSTR("FORWARD");
+    case MANUAL_FORWARD:  return blocked ? BLOCKED : PSTR("FORWARD");
     case MANUAL_BACKWARD: return PSTR("BACKWARD");
     case MANUAL_LEFT:     return PSTR("LEFT");
     case MANUAL_RIGHT:    return PSTR("RIGHT");
-    case AUTO_FORWARD:    return blocked ? PSTR("BLOCKED") : PSTR("AUTO FWD");
+    case AUTO_FORWARD:    return blocked ? BLOCKED : PSTR("AUTO FWD");
     case AUTO_BACKWARD:   return PSTR("AUTO BCK");
     case DONUT:           return PSTR("DONUT");
-    case CURVE_LEFT:      return blocked ? PSTR("BLOCKED") : PSTR("CURVE L");
-    case CURVE_RIGHT:     return blocked ? PSTR("BLOCKED") : PSTR("CURVE R");
+    case CURVE_LEFT:      return blocked ? BLOCKED : PSTR("CURVE L");
+    case CURVE_RIGHT:     return blocked ? BLOCKED : PSTR("CURVE R");
     case DANCE:           return PSTR("DANCE");
     case CHAOS:           return PSTR("CHAOS!");
     case TURN180:         return PSTR("TURN 180");
     case BRAKING:         return PSTR("BRAKING");
+    case STEERING:        return blocked && steerAhead ? BLOCKED : PSTR("DRIVE");
     case FOLLOW:          return PSTR("FOLLOW");
     case KEEPER:          return playStep >= KEEPER_PUNCH ? PSTR("SAVE!") : PSTR("KEEPER");
     case GUARD:           return playStep == GUARD_ARM ? PSTR("ARMING") : playStep >= GUARD_TURN ? PSTR("INTRUDER") : PSTR("GUARD");
@@ -1732,6 +1784,7 @@ void setEyeTargets()
             break;
 
         case MANUAL_FORWARD:
+        case STEERING:
             eyeTarget[E_Y] = -2;
             break;
 
@@ -2324,6 +2377,7 @@ bool drivingForward()
         || robotState == CURVE_LEFT || robotState == CURVE_RIGHT
         || (robotState == CHAOS && chaosStep == CHAOS_STRAIGHT)
         || (robotState == SEARCH && searchStep == AVOID_DRIVE)
+        || (robotState == STEERING && steerAhead)
         || robotState == TURBO;
 }
 
@@ -2396,6 +2450,8 @@ int filteredDistance()
 // NOTE: this measurement takes about 40-60 ms, which also sets the rhythm of
 // loop(). The timed moves (180 turn, dance) were tuned with it,
 // so keep this measurement running every loop.
+void emergencyStop();               // (section 13 - this line just lets us use it here)
+
 void checkObstacle()
 {
     int distance = filteredDistance();
@@ -2410,6 +2466,13 @@ void checkObstacle()
         {
             forward(currentSpeed);
         }
+    }
+    else if (robotState == STEERING)
+    {
+        if ((unsigned int)millis() - steerAt >= STEER_SILENCE_MS)
+            emergencyStop();                   // the app went quiet (out of range?): stop
+        else
+            steerWheels(distance);
     }
 }
 
@@ -2529,11 +2592,11 @@ void beginBrake()
 {
     cancelAutoModes();
     braking = true;
-    brakePWM = currentSpeed;
     robotState = BRAKING;
 }
 
-// Lowers the speed a little every BRAKE_STEP_MS until the car stops
+// Lowers the speed of each side a little every BRAKE_STEP_MS until the car stops.
+// (Each side slows down from the speed it has now, so a curve stays a curve.)
 void updateBrake()
 {
     static unsigned long lastStep = 0;
@@ -2546,14 +2609,9 @@ void updateBrake()
 
     lastStep = millis();
 
-    brakePWM -= BRAKE_STEP_PWM;
+    setSpeed(max(speedLeft - BRAKE_STEP_PWM, 0), max(speedRight - BRAKE_STEP_PWM, 0));
 
-    if (brakePWM < 0)
-        brakePWM = 0;
-
-    setSpeed(brakePWM, brakePWM);
-
-    if (brakePWM == 0)
+    if ((speedLeft | speedRight) == 0)
     {
         braking = false;
         stop();
@@ -2861,7 +2919,7 @@ void handleCommand(char c);         // (just below)
 // A letter from the phone app
 void handleBluetooth()
 {
-    if (BT.available())
+    for (byte n = 0; n < 6 && BT.available(); n++)   // every letter that is waiting (but never stuck here)
         handleCommand(BT.read());
 }
 
@@ -2870,6 +2928,32 @@ void handleCommand(char c)
 {
     DEBUG.print(F("Received: "));
     DEBUG.println(c);
+
+    // STEERING (the Robot Car app): a code above 127 is not a letter but the speed of one
+    // side of the car. Bit 6 says which side (0 = left, 1 = right); the low 6 bits are the
+    // speed + 32, so 1 = full backward, 32 = stop, 63 = full forward.
+    if (c & 0x80)
+    {
+        if (robotState != STEERING)
+        {
+            emergencyStop();                 // stops whatever it was doing
+            steerLeft = 0;
+            steerRight = 0;
+            robotState = STEERING;
+        }
+
+        int8_t side = (c & 0x3F) - 32;
+
+        if (c & 0x40)
+            steerRight = side;
+        else
+            steerLeft = side;
+
+        steerAhead = steerLeft + steerRight > 0;
+        steerAt = millis();                  // (only the low half of the clock: enough to time 0.6 s)
+        steerWheels(lastDistance);
+        return;
+    }
 
     if (sameDriving(c))
         return;
@@ -3100,7 +3184,7 @@ void handleCommand(char c)
             sendStatus();
             BT.print(F("#S:"));            // ... and which song this car dances to
             BT.print((const __FlashStringHelper*)SONG_NAME);
-            BT.print('\n');
+            BT.print(F("\n#V:2\n"));       // ... and that it knows STEERING (the app's wheel speeds)
             break;
 
         case 'I':                          // search

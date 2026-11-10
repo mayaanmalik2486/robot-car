@@ -5,11 +5,12 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.graphics.Typeface;
+import android.graphics.drawable.ColorDrawable;
 import android.hardware.input.InputManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -18,19 +19,22 @@ import android.os.Looper;
 import android.os.SystemClock;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
-import android.provider.Settings;
+import android.text.SpannableString;
+import android.text.Spanned;
 import android.text.TextUtils;
+import android.text.style.RelativeSizeSpan;
 import android.view.Gravity;
+import android.view.HapticFeedbackConstants;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -38,53 +42,64 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Robot Car - a game-pad style remote for the car (held sideways).
+ * Robot Car - a game-controller style remote for the car (held sideways).
  *
- * Left: the thumbstick (or tilt driving). Right: STOP and the four face buttons. Middle: the
- * car's little screen, then three pages of buttons - Moves, Play and Radar. Top: connect,
- * the song, football and sound switches, a game controller if one is connected, and help.
- *
- * The parts: Car (the letters), CarLink (Bluetooth), CarState (what the car says),
- * StickView, TiltDriver, Gamepad, RadarView and PadButton (the buttons).
+ * The parts: Car (the car's language), CarLink (Bluetooth), CarState (what the car says),
+ * DriveLogic (sticks -> what is sent, never flooding the car), ControllerInput + ControllerMap
+ * (the GameSir Cyclone 2 or any other game controller), StickView, TiltDriver, LcdView,
+ * RadarView, PadButton, Layout + Boards (where everything sits), Settings.
+ * Two more screens: SettingsActivity and ControllerActivity.
  */
-public class MainActivity extends Activity implements CarLink.Listener, StickView.Listener,
-        TiltDriver.Listener, Gamepad.Listener, InputManager.InputDeviceListener {
+public class MainActivity extends Activity implements CarLink.Listener, StickView.Listener, TiltDriver.Listener,
+        ControllerInput.Listener, InputManager.InputDeviceListener, DriveLogic.Out, Boards.Screen.Style {
 
+    static final String APP_LINK = "https://github.com/mayaanmalik2486/robot-car/raw/main/App/RobotCar.apk";
     private static final int ASK_PERMISSION = 1;
     private static final int ASK_BLUETOOTH_ON = 2;
-    private static final String APP_LINK = "https://github.com/mayaanmalik2486/robot-car/raw/main/App/RobotCar.apk";
-
     private static final int PAGE_MOVES = 0, PAGE_PLAY = 1, PAGE_RADAR = 2;
+    private static final int SRC_TOUCH = 0, SRC_TILT = 1, SRC_PAD = 2;
+    private static final long[] RUMBLE_INTRUDER = {0, 400, 150, 400, 150, 800};
+    private static final long[] RUMBLE_BATTERY = {0, 300, 200, 300};
+    private static final long[] RUMBLE_TICK = {0, 60};
+    private static final long[] RUMBLE_TURBO = {0, 120};
 
     private BluetoothAdapter adapter;
     private CarLink link;
     private final CarState car = new CarState();
     private final Handler ui = new Handler(Looper.getMainLooper());
-    private SharedPreferences prefs;
+    private Settings settings;
+    private DriveLogic drive;
+    private ControllerInput pad;
     private TiltDriver tilt;
-    private final Gamepad pad = new Gamepad(this);
     private InputManager inputs;
 
     // the screen
-    private StickView stick;
+    private Boards.Screen board;
+    private PadButton connectB, padB, speedB, styleB, stopB, radarB;
+    private TextView songChip;
+    private LcdView lcd;
+    private StickView stick, stick2;
     private RadarView radar;
-    private TextView lcdConn, lcdMode, lcdFlags;
-    private PadButton connectButton, speedButton, tiltButton, footballButton, soundButton, radarButton;
-    private TextView songChip, padChip;
     private final PadButton[] tabs = new PadButton[3];
     private final View[] pages = new View[3];
     private int page = PAGE_MOVES;
-    private final Map<Character, PadButton> buttonFor = new HashMap<>();   // to flash what a controller pressed
+    private final Map<Character, List<PadButton>> buttonsFor = new HashMap<>();   // a job -> its buttons on the screen
 
-    private char driving = Car.STOP;            // the drive letter being held right now
-    private boolean tiltOn, tiltHolding;
-    private long lastWarnAt;
-    private boolean slowNow;                    // the speed the car is on (from the car's status, or the last press)
-    private boolean heardStatus, heardSong;     // has the car answered since connecting? (older car programs don't)
-    private long connectedAt;
-    private char lastSent;
-    private String lastHeard = "";
-    private final java.util.ArrayDeque<String> linkLog = new java.util.ArrayDeque<>();
+    // driving
+    private int style;
+    private final float[][] source = new float[3][2];      // touch, tilt, controller: {throttle, steer}
+    private int active = -1;                                 // which of them drives now
+    private float touchThrottle, touchSteer;
+    private boolean tiltHolding;
+
+    // the car
+    private boolean heardStatus, heardSong;
+    private long connectedAt, lastWarnAt, backAt;
+    private String lastSent = "";
+    private String lastWheels = "";
+    private boolean btOff;
+    private AlertDialog problem;
+    private final ArrayDeque<String> linkLog = new ArrayDeque<>();
 
     // ------------------------------------------------------------------ start / stop
 
@@ -92,34 +107,45 @@ public class MainActivity extends Activity implements CarLink.Listener, StickVie
     protected void onCreate(Bundle saved) {
         super.onCreate(saved);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        prefs = getSharedPreferences("robotcar", MODE_PRIVATE);
+        getWindow().setBackgroundDrawable(new ColorDrawable(Ui.BG));
+        settings = new Settings(this);
         adapter = BluetoothAdapter.getDefaultAdapter();
         link = new CarLink(adapter, this);
+        drive = new DriveLogic(this);
+        pad = new ControllerInput(this);
         tilt = new TiltDriver(this, this);
         inputs = (InputManager) getSystemService(Context.INPUT_SERVICE);
+        style = settings.style();
+        if (style == Layout.TILT && !tilt.available())
+            style = Layout.ONE_STICK;
         setContentView(buildScreen());
+        applySettings();
         showPage(PAGE_MOVES);
+        findController(false);
+        registerReceiver(bluetoothState, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
         showStatus();
-        findGamepad();
 
-        if (adapter == null) {
-            lcdConn.setText("NO BLUETOOTH ON THIS PHONE");
+        if (adapter == null)
             return;
-        }
-        String last = prefs.getString("device", null);
+        btOff = !adapter.isEnabled();
+        String last = settings.device();
         if (last != null && hasPermission() && adapter.isEnabled())
             link.connect(last);
+        showStatus();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        applySettings();
         if (inputs != null)
             inputs.registerInputDeviceListener(this, ui);
-        findGamepad();
-        if (tiltOn)
+        findController(false);
+        if (style == Layout.TILT)
             tilt.start();
-        ui.post(clock);
+        ui.removeCallbacks(tick);
+        ui.post(tick);
+        showStatus();
     }
 
     @Override
@@ -135,111 +161,119 @@ public class MainActivity extends Activity implements CarLink.Listener, StickVie
     @Override
     protected void onPause() {
         super.onPause();
-        drive(Car.STOP);                             // never leave the car driving when the app goes away
+        drive.halt(SystemClock.uptimeMillis());      // never leave the car driving when the app goes away
+        clearSources();
         tilt.stop();
         tiltHolding = false;
         if (inputs != null)
             inputs.unregisterInputDeviceListener(this);
-        ui.removeCallbacks(clock);
+        ui.removeCallbacks(tick);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        try {
+            unregisterReceiver(bluetoothState);
+        } catch (IllegalArgumentException e) {
+            // (never registered)
+        }
         link.shutdown();
     }
 
-    // the dance clock on the screen ticks while dancing
-    private final Runnable clock = new Runnable() {
+    @Override
+    public void onBackPressed() {
+        long now = SystemClock.uptimeMillis();
+        if (now - backAt < 2000) {
+            super.onBackPressed();
+            return;
+        }
+        backAt = now;
+        toast("Press back again to close the app (the car stops)");
+    }
+
+    /** Settings may have changed (back from the settings screen). */
+    private void applySettings() {
+        Ui.haptics = settings.haptics();
+        drive.setFeel(settings.feel());
+        drive.setSlowTop(settings.slowTop());
+        pad.leftSteers = settings.leftSteers();
+        settings.loadMap(pad.map, pad.descriptor);
+        pad.deadZone = settings.padDeadZone(pad.descriptor);
+        int s = settings.style();
+        if (s == Layout.TILT && !tilt.available())
+            s = Layout.ONE_STICK;
+        if (s != style)
+            setStyle(s, false);
+        showBadges();
+    }
+
+    // 50 times a second: the driving brain sends what is due (the 0.2 s beat, the second S)
+    private final Runnable tick = new Runnable() {
+        private long lastClock;
+
         @Override
         public void run() {
-            if (car.mode.equals("DANCE"))
-                showStatus();
-            ui.postDelayed(this, 500);
+            long now = SystemClock.uptimeMillis();
+            drive.tick(now);
+            lcd.wheels(link.isConnected() && drive.steering(), drive.left(), drive.right());
+            if (now - lastClock >= 500) {
+                lastClock = now;
+                if (car.mode.equals("DANCE") || car.mode.equals("RADAR"))
+                    showStatus();
+            }
+            ui.postDelayed(this, 20);
         }
     };
 
     // ------------------------------------------------------------------ building the screen
 
+    @Override
+    public int style() {
+        return style;
+    }
+
     private View buildScreen() {
-        LinearLayout root = column();
-        root.setBackgroundColor(Ui.BODY);
-        root.setPadding(dp(14), dp(8), dp(14), dp(10));
-        root.addView(topBar(), new LinearLayout.LayoutParams(-1, dp(40)));
+        board = new Boards.Screen(this, this);
+        board.setBackgroundColor(Ui.BG);
 
-        LinearLayout body = new LinearLayout(this);
-        LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams(-1, 0, 1f);
-        bp.topMargin = dp(8);
-        root.addView(body, bp);
+        connectB = key("", 13);
+        connectB.setOnClickListener(v -> onConnectPressed());
+        board.put(Layout.CONNECT, connectB);
 
-        body.addView(leftSide(), new LinearLayout.LayoutParams(0, -1, 0.29f));
-        LinearLayout.LayoutParams mp = new LinearLayout.LayoutParams(0, -1, 0.42f);
-        mp.leftMargin = mp.rightMargin = dp(12);
-        body.addView(middle(), mp);
-        body.addView(rightSide(), new LinearLayout.LayoutParams(0, -1, 0.29f));
-        return root;
-    }
+        songChip = new TextView(this);
+        songChip.setTextColor(Ui.LABEL);
+        songChip.setTextSize(13);
+        songChip.setTypeface(Ui.MEDIUM);
+        songChip.setSingleLine(true);
+        songChip.setEllipsize(TextUtils.TruncateAt.END);
+        songChip.setGravity(Gravity.CENTER_VERTICAL);
+        board.put(Layout.SONG, songChip);
 
-    private View topBar() {
-        LinearLayout bar = new LinearLayout(this);
-        bar.setGravity(Gravity.CENTER_VERTICAL);
+        padB = key("", 12);
+        padB.setOnClickListener(v -> openController());
+        board.put(Layout.PAD, padB);
 
-        connectButton = key("", Ui.KEY, 13);
-        connectButton.setOnClickListener(v -> onConnectPressed());
-        bar.addView(connectButton, new LinearLayout.LayoutParams(dp(132), -1));
+        speedB = key("", 14);
+        speedB.setOnClickListener(v -> doJob(Car.SPEED_TOGGLE));
+        board.put(Layout.SPEED, speedB);
+        styleB = key("", 13);
+        styleB.setOnClickListener(v -> setStyle(nextStyle(), true));
+        board.put(Layout.STYLE, styleB);
 
-        songChip = chip();
-        LinearLayout.LayoutParams sp = new LinearLayout.LayoutParams(0, -2, 1f);
-        sp.leftMargin = dp(10);
-        bar.addView(songChip, sp);
-
-        padChip = chip();
-        padChip.setOnClickListener(v -> showControllerMap());
-        bar.addView(padChip, new LinearLayout.LayoutParams(-2, -2));
-
-        footballButton = key("", Ui.KEY, 13);
-        footballButton.setOnClickListener(v -> send(Car.FOOTBALL));
-        soundButton = key("", Ui.KEY, 13);
-        soundButton.setOnClickListener(v -> send(Car.MUTE));
-        PadButton help = key("❔", Ui.KEY, 15);
+        PadButton gear = key("", 14);
+        gear.setIcon(PadButton.ICON_GEAR);
+        gear.setContentDescription("Settings");
+        gear.setOnClickListener(v -> openSettings());
+        board.put(Layout.SETTINGS, gear);
+        PadButton help = key("", 14);
+        help.setIcon(PadButton.ICON_HELP);
+        help.setContentDescription("Help");
         help.setOnClickListener(v -> showHelp());
-        for (View v : new View[]{footballButton, soundButton, help}) {
-            LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(v == help ? dp(46) : dp(104), -1);
-            p.leftMargin = dp(8);
-            bar.addView(v, p);
-        }
-        return bar;
-    }
+        board.put(Layout.HELP, help);
 
-    private View leftSide() {
-        LinearLayout left = column();
-        LinearLayout row = new LinearLayout(this);
-        speedButton = key("", Ui.KEY, 13);
-        speedButton.setOnClickListener(v -> send(Car.SPEED_TOGGLE));
-        tiltButton = key("", Ui.KEY, 13);
-        tiltButton.setOnClickListener(v -> setTilt(!tiltOn));
-        row.addView(speedButton, new LinearLayout.LayoutParams(0, -1, 1f));
-        LinearLayout.LayoutParams tp = new LinearLayout.LayoutParams(0, -1, 1f);
-        tp.leftMargin = dp(8);
-        row.addView(tiltButton, tp);
-        left.addView(row, new LinearLayout.LayoutParams(-1, dp(46)));
-
-        stick = new StickView(this, this);
-        LinearLayout.LayoutParams sp = new LinearLayout.LayoutParams(-1, 0, 1f);
-        sp.topMargin = dp(8);
-        left.addView(stick, sp);
-        return left;
-    }
-
-    private View middle() {
-        LinearLayout mid = column();
-
-        LinearLayout lcd = column();
-        android.graphics.drawable.GradientDrawable screen = Ui.rounded(Ui.LCD, dp(10));
-        screen.setStroke(dp(2), Ui.LCD_EDGE);
-        lcd.setBackground(screen);
-        lcd.setPadding(dp(10), dp(5), dp(10), dp(5));
-        lcd.setOnClickListener(v -> {                    // tap: connect (never disconnects - that is the 🔗 button)
+        lcd = new LcdView(this);
+        lcd.setOnClickListener(v -> {                   // tap: connect (it never disconnects - that is the top-left button)
             if (!link.isConnected() && !link.isConnecting())
                 onConnectPressed();
         });
@@ -247,200 +281,223 @@ public class MainActivity extends Activity implements CarLink.Listener, StickVie
             showLinkLog();
             return true;
         });
-        lcdConn = lcdText(11, Ui.LCD_DIM);
-        lcdMode = lcdText(21, Ui.LCD_TEXT);
-        lcdFlags = lcdText(12, Ui.LCD_TEXT);
-        lcd.addView(lcdConn);
-        lcd.addView(lcdMode);
-        lcd.addView(lcdFlags);
-        mid.addView(lcd, new LinearLayout.LayoutParams(-1, -2));
+        board.put(Layout.LCD, lcd);
 
-        LinearLayout tabRow = new LinearLayout(this);
-        String[] names = {"🕹 Moves", "🎮 Play", "📡 Radar"};
+        String[] names = {"MOVES", "PLAY", "RADAR"};
+        String[] tabKeys = {Layout.TAB0, Layout.TAB1, Layout.TAB2};
         for (int i = 0; i < 3; i++) {
             final int p = i;
-            tabs[i] = key(names[i], Ui.KEY, 13);
+            tabs[i] = key(names[i], 14);
             tabs[i].setOnClickListener(v -> showPage(p));
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, -1, 1f);
-            if (i > 0)
-                lp.leftMargin = dp(6);
-            tabRow.addView(tabs[i], lp);
+            board.put(tabKeys[i], tabs[i]);
         }
-        LinearLayout.LayoutParams tp = new LinearLayout.LayoutParams(-1, dp(38));
-        tp.topMargin = dp(8);
-        mid.addView(tabRow, tp);
 
         FrameLayout stack = new FrameLayout(this);
-        pages[PAGE_MOVES] = grid(4, new Object[][]{
-            {"🔍", "search", Car.SEARCH}, {"😈", "chaos", Car.CHAOS}, {"🍩", "donut", Car.DONUT},
-            {"↩️", "180°", Car.TURN180}, {"⏫", "auto", Car.AUTO_FORWARD}, {"⏬", "reverse", Car.AUTO_BACKWARD},
-            {"🅿️", "brake", Car.BRAKE}, {"📯", "horn", Car.HORN},
+        stack.setClipChildren(false);
+        pages[PAGE_MOVES] = grid(new Object[][]{
+            {"🔍", "Search", Car.SEARCH}, {"😈", "Chaos", Car.CHAOS}, {"🍩", "Donut", Car.DONUT}, {"↩️", "180°", Car.TURN180},
+            {"⏫", "Auto", Car.AUTO_FORWARD}, {"⏬", "Reverse", Car.AUTO_BACKWARD}, {"🅿️", "Brake", Car.BRAKE}, {"📯", "Horn", Car.HORN},
         });
-        pages[PAGE_PLAY] = grid(3, new Object[][]{
-            {"🚶", "follow me", Car.FOLLOW}, {"🥅", "goalkeeper", Car.KEEPER}, {"🚨", "guard", Car.GUARD},
-            {"🎵", "music", Car.MUSIC}, {"✋", "gestures", Car.GESTURE}, {"🐶", "pet", Car.PET},
+        pages[PAGE_PLAY] = grid(new Object[][]{
+            {"🚶", "Follow me", Car.FOLLOW}, {"🥅", "Goalkeeper", Car.KEEPER}, {"🚨", "Guard", Car.GUARD},
+            {"🎵", "Music", Car.MUSIC}, {"✋", "Gestures", Car.GESTURE}, {"🐶", "Pet", Car.PET},
         });
-        pages[PAGE_RADAR] = radarPage();
-        for (View v : pages)
-            stack.addView(v, new FrameLayout.LayoutParams(-1, -1));
-        LinearLayout.LayoutParams gp = new LinearLayout.LayoutParams(-1, 0, 1f);
-        gp.topMargin = dp(8);
-        mid.addView(stack, gp);
-        return mid;
-    }
-
-    private View radarPage() {
-        LinearLayout page = column();
         radar = new RadarView(this);
         radar.setState(car);
-        radar.setBackground(Ui.rounded(Ui.LCD, dp(10)));
-        page.addView(radar, new LinearLayout.LayoutParams(-1, 0, 1f));
-        radarButton = key("", Ui.KEY, 14);
-        radarButton.setOnClickListener(v -> {
-            if (car.mode.equals("RADAR"))
-                stopEverything();
-            else
-                send(Car.RADAR);
-        });
-        LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams(-1, dp(42));
-        bp.topMargin = dp(6);
-        page.addView(radarButton, bp);
-        return page;
+        radarB = key("", 14);
+        radarB.setOnClickListener(v -> doJob(Car.RADAR));
+        addJob(Car.RADAR, radarB);
+        pages[PAGE_RADAR] = new Boards.RadarPage(this, radar, radarB);
+        for (View v : pages)
+            stack.addView(v, new FrameLayout.LayoutParams(-1, -1));
+        board.put(Layout.PAGES, stack);
+
+        stick = new StickView(this, this);
+        board.put(Layout.STICK, stick);
+        stick2 = new StickView(this, this);
+        stick2.setAxes(StickView.LEFT_RIGHT, "STEER");
+        board.put(Layout.STICK2, stick2);
+
+        stopB = action("STOP", Car.STOP, Ui.STOP, 17);
+        board.put(Layout.STOP, stopB);
+        board.put(Layout.DANCE, action("Dance", Car.DANCE, Ui.KEY, 14));
+        board.put(Layout.KICK, action("Kick", Car.KICK, Ui.KEY, 14));
+        board.put(Layout.HORN, action("Horn", Car.HORN, Ui.KEY, 14));
+        board.put(Layout.TURBO, action("Turbo", Car.TURBO, Ui.KEY, 14));
+
+        setStyle(style, false);
+        return board;
     }
 
-    private View rightSide() {
-        LinearLayout right = column();
-        PadButton stop = key("🛑  STOP", Ui.STOP_RED, 15);
-        stop.setOnClickListener(v -> stopEverything());
-        buttonFor.put(Car.STOP, stop);
-        right.addView(stop, new LinearLayout.LayoutParams(-1, dp(46)));
-
-        LinearLayout face = column();
-        face.setGravity(Gravity.CENTER);
-        face.addView(faceRow(null, face("💃", Car.DANCE, Ui.YELLOW), null));
-        face.addView(faceRow(face("⚽", Car.KICK, Ui.BLUE), null, face("📯", Car.HORN, Ui.RED)));
-        face.addView(faceRow(null, face("🚀", Car.TURBO, Ui.GREEN), null));
-        LinearLayout.LayoutParams fp = new LinearLayout.LayoutParams(-1, 0, 1f);
-        fp.topMargin = dp(6);
-        right.addView(face, fp);
-        return right;
-    }
-
-    private View faceRow(View a, View b, View c) {
-        LinearLayout r = new LinearLayout(this);
-        r.setGravity(Gravity.CENTER);
-        for (View v : new View[]{a, b, c}) {
-            LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(dp(66), dp(70));
-            p.setMargins(dp(4), 0, dp(4), 0);
-            r.addView(v != null ? v : new View(this), p);
-        }
-        return r;
-    }
-
-    private PadButton face(String emoji, char letter, int color) {
-        PadButton b = new PadButton(this, emoji, color, true);
-        b.setOnClickListener(v -> send(letter));
-        buttonFor.put(letter, b);                       // (the face buttons light up for a controller, not the page ones)
+    private PadButton action(String name, char job, int color, float size) {
+        PadButton b = key(name, size);
+        b.setColor(color);
+        b.setOnClickListener(v -> doJob(job));
+        addJob(job, b);
         return b;
     }
 
-    // rows of equal buttons that fill the space
-    private View grid(int columns, Object[][] items) {
-        LinearLayout g = column();
-        for (int i = 0; i < items.length; i += columns) {
-            LinearLayout row = new LinearLayout(this);
-            for (int j = 0; j < columns; j++) {
-                LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(0, -1, 1f);
-                p.setMargins(dp(3), dp(3), dp(3), dp(3));
-                if (i + j >= items.length) {
-                    row.addView(new View(this), p);
-                    continue;
-                }
-                Object[] it = items[i + j];
-                final char letter = (Character) it[2];
-                final String name = (String) it[1];
-                PadButton b = key(Ui.emojiLabel((String) it[0], name), Ui.KEY, 20);
-                b.setOnClickListener(v -> send(letter));
-                if (!buttonFor.containsKey(letter))
-                    buttonFor.put(letter, b);
-                row.addView(b, p);
-            }
-            g.addView(row, new LinearLayout.LayoutParams(-1, 0, 1f));
+    private View grid(Object[][] items) {
+        Boards.Grid g = new Boards.Grid(this);
+        for (Object[] it : items) {
+            final char job = (Character) it[2];
+            String emoji = (String) it[0], word = (String) it[1];
+            SpannableString s = new SpannableString(emoji + "\n" + word);
+            s.setSpan(new RelativeSizeSpan(1.25f), 0, emoji.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            PadButton b = key(s, 14);
+            b.setOnClickListener(v -> doJob(job));
+            addJob(job, b);
+            g.addView(b);
         }
         return g;
     }
 
-    private PadButton key(CharSequence text, int color, float size) {
-        PadButton b = new PadButton(this, text, color, false);
+    private void addJob(char job, PadButton b) {
+        List<PadButton> l = buttonsFor.get(job);
+        if (l == null)
+            buttonsFor.put(job, l = new ArrayList<>());
+        l.add(b);
+    }
+
+    private PadButton key(CharSequence text, float size) {
+        PadButton b = new PadButton(this, text, Ui.KEY, false);
         b.setTextSize(size);
         return b;
-    }
-
-    private TextView chip() {
-        TextView t = new TextView(this);
-        t.setTextColor(Ui.LABEL);
-        t.setTextSize(13);
-        t.setSingleLine(true);
-        t.setEllipsize(TextUtils.TruncateAt.END);
-        t.setTypeface(Typeface.DEFAULT_BOLD);
-        return t;
-    }
-
-    private TextView lcdText(float size, int color) {
-        TextView t = new TextView(this);
-        t.setTextSize(size);
-        t.setTextColor(color);
-        t.setTypeface(Typeface.MONOSPACE);
-        t.setSingleLine(true);
-        t.setEllipsize(TextUtils.TruncateAt.END);
-        return t;
-    }
-
-    private LinearLayout column() {
-        LinearLayout l = new LinearLayout(this);
-        l.setOrientation(LinearLayout.VERTICAL);
-        return l;
-    }
-
-    private int dp(float v) {
-        return Ui.dp(this, v);
     }
 
     private void showPage(int p) {
         page = p;
         for (int i = 0; i < 3; i++) {
             pages[i].setVisibility(i == p ? View.VISIBLE : View.GONE);
-            tabs[i].setColor(i == p ? Ui.KEY_ON : Ui.KEY);
+            tabs[i].setOn(i == p);
         }
+        if (p == PAGE_RADAR)
+            radar.invalidate();
+    }
+
+    private int nextStyle() {
+        int s = (style + 1) % 3;
+        if (s == Layout.TILT && !tilt.available())
+            s = Layout.ONE_STICK;
+        return s;
+    }
+
+    private void setStyle(int s, boolean save) {
+        drive.halt(SystemClock.uptimeMillis());
+        clearSources();
+        style = s;
+        if (save) {
+            settings.setStyle(s);
+            if (s == Layout.TILT)
+                toast("Tilt: hold the round pad and tilt the phone like a steering wheel");
+        }
+        stick.setTiltMode(s == Layout.TILT);
+        stick.setAxes(s == Layout.TWO_STICKS ? StickView.UP_DOWN : StickView.BOTH, s == Layout.TWO_STICKS ? "THROTTLE" : "DRIVE");
+        if (s == Layout.TILT)
+            tilt.start();
+        else
+            tilt.stop();
+        tiltHolding = false;
+        if (board != null)
+            board.requestLayout();
+        showStatus();
+    }
+
+    /** The little controller badges on the buttons (when a controller is there and the setting is on). */
+    private void showBadges() {
+        boolean show = settings.overlay() && pad.deviceId >= 0;
+        for (Map.Entry<Character, List<PadButton>> e : buttonsFor.entrySet()) {
+            String label = show ? pad.map.labelFor(e.getKey()) : null;
+            for (PadButton b : e.getValue())
+                b.setBadge(label);
+        }
+        String speed = show ? pad.map.labelFor(Car.SPEED_TOGGLE) : null;
+        if (speed == null && show && pad.map.labelFor(Car.SLOW) != null)
+            speed = pad.map.labelFor(Car.SLOW).replace("◀", "◀▶");
+        speedB.setBadge(speed);
     }
 
     // ------------------------------------------------------------------ showing what the car says
 
     private void showStatus() {
         boolean on = link.isConnected();
-        if (!on) {
-            lcdConn.setText(link.isConnecting() ? "CONNECTING..." : "○ NOT CONNECTED - TAP 🔗");
-            lcdMode.setText("--");
-            lcdFlags.setText("");
+        String top, big, bottom = "";
+        boolean warn = false;
+        if (adapter == null) {
+            top = "THIS PHONE HAS NO BLUETOOTH";
+            warn = true;
+            big = "--";
+        } else if (btOff) {
+            top = "BLUETOOTH IS OFF - TAP TO SWITCH IT ON";
+            warn = true;
+            big = "--";
+        } else if (!on) {
+            top = link.isConnecting() ? "CONNECTING..." : "NOT CONNECTED - TAP HERE TO CONNECT";
+            big = link.isConnecting() ? "..." : "--";
         } else {
-            showLink();
-            lcdMode.setText(modeText());
-            lcdFlags.setText((car.muted ? "🔇 " : "🔊 ") + (car.football ? "⚽ " : "📡 ")
-                + (slowNow ? "🐢 " : "🐇 ") + (car.batteryLow ? "🪫 LOW BATTERY" : "🔋"));
+            boolean old = !heardStatus && SystemClock.uptimeMillis() - connectedAt > 3000;
+            String how = !heardStatus ? "" : drive.steering() ? "  STEERING" : "  LETTERS (old car program)";
+            top = "● CONNECTED" + how + (lastSent.isEmpty() ? "" : "   sent " + lastSent);
+            if (old) {
+                top = "● OLD CAR PROGRAM - upload Robot_Car_Main from Documents\\Arduino\\robot-car";
+                warn = true;
+            } else if (heardStatus && !heardSong) {
+                top += "   (no radar: old program)";
+            }
+            big = modeText();
+            bottom = (car.muted ? "SOUND OFF" : "SOUND ON") + "   " + (car.football ? "SENSOR OFF" : "SENSOR ON") + "   "
+                + (drive.steering() || !heardStatus ? (settings.slowTop() ? "SLOW" : "FAST") : car.slow ? "SLOW" : "FAST") + "   "
+                + (car.batteryLow ? "⚠ LOW BATTERY" : "BATTERY OK");
         }
-        connectButton.setText(on ? "⏏ disconnect" : link.isConnecting() ? "⏳ connecting" : "🔗 connect");
-        connectButton.setColor(on ? Ui.KEY : Ui.KEY_ON);
-        songChip.setText(on && !car.song.isEmpty() ? "🎵 " + car.song : "");
-        speedButton.setText(slowNow ? "🐢 slow" : "🐇 fast");
-        tiltButton.setText(tiltOn ? "📱 tilt ON" : "📱 tilt");
-        tiltButton.setColor(tiltOn ? Ui.KEY_ON : Ui.KEY);
-        footballButton.setText(car.football ? "⚽ sensor off" : "⚽ football");
-        footballButton.setColor(car.football ? Ui.KEY_ON : Ui.KEY);
-        soundButton.setText(car.muted ? "🔇 muted" : "🔊 sound");
-        soundButton.setColor(car.muted ? Ui.KEY_ON : Ui.KEY);
+        lcd.set(top, warn, big, bottom);
+
+        String name = link.isConnected() || link.isConnecting() ? carName() : null;
+        connectB.setText(on ? Ui.twoLines("● " + name, "connected") : link.isConnecting() ? Ui.twoLines("Connecting", name)
+            : Ui.twoLines("Connect", "to the car"));
+        connectB.setOn(on);
+        songChip.setText(on && !car.song.isEmpty() ? "♪  " + car.song : "");
+        boolean slow = settings.slowTop();
+        speedB.setText(Ui.twoLines(slow ? "SLOW" : "FAST", "speed"));
+        speedB.setOn(slow);
+        styleB.setText(Ui.twoLines(style == Layout.TWO_STICKS ? "2 STICKS" : style == Layout.TILT ? "TILT" : "1 STICK", "drive"));
         boolean scanning = car.mode.equals("RADAR");
-        radarButton.setText(scanning ? "🛑 stop the radar" : "📡 start the radar");
-        radarButton.setColor(scanning ? Ui.KEY_ON : Ui.KEY);
+        radarB.setText(scanning ? "STOP RADAR" : "START RADAR");
+        radarB.setOn(scanning);
+        char running = runningJob();
+        for (Map.Entry<Character, List<PadButton>> e : buttonsFor.entrySet())
+            for (PadButton b : e.getValue())
+                if (b != stopB && b != radarB)
+                    b.setOn(on && e.getKey() == running);
+    }
+
+    // the screen button for what the car is doing now (so it lights up)
+    private char runningJob() {
+        String m = car.mode;
+        if (m.startsWith("LOOK") || m.startsWith("TURN ") && !m.equals("TURN 180") || m.equals("SEARCH") || m.equals("BOXED IN"))
+            return Car.SEARCH;
+        switch (m) {
+            case "CHAOS!":   return Car.CHAOS;
+            case "DONUT":    return Car.DONUT;
+            case "TURN 180": return Car.TURN180;
+            case "AUTO FWD": return Car.AUTO_FORWARD;
+            case "AUTO BCK": return Car.AUTO_BACKWARD;
+            case "BRAKING":  return Car.BRAKE;
+            case "DANCE":    return Car.DANCE;
+            case "TURBO!":   return Car.TURBO;
+            case "FOLLOW":   return Car.FOLLOW;
+            case "KEEPER":
+            case "SAVE!":    return Car.KEEPER;
+            case "GUARD":
+            case "ARMING":
+            case "INTRUDER": return Car.GUARD;
+            case "MUSIC":    return Car.MUSIC;
+            case "GESTURE":  return Car.GESTURE;
+            case "PET":
+            case "Zzz...":
+            case "BORED":
+            case "PURR <3":  return Car.PET;
+            default:         return 0;
+        }
     }
 
     private String modeText() {
@@ -448,14 +505,25 @@ public class MainActivity extends Activity implements CarLink.Listener, StickVie
             return "...";
         if (car.mode.equals("DANCE")) {
             long s = (SystemClock.uptimeMillis() - car.modeSince) / 1000;
-            String clock = s / 60 + ":" + (s % 60 < 10 ? "0" : "") + s % 60;
-            return "💃 " + clock + (car.song.isEmpty() ? "" : "  " + car.song);
+            return "DANCE " + s / 60 + ":" + (s % 60 < 10 ? "0" : "") + s % 60 + (car.song.isEmpty() ? "" : "  " + car.song);
         }
         if (car.mode.equals("RADAR")) {
             int near = car.radarNearest(SystemClock.uptimeMillis());
-            return "📡 RADAR" + (near >= 0 ? "  near " + near + " cm" : "");
+            return "RADAR" + (near >= 0 ? "  near " + near + " cm" : "");
         }
+        if (car.mode.equals("DRIVE") && drive.steering())
+            return "DRIVE  " + Math.round(100f * Math.max(Math.abs(drive.left()), Math.abs(drive.right())) / Car.WHEEL_MAX) + "%";
         return car.mode;
+    }
+
+    private String carName() {
+        try {
+            BluetoothDevice d = adapter.getRemoteDevice(link.address());
+            String n = d.getName();
+            return n == null ? "the car" : n;
+        } catch (RuntimeException e) {
+            return "the car";
+        }
     }
 
     // ------------------------------------------------------------------ the car's link
@@ -463,38 +531,98 @@ public class MainActivity extends Activity implements CarLink.Listener, StickVie
     @Override
     public void onLinkChanged() {
         if (link.isConnected()) {
-            prefs.edit().putString("device", link.address()).apply();
+            settings.setDevice(link.address());
             car.reset();
+            drive.reset();
+            drive.setSteering(false);
             heardStatus = heardSong = false;
-            slowNow = false;
-            lastSent = 0;
+            lastSent = "";
             connectedAt = SystemClock.uptimeMillis();
             log("(connected)");
             ui.removeCallbacks(checkCarProgram);
             ui.postDelayed(checkCarProgram, 3000);
+            ui.postDelayed(() -> {                         // the car's speed = the speed switch
+                if (link.isConnected())
+                    sendLetter(settings.slowTop() ? Car.SLOW : Car.FULL);
+            }, 400);
+            if (problem != null && problem.isShowing())
+                problem.dismiss();
+        } else if (!link.isConnecting()) {
+            drive.reset();
+            clearSources();
         }
         showStatus();
     }
 
     // 3 s after connecting: has the car answered '?' ? Older car programs never answer
-    // (and don't know the play modes or radar), the ones from before October 20 don't send the song.
     private final Runnable checkCarProgram = () -> {
         if (!link.isConnected())
             return;
-        if (!heardStatus) {
-            showStatus();
-            new AlertDialog.Builder(this)
-                .setTitle("⚠ Old car program")
-                .setMessage("The car is connected, but it doesn't answer the app - so it is running an older program.\n\n"
-                    + "Driving works, but the play modes, radar, horn, kick and the speed button need the newest one.\n\n"
-                    + "Upload Robot_Car_Main (or a song from the Dances folder) from Documents\\Arduino\\robot-car "
-                    + "(the GitHub folder) - NOT the older Robot_Dances folder or the v7.1 sketch.")
-                .setPositiveButton("OK", null)
-                .show();
-        } else if (!heardSong) {
-            showStatus();
-        }
+        showStatus();
+        if (!heardStatus)
+            dialog("Old car program", "The car is connected, but it doesn't answer the app - so it is running an older program.\n\n"
+                + "Driving works (with letters), but smooth steering, the play modes, the radar and the speed button need the newest one.\n\n"
+                + "Upload Robot_Car_Main (or a song from the Dances folder) from Documents\\Arduino\\robot-car - "
+                + "NOT the older Robot_Dances folder or the v7.1 sketch.");
     };
+
+    @Override
+    public void onLinkBroken(boolean lost) {
+        showStatus();
+        if (isFinishing())
+            return;
+        if (problem != null && problem.isShowing())
+            problem.dismiss();
+        problem = new AlertDialog.Builder(this)
+            .setTitle(lost ? "Connection lost" : "The car didn't answer")
+            .setMessage(lost ? "The Bluetooth link to the car broke - maybe it is out of range, or its battery is empty. "
+                + "The car stops by itself when the app goes quiet."
+                : "Is the car switched on, and close by? (Its HC-05 blinks fast when it is waiting for a phone.)")
+            .setPositiveButton("Reconnect", (d, w) -> {
+                String last = settings.device();
+                if (last != null && adapter != null && adapter.isEnabled() && hasPermission())
+                    link.connect(last);
+                else
+                    onConnectPressed();
+            })
+            .setNegativeButton("Not now", null)
+            .show();
+    }
+
+    @Override
+    public void onLine(String line) {
+        String oldMode = car.mode;
+        boolean wasLow = car.batteryLow;
+        int kind = car.read(line, SystemClock.uptimeMillis());
+        if (kind != CarState.RADAR)
+            log("<- " + line);
+        if (kind == CarState.RADAR) {
+            radar.invalidate();
+            return;
+        }
+        if (kind == CarState.NOTHING)
+            return;
+        if (kind == CarState.STATUS) {
+            heardStatus = true;
+            drive.carSpeedIs(car.slow);
+        } else if (kind == CarState.SONG) {
+            heardSong = true;
+        } else if (kind == CarState.VERSION) {
+            drive.setSteering(car.steers);
+        }
+        if (car.mode.equals("RADAR") && !oldMode.equals("RADAR"))
+            showPage(PAGE_RADAR);                          // the radar was started (maybe from the controller): show it
+        if (car.mode.equals("INTRUDER") && !oldMode.equals("INTRUDER"))
+            alert("🚨 INTRUDER! Guard mode saw someone.", RUMBLE_INTRUDER);
+        if (car.batteryLow && !wasLow)
+            alert("🪫 The car's battery is nearly empty - charge it soon.", RUMBLE_BATTERY);
+        if (car.mode.equals("BLOCKED") && !oldMode.equals("BLOCKED")) {
+            rumble(RUMBLE_TICK);                           // a little tick: something is in the way
+            if (Ui.haptics)
+                lcd.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
+        }
+        showStatus();
+    }
 
     // the link log: every letter sent (->) and every line from the car (<-), newest last
     private void log(String s) {
@@ -507,91 +635,146 @@ public class MainActivity extends Activity implements CarLink.Listener, StickVie
         StringBuilder b = new StringBuilder();
         for (String s : linkLog)
             b.append(s).append('\n');
-        new AlertDialog.Builder(this)
-            .setTitle("📋 Link log (-> sent, <- from the car)")
-            .setMessage(b.length() == 0 ? "Nothing yet." : b.toString())
-            .setPositiveButton("OK", null)
-            .show();
+        dialog("Link log  (-> sent, <- from the car)", b.length() == 0 ? "Nothing yet." : b.toString());
     }
 
+    // ------------------------------------------------------------------ sending
+
+    /** The driving brain sends a letter or a steering code. */
     @Override
-    public void onLinkBroken(boolean lost) {
-        lcdConn.setText(lost ? "○ CONNECTION LOST - TAP 🔗" : "○ NO ANSWER - IS THE CAR ON?");
+    public void send(int code) {
+        if (!link.isConnected())
+            return;
+        link.send((char) code);
+        if (code >= 0x80) {
+            String w = "L" + sign(drive.left()) + " R" + sign(drive.right());
+            if (!w.equals(lastWheels)) {                   // (the 0.2 s beat is not logged: it would fill the log)
+                lastWheels = w;
+                log("-> " + w);
+            }
+            lastSent = w;
+        } else {
+            lastWheels = "";
+            log("-> " + (char) code);
+            lastSent = String.valueOf((char) code);
+        }
     }
 
-    @Override
-    public void onLine(String line) {
-        String oldMode = car.mode;
-        boolean wasLow = car.batteryLow;
-        int kind = car.read(line, SystemClock.uptimeMillis());
-        if (kind != CarState.RADAR)
-            log("<- " + line);
-        if (kind == CarState.STATUS) {
-            heardStatus = true;
-            slowNow = car.slow;                            // the car knows best
-            lastHeard = car.mode;
-        } else if (kind == CarState.SONG) {
-            heardSong = true;
-        }
-        if (kind == CarState.RADAR) {
-            radar.invalidate();
-            if (page == PAGE_RADAR || car.mode.equals("RADAR"))
-                showStatus();
+    private static String sign(int v) {
+        return (v > 0 ? "+" : "") + v;
+    }
+
+    /** A button's letter (a mode, horn, mute ...). */
+    private void sendLetter(char c) {
+        if (!link.isConnected()) {
+            notConnected();
             return;
         }
-        if (kind == CarState.NOTHING)
-            return;
-        if (car.mode.equals("RADAR") && !oldMode.equals("RADAR"))
-            showPage(PAGE_RADAR);                          // the radar was started (maybe from a controller): show it
-        if (car.mode.equals("INTRUDER") && !oldMode.equals("INTRUDER"))
-            alert("🚨 INTRUDER! Guard mode saw someone.", true);
-        if (car.batteryLow && !wasLow)
-            alert("🪫 The car's battery is nearly empty - charge it soon.", false);
+        link.send(c);
+        log("-> " + c);
+        lastSent = String.valueOf(c);
+        lastWheels = "";
+        drive.actionSent(c, SystemClock.uptimeMillis());
+        if (c == Car.TURBO)
+            rumble(RUMBLE_TURBO);
+        showStatus();
+    }
+
+    private void notConnected() {
+        if (SystemClock.uptimeMillis() - lastWarnAt > 2000) {
+            lastWarnAt = SystemClock.uptimeMillis();
+            toast("Not connected - tap Connect first");
+        }
+    }
+
+    /** What a button (on the screen or the controller) does. */
+    private void doJob(char job) {
+        long now = SystemClock.uptimeMillis();
+        switch (job) {
+            case Car.STOP:
+                if (!link.isConnected()) {
+                    notConnected();
+                    return;
+                }
+                drive.stopAll(now);
+                break;
+            case Car.SPEED_TOGGLE:
+                setSlowTop(!settings.slowTop());
+                break;
+            case Car.SLOW:
+                setSlowTop(true);
+                break;
+            case Car.FULL:
+                setSlowTop(false);
+                break;
+            case Car.RADAR:
+                if (car.mode.equals("RADAR")) {
+                    doJob(Car.STOP);
+                    return;
+                }
+                if (link.isConnected() && heardStatus && !heardSong)
+                    toast("The radar needs the newest car program - upload Robot_Car_Main again");
+                sendLetter(Car.RADAR);
+                showPage(PAGE_RADAR);
+                break;
+            default:
+                sendLetter(job);
+                break;
+        }
+        showStatus();
+    }
+
+    private void setSlowTop(boolean slow) {
+        settings.setSlowTop(slow);
+        drive.setSlowTop(slow);
+        if (link.isConnected())
+            sendLetter(slow ? Car.SLOW : Car.FULL);    // the car's own modes (auto, chaos, donut ...) use it too
         showStatus();
     }
 
     // ------------------------------------------------------------------ driving
 
-    // send the drive letter only when it changes; S (twice) when let go
-    private void drive(char c) {
-        if (c == driving)
-            return;
-        driving = c;
-        if (c == Car.STOP) {
-            sendRaw(Car.STOP);
-            ui.postDelayed(() -> sendRaw(Car.STOP), 60);
-        } else {
-            stick.performHapticFeedback(android.view.HapticFeedbackConstants.VIRTUAL_KEY);
-            send(c);
+    // the touch stick, the tilt and the controller: the last one that moved drives
+    private void setSource(int src, float throttle, float steer) {
+        source[src][0] = throttle;
+        source[src][1] = steer;
+        if (throttle != 0 || steer != 0)
+            active = src;
+        else if (active == src) {
+            active = -1;
+            for (int i = 0; i < source.length; i++)
+                if (source[i][0] != 0 || source[i][1] != 0)
+                    active = i;
         }
+        float t = active < 0 ? 0 : source[active][0], s = active < 0 ? 0 : source[active][1];
+        drive.setOneStick(active == SRC_TILT || active == SRC_TOUCH && style != Layout.TWO_STICKS);
+        drive.input(t, s, SystemClock.uptimeMillis());
     }
 
-    private void stopEverything() {
-        driving = Car.STOP;
-        send(Car.STOP);
+    private void clearSources() {
+        for (float[] s : source)
+            s[0] = s[1] = 0;
+        active = -1;
+        touchThrottle = touchSteer = 0;
+        drive.input(0, 0, SystemClock.uptimeMillis());
     }
 
     @Override
-    public void onStick(float x, float y) {
-        drive(Car.direction(x, y));
-    }
-
-    private void setTilt(boolean on) {
-        if (on && !tilt.available()) {
-            toast("This phone has no tilt sensor");
-            return;
-        }
-        tiltOn = on;
-        tiltHolding = false;
-        stick.setTiltMode(on);
-        drive(Car.STOP);
-        if (on) {
-            tilt.start();
-            toast("Hold the pad and tilt the phone to drive");
+    public void onStick(StickView v, float x, float y) {
+        float dz = settings.touchDeadZone();
+        if (style == Layout.TWO_STICKS) {
+            if (v == stick)
+                touchThrottle = -DriveLogic.deadZone(y, dz);
+            else
+                touchSteer = DriveLogic.deadZone(x, dz);
         } else {
-            tilt.stop();
+            float k = DriveLogic.deadZone(x, y, dz);
+            touchThrottle = -y * k;
+            touchSteer = x * k;
         }
-        showStatus();
+        if (!link.isConnected() && (touchThrottle != 0 || touchSteer != 0))
+            notConnected();
+        setSource(SRC_TOUCH, touchThrottle, touchSteer);
     }
 
     @Override
@@ -600,7 +783,7 @@ public class MainActivity extends Activity implements CarLink.Listener, StickVie
         if (holding)
             tilt.center();                                   // the way you hold it now = straight
         else
-            drive(Car.STOP);
+            setSource(SRC_TILT, 0, 0);
     }
 
     @Override
@@ -608,142 +791,155 @@ public class MainActivity extends Activity implements CarLink.Listener, StickVie
         if (!tiltHolding)
             return;
         stick.show(x, y);
-        drive(Car.direction(x, y));
+        float k = DriveLogic.deadZone(x, y, 0.1f);
+        setSource(SRC_TILT, -y * k, x * k);
     }
 
-    // ------------------------------------------------------------------ game controller
+    // ------------------------------------------------------------------ the game controller
 
     @Override
-    public boolean onGenericMotionEvent(MotionEvent e) {
-        return pad.onMotion(e) || super.onGenericMotionEvent(e);
-    }
-
-    @Override
-    public boolean onKeyDown(int code, KeyEvent e) {
-        return pad.onKeyDown(code, e) || super.onKeyDown(code, e);
-    }
-
-    @Override
-    public boolean onKeyUp(int code, KeyEvent e) {
-        return pad.onKeyUp(code, e) || super.onKeyUp(code, e);
+    public boolean dispatchKeyEvent(KeyEvent e) {
+        // the controller first: a focused button must never eat the D-pad, and B / View never closes the app
+        if (pad.onKey(e))
+            return true;
+        return super.dispatchKeyEvent(e);
     }
 
     @Override
-    public void onPadAction(char letter) {
-        PadButton b = letter == Car.SPEED_TOGGLE ? speedButton : letter == Car.FOOTBALL ? footballButton
-            : letter == Car.MUTE ? soundButton : letter == Car.RADAR ? radarButton : buttonFor.get(letter);
-        if (b != null && b.isShown())
-            b.flash();                                        // show which button the controller pressed
-        if (letter == Car.STOP)
-            stopEverything();
-        else
-            send(letter);
+    public boolean dispatchGenericMotionEvent(MotionEvent e) {
+        if (pad.onMotion(e))
+            return true;
+        return super.dispatchGenericMotionEvent(e);
     }
 
     @Override
-    public void onPadDrive(char direction, float showX, float showY) {
-        if (!tiltOn)
-            stick.show(showX, showY);
-        drive(direction);
+    public void onPadJob(char job, int button) {
+        List<PadButton> l = buttonsFor.get(job);
+        if (job == Car.SPEED_TOGGLE || job == Car.SLOW || job == Car.FULL)
+            speedB.flash();
+        else if (l != null)
+            for (PadButton b : l)
+                if (b.isShown())
+                    b.flash();                             // show which button the controller pressed
+        doJob(job);
     }
 
-    private InputDevice gamepad() {
+    @Override
+    public void onPadButton(int button, boolean down) {
+    }
+
+    @Override
+    public void onPadDrive(float throttle, float steer) {
+        if (style == Layout.TWO_STICKS) {
+            stick.show(0, -throttle);
+            stick2.show(steer, 0);
+        } else if (style == Layout.ONE_STICK) {
+            stick.show(steer, -throttle);
+        }
+        if (!link.isConnected() && (throttle != 0 || steer != 0))
+            notConnected();
+        setSource(SRC_PAD, throttle, steer);
+    }
+
+    @Override
+    public void onPadChanged() {
+    }
+
+    @Override
+    public void onPadDevice(InputDevice d) {
+        settings.loadMap(pad.map, pad.descriptor);        // this controller's own map and dead zone
+        pad.deadZone = settings.padDeadZone(pad.descriptor);
+        findController(false);
+    }
+
+    private InputDevice controller() {
+        if (pad.deviceId >= 0) {
+            InputDevice d = InputDevice.getDevice(pad.deviceId);
+            if (d != null)
+                return d;
+        }
         for (int id : InputDevice.getDeviceIds()) {
             InputDevice d = InputDevice.getDevice(id);
-            if (Gamepad.isGamepad(d))
+            if (ControllerInput.isGamepad(d))
                 return d;
         }
         return null;
     }
 
-    private void findGamepad() {
-        InputDevice d = gamepad();
-        padChip.setText(d == null ? "" : "🎮 " + shortName(d.getName()) + "  ");
-        padChip.setVisibility(d == null ? View.GONE : View.VISIBLE);
+    private void findController(boolean announce) {
+        InputDevice d = controller();
+        if (d != null && pad.deviceId < 0) {
+            pad.deviceId = d.getId();
+            pad.name = d.getName();
+            pad.descriptor = d.getDescriptor();
+            settings.loadMap(pad.map, pad.descriptor);
+            pad.deadZone = settings.padDeadZone(pad.descriptor);
+        }
+        if (d == null)
+            pad.deviceId = -1;
+        boolean roomy = padB.getWidth() == 0 || padB.getWidth() > Ui.dp(this, 100);
+        padB.setIcon(roomy ? PadButton.ICON_NONE : PadButton.ICON_PAD);
+        padB.setText(!roomy ? "" : d == null ? Ui.twoLines("No controller", "tap to connect one") : Ui.twoLines(shortName(d.getName()), "controller"));
+        padB.setOn(d != null);
+        if (announce && d != null)
+            toast("🎮 " + shortName(d.getName()) + " connected - tap its name (top) to see every button");
+        showBadges();
     }
 
     private static String shortName(String n) {
         if (n == null)
-            return "controller";
+            return "Controller";
         n = n.trim();
-        return n.length() > 18 ? n.substring(0, 18) : n;
+        return n.length() > 20 ? n.substring(0, 20) : n;
     }
 
     @Override
     public void onInputDeviceAdded(int id) {
-        findGamepad();
-        if (Gamepad.isGamepad(InputDevice.getDevice(id)))
-            toast("🎮 Controller connected - tap 🎮 for its buttons");
+        if (ControllerInput.isGamepad(InputDevice.getDevice(id)))
+            findController(true);
     }
 
     @Override
     public void onInputDeviceRemoved(int id) {
-        findGamepad();
-        drive(Car.STOP);
+        if (id == pad.deviceId) {
+            pad.lost();                                    // its sticks count as let go: the car stops
+            setSource(SRC_PAD, 0, 0);
+            drive.halt(SystemClock.uptimeMillis());
+            toast("Controller disconnected - the car stopped");
+        }
+        findController(false);
     }
 
     @Override
     public void onInputDeviceChanged(int id) {
-        findGamepad();
+        findController(false);
     }
 
-    // ------------------------------------------------------------------ sending, alerts, help
+    private void rumble(long[] pattern) {
+        ControllerInput.rumble(controller(), pattern);
+    }
 
-    private void send(char c) {
-        if (c == Car.SPEED_TOGGLE) {                 // works even when the car doesn't say its speed
-            c = slowNow ? Car.FULL : Car.SLOW;
-            if (link.isConnected()) {
-                slowNow = !slowNow;
-                showStatus();
-            }
+    // ------------------------------------------------------------------ alerts, help, other screens
+
+    private void alert(String s, long[] pattern) {
+        dialog(null, s);
+        Vibrator v = (Vibrator) getSystemService(VIBRATOR_SERVICE);
+        if (v != null && v.hasVibrator()) {
+            if (Build.VERSION.SDK_INT >= 26)
+                v.vibrate(VibrationEffect.createWaveform(pattern, -1));
+            else
+                v.vibrate(pattern, -1);
         }
-        if (c == Car.RADAR && link.isConnected() && heardStatus && !heardSong)
-            toast("📡 Radar needs the newest car program - upload Robot_Car_Main again");
-        if (!link.isConnected()) {
-            if (SystemClock.uptimeMillis() - lastWarnAt > 2000) {
-                lastWarnAt = SystemClock.uptimeMillis();
-                toast("Not connected - tap 🔗 connect first");
-            }
-            return;
-        }
-        sendRaw(c);
+        rumble(pattern);                                   // the controller rumbles too
     }
 
-    // every letter goes out through here: sent, logged, and shown on the screen
-    private void sendRaw(char c) {
-        if (!link.isConnected())
+    private void dialog(String title, String message) {
+        if (isFinishing())
             return;
-        link.send(c);
-        log("-> " + c);
-        lastSent = c;
-        showLink();
-    }
-
-    // the top line of the car's screen: connected, the last letter sent and what the car said
-    private void showLink() {
-        if (!link.isConnected())
-            return;
-        String said = !heardStatus ? (SystemClock.uptimeMillis() - connectedAt > 3000 ? "  ⚠ OLD CAR PROGRAM" : "")
-            : !heardSong ? "  (no radar: old program)" : "";
-        lcdConn.setText("● CONNECTED" + (lastSent != 0 ? "   sent " + lastSent : "") + said);
-    }
-
-    private void alert(String s, boolean urgent) {
-        new AlertDialog.Builder(this).setMessage(s).setPositiveButton("OK", null).show();
-        long[] pattern = urgent ? new long[]{0, 400, 150, 400, 150, 800} : new long[]{0, 300};
-        buzz((Vibrator) getSystemService(VIBRATOR_SERVICE), pattern);
-        InputDevice d = gamepad();
-        if (d != null)
-            buzz(d.getVibrator(), pattern);                   // the controller rumbles too
-    }
-
-    private static void buzz(Vibrator v, long[] pattern) {
-        if (v == null || !v.hasVibrator())
-            return;
-        if (Build.VERSION.SDK_INT >= 26)
-            v.vibrate(VibrationEffect.createWaveform(pattern, -1));
-        else
-            v.vibrate(pattern, -1);
+        AlertDialog.Builder b = new AlertDialog.Builder(this).setMessage(message).setPositiveButton("OK", null);
+        if (title != null)
+            b.setTitle(title);
+        b.show();
     }
 
     private void toast(String s) {
@@ -751,46 +947,46 @@ public class MainActivity extends Activity implements CarLink.Listener, StickVie
     }
 
     private void showHelp() {
+        String map = pad.map.describe();
         new AlertDialog.Builder(this)
-            .setTitle("Robot Car")
+            .setTitle("Robot Car 4.0")
             .setMessage(
-                "🕹 Stick: drive. Up = forward, diagonals = curve, sides = spin, down = back. Let go = stop.\n"
-                + "📱 tilt: hold the pad and tilt the phone like a steering wheel (tip it away = forward). Let go = stop.\n"
-                + "🐇/🐢 fast / slow.   🛑 STOP: stops everything.\n\n"
-                + "💃 dance - press on the first beat, again ON a beat to line it up. The top shows the song.\n"
-                + "⚽ kick   📯 horn   🚀 turbo\n\n"
-                + "Moves: 🔍 search  😈 chaos  🍩 donut  ↩️ 180°  ⏫/⏬ auto  🅿️ brake\n"
-                + "Play: 🚶 follow me  🥅 goalkeeper  🚨 guard  🎵 music  ✋ gestures  🐶 pet\n"
-                + "Radar: the car stands still and sweeps its sensor; dots = things it sees (up to 1.5 m).\n"
-                + "⚽ football = distance sensor off.   🔊 sound on / off.\n📋 Hold the green screen: the link log (every letter sent and what the car answered).\n\n"
-                + "First time: pair HC-05 in the phone's Bluetooth settings (PIN 1234 or 0000), then tap 🔗 connect.")
+                "DRIVING\n"
+                + "1 STICK: push where you want to go - a little = slowly, all the way = full speed. Let go = stop.\n"
+                + "2 STICKS: left = throttle (up / down), right = steering (left / right), like an RC car.\n"
+                + "TILT: hold the round pad and tilt the phone like a steering wheel. Let go = stop.\n"
+                + "FAST / SLOW: the top speed. STOP stops everything, also a running mode.\n\n"
+                + "With the newest car program the steering is smooth (both sides of the car get their own speed); "
+                + "older programs get the 6 driving letters.\n\n"
+                + "Dance: press on the first beat, again ON a beat to line it up. Kick, horn, turbo (1.5 s full power).\n"
+                + "MOVES: search, chaos, donut, 180°, auto, reverse, brake, horn.\n"
+                + "PLAY: follow me, goalkeeper, guard, music, gestures, pet.\n"
+                + "RADAR: the car stands still and sweeps its sensor; dots = what it sees (up to 1.5 m).\n"
+                + "Hold the green screen: the link log.\n\n"
+                + "GAMESIR CYCLONE 2\n"
+                + "Phone by Bluetooth: hold HOME + A for 2 s until the light flashes YELLOW (Android mode), then pick "
+                + "\"GameSir-Cyclone 2\" in the phone's Bluetooth list. Or plug its 2.4 GHz dongle into the phone with a "
+                + "USB-C adapter (light GREEN). Left stick = throttle, right stick = steering.\n\n"
+                + map + "\n\n"
+                + "The back buttons M1 / M2: set them in the GameSir app to copy any button above.\n"
+                + "Change any button: Settings > Controller buttons.\n\n"
+                + "FIRST TIME: pair HC-05 in the phone's Bluetooth settings (PIN 1234 or 0000), then tap Connect.")
             .setPositiveButton("OK", null)
-            .setNeutralButton("🎮 Controller", (d, w) -> showControllerMap())
+            .setNeutralButton("Controller", (d, w) -> openController())
             .setNegativeButton("Share app", (d, w) -> shareApp())
             .show();
     }
 
-    private void showControllerMap() {
-        new AlertDialog.Builder(this)
-            .setTitle("🎮 Game controller (GameSir Cyclone 2 ...)")
-            .setMessage(
-                "Connect it to this phone (Bluetooth, or its USB dongle with a USB-C adapter). On the Cyclone 2 use the Android / Xbox mode.\n\n"
-                + "DRIVING (like a racing game)\n"
-                + "RT = gas   LT = reverse   left stick = steer\n"
-                + "(or drive with the left stick alone)\n\n"
-                + "BUTTONS\n"
-                + "A turbo   B STOP   X kick   Y dance\n"
-                + "RB fast / slow   L3 (click the stick) horn   R3 brake\n"
-                + "D-pad: ↑ search  → chaos  ↓ donut  ← 180° turn\n"
-                + "START radar   SELECT football (sensor off)\n\n"
-                + "HOLD LB FOR THE PLAY MODES\n"
-                + "LB+A follow me   LB+B guard   LB+X goalkeeper   LB+Y pet\n"
-                + "LB+↑ music   LB+↓ gestures   LB+→ auto forward   LB+← auto backward\n"
-                + "LB+SELECT sound on / off\n\n"
-                + "The controller rumbles when guard mode sees an intruder or the battery is low. "
-                + "The Cyclone 2's back buttons can copy any of these (set them in the GameSir app).")
-            .setPositiveButton("OK", null)
-            .show();
+    private void openSettings() {
+        Intent i = new Intent(this, SettingsActivity.class);
+        i.putExtra("pad", pad.descriptor);
+        i.putExtra("padName", pad.deviceId >= 0 ? pad.name : null);
+        i.putExtra("tilt", tilt.available());
+        startActivity(i);
+    }
+
+    private void openController() {
+        startActivity(new Intent(this, ControllerActivity.class));
     }
 
     private void shareApp() {
@@ -799,6 +995,25 @@ public class MainActivity extends Activity implements CarLink.Listener, StickVie
         i.putExtra(Intent.EXTRA_TEXT, "Robot Car app (Android): " + APP_LINK);
         startActivity(Intent.createChooser(i, "Share the Robot Car app"));
     }
+
+    // ------------------------------------------------------------------ Bluetooth on / off
+
+    private final BroadcastReceiver bluetoothState = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context c, Intent i) {
+            int s = i.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
+            if (s == BluetoothAdapter.STATE_OFF || s == BluetoothAdapter.STATE_TURNING_OFF) {
+                btOff = true;
+                drive.halt(SystemClock.uptimeMillis());
+            } else if (s == BluetoothAdapter.STATE_ON) {
+                btOff = false;
+                String last = settings.device();
+                if (last != null && hasPermission() && !link.isConnected() && !link.isConnecting())
+                    link.connect(last);
+            }
+            showStatus();
+        }
+    };
 
     // ------------------------------------------------------------------ connecting
 
@@ -813,7 +1028,14 @@ public class MainActivity extends Activity implements CarLink.Listener, StickVie
             return;
         }
         if (link.isConnected() || link.isConnecting()) {
-            link.disconnect();
+            new AlertDialog.Builder(this)
+                .setMessage(link.isConnected() ? "Disconnect from the car? It stops." : "Stop connecting?")
+                .setPositiveButton("Disconnect", (d, w) -> {
+                    drive.halt(SystemClock.uptimeMillis());
+                    link.disconnect();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
             return;
         }
         if (!hasPermission()) {
@@ -823,7 +1045,7 @@ public class MainActivity extends Activity implements CarLink.Listener, StickVie
         if (!adapter.isEnabled()) {
             try {
                 startActivityForResult(new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE), ASK_BLUETOOTH_ON);
-            } catch (Exception e) {
+            } catch (RuntimeException e) {
                 toast("Please switch Bluetooth on");
             }
             return;
@@ -838,13 +1060,16 @@ public class MainActivity extends Activity implements CarLink.Listener, StickVie
         if (results.length > 0 && results[0] == PackageManager.PERMISSION_GRANTED)
             onConnectPressed();
         else
-            toast("The app needs the Bluetooth permission to talk to the car");
+            dialog("Bluetooth permission", "The app needs the \"Nearby devices\" permission to talk to the car. "
+                + "If you said no, allow it in the phone's Settings > Apps > Robot Car > Permissions.");
     }
 
     @Override
     protected void onActivityResult(int code, int result, Intent data) {
-        if (code == ASK_BLUETOOTH_ON && adapter != null && adapter.isEnabled())
+        if (code == ASK_BLUETOOTH_ON && adapter != null && adapter.isEnabled()) {
+            btOff = false;
             chooseCar();
+        }
     }
 
     private void chooseCar() {
@@ -877,8 +1102,8 @@ public class MainActivity extends Activity implements CarLink.Listener, StickVie
 
     private void openBluetoothSettings() {
         try {
-            startActivity(new Intent(Settings.ACTION_BLUETOOTH_SETTINGS));
-        } catch (Exception e) {
+            startActivity(new Intent(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS));
+        } catch (RuntimeException e) {
             toast("Open Bluetooth in your phone's settings");
         }
     }
