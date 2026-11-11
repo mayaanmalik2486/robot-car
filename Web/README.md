@@ -27,6 +27,7 @@ all. On an Android phone, use the app instead - it is made for phones.
 | With | How |
 |---|---|
 | **Mouse / finger** | push the **throttle lever** (left) and turn the **steering wheel** (right) - or pick 1 stick at the top |
+| **Head** | the **HEAD** page: turn the blue wheel to point the sensor head left / right (controller: hold LB + right stick) |
 | **Keyboard** | **W A S D** or the arrow keys (they speed up smoothly), **Space** STOP, **Enter** dance, **H** horn, **K** kick, **T** turbo, **B** brake, **R** radar, **M** mute, **F** football, **Q** fast / slow |
 | **GameSir Cyclone 2** | plug its 2.4 GHz dongle into the computer (light **green**, XInput) or use a USB cable, then press any button so the browser sees it. Left stick = throttle, right stick = steering, and every button as in the [app's table](../App/README.md#the-gamesir-cyclone-2) |
 

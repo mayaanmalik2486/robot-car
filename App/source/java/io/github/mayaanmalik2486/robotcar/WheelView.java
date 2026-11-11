@@ -23,17 +23,22 @@ import java.util.Locale;
  * back to straight (and the car goes straight at once). A dial round it shows how far it is
  * turned. It is drawn with shading - a rim, three spokes, two orange grips, a hub - and the
  * shine stays where the light is while the wheel turns under it.
+ *
+ * The same wheel, in cyan, is the HEAD dial: it turns the car's sensor head (the servo), and
+ * it stays where you leave it instead of springing back.
  */
 class WheelView extends View {
 
     interface Listener {
-        /** The wheel was turned: -1 = full left ... 1 = full right (0 = let go). */
-        void onWheel(float steer);
+        /** The wheel was turned: -1 = full left ... 1 = full right (the steering wheel: 0 = let go). */
+        void onWheel(WheelView wheel, float steer);
     }
 
     static final float MAX = 2.2f;                     // how far it turns each way (radians)
 
     private final Listener listener;
+    private final boolean head;                        // the HEAD dial: cyan, stays where it is left
+    private final int accent, accent2;
     private float angle, target;                       // drawn / wanted
     private boolean touching;
     private int pointer = -1;
@@ -43,9 +48,12 @@ class WheelView extends View {
     private final Paint words = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final RectF r = new RectF();
 
-    WheelView(Context c, Listener listener) {
+    WheelView(Context c, Listener listener, boolean head) {
         super(c);
         this.listener = listener;
+        this.head = head;
+        accent = head ? 0xFF14B8C8 : Ui.ACCENT;
+        accent2 = head ? Ui.CYAN : Ui.ACCENT2;
         words.setTextAlign(Paint.Align.CENTER);
     }
 
@@ -101,10 +109,10 @@ class WheelView extends View {
         c.drawArc(r, -90 - maxDeg, maxDeg * 2, false, p);
         if (active) {
             p.setStrokeWidth(dialW * 2.6f);                                 // (its glow)
-            p.setColor(Ui.alpha(Ui.ACCENT, 0.18f));
+            p.setColor(Ui.alpha(accent, 0.18f));
             c.drawArc(r, -90 + Math.min(0, deg), Math.abs(deg), false, p);
             p.setStrokeWidth(dialW);
-            p.setColor(Ui.ACCENT2);
+            p.setColor(accent2);
             c.drawArc(r, -90 + Math.min(0, deg), Math.abs(deg), false, p);
         }
         p.setStyle(Paint.Style.FILL);
@@ -142,12 +150,12 @@ class WheelView extends View {
         if (active) {
             p.setShader(null);
             p.setStrokeWidth(rad * 0.34f);
-            p.setColor(Ui.alpha(Ui.ACCENT, 0.20f));
+            p.setColor(Ui.alpha(accent, 0.20f));
             c.drawArc(r, 180 - 24, 48, false, p);
             c.drawArc(r, -24, 48, false, p);
         }
         p.setStrokeWidth(rad * 0.225f);
-        p.setShader(new LinearGradient(0, -rad, 0, rad, 0xFFFFB56A, 0xFFF25A0A, Shader.TileMode.CLAMP));
+        p.setShader(new LinearGradient(0, -rad, 0, rad, head ? 0xFF8CF5EA : 0xFFFFB56A, head ? 0xFF0E9AAA : 0xFFF25A0A, Shader.TileMode.CLAMP));
         c.drawArc(r, 180 - 24, 48, false, p);
         c.drawArc(r, -24, 48, false, p);
         p.setShader(null);
@@ -160,13 +168,13 @@ class WheelView extends View {
         p.setShader(new RadialGradient(-rad * 0.08f, -rad * 0.1f, rad * 0.34f, 0xFF6E80DA, 0xFF1A2250, Shader.TileMode.CLAMP));
         c.drawCircle(0, 0, rad * 0.28f, p);
         p.setShader(null);
-        p.setColor(Ui.ACCENT);
+        p.setColor(accent);
         c.drawCircle(0, 0, rad * 0.13f, p);
         words.setTypeface(Ui.BOLD);
         words.setFakeBoldText(true);
         words.setColor(0xFFFFFFFF);
         words.setTextSize(rad * 0.15f);
-        c.drawText("RC", 0, rad * 0.055f, words);
+        c.drawText(head ? "EYE" : "RC", 0, rad * 0.055f, words);
         words.setFakeBoldText(false);
         c.restore();
 
@@ -184,15 +192,18 @@ class WheelView extends View {
         words.setTextSize(10.5f * d);
         float y = getHeight() - 4 * d;
         if (Math.abs(angle) > 0.03f) {
-            String value = String.format(Locale.US, "%+d°", Math.round(deg));
-            float nw = words.measureText("STEER  "), vw = words.measureText(value);
+            // (the head goes 50 degrees each way when the wheel goes all the way)
+            String value = head ? Math.abs(Math.round(angle / MAX * 50 / 5f) * 5) + "° " + (angle > 0 ? "RIGHT" : "LEFT")
+                : String.format(Locale.US, "%+d°", Math.round(deg));
+            String name = head ? "HEAD" : "STEER";
+            float nw = words.measureText(name + "  "), vw = words.measureText(value);
             words.setColor(Ui.LABEL);
-            c.drawText("STEER", cx - vw / 2 - words.measureText("  ") / 2, y, words);
-            words.setColor(Ui.ACCENT2);
+            c.drawText(name, cx - vw / 2 - words.measureText("  ") / 2, y, words);
+            words.setColor(accent2);
             c.drawText(value, cx + nw / 2, y, words);
         } else {
             words.setColor(Ui.LABEL);
-            c.drawText("STEER", cx, y, words);
+            c.drawText(head ? "HEAD  STRAIGHT" : "STEER", cx, y, words);
         }
         if (settling)
             postInvalidateOnAnimation();
@@ -233,7 +244,7 @@ class WheelView extends View {
                     performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);     // a bump at the end stop
                 target = angle;
                 invalidate();
-                listener.onWheel(angle / MAX);
+                listener.onWheel(this, angle / MAX);
                 return true;
             }
             case MotionEvent.ACTION_POINTER_UP:
@@ -244,9 +255,14 @@ class WheelView extends View {
             case MotionEvent.ACTION_CANCEL:
                 touching = false;
                 pointer = -1;
+                if (head) {                            // the head dial stays where it is left
+                    target = angle;
+                    invalidate();
+                    return true;
+                }
                 target = 0;                            // (it springs back by itself; the car goes straight at once)
                 invalidate();
-                listener.onWheel(0);
+                listener.onWheel(this, 0);
                 return true;
             default:
                 return true;

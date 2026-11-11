@@ -19,7 +19,7 @@ your phone), **music** (your hand plays notes), **gestures** and a little **robo
 ## 📱 The app
 
 **[⬇ Download the Robot Car app](https://github.com/mayaanmalik2486/robot-car/raw/main/App/RobotCar.apk)**
-(Android, version 4.1). Send that link to anyone. How to install and connect: [App/README.md](App/README.md). It looks and feels like a game controller, shows a live 3D car, steers smoothly with a real steering wheel and throttle lever (or one stick, or tilt), and is mapped to the **GameSir Cyclone 2** - both sticks, both triggers, every button, all changeable, with a live drawing of the controller.
+(Android, version 4.2). Send that link to anyone. How to install and connect: [App/README.md](App/README.md). It looks and feels like a game controller, shows a live 3D car, steers smoothly with a real steering wheel and throttle lever (or one stick, or tilt), and is mapped to the **GameSir Cyclone 2** - both sticks, both triggers, every button, all changeable, with a live drawing of the controller.
 
 **On a computer?** The same remote runs in Chrome or Edge: [Web/README.md](Web/README.md) (open `Web/index.html`) - with the mouse, the keyboard or the controller.
 
@@ -75,10 +75,11 @@ The app has a button for each of these. (Any "Bluetooth RC car" app works too: t
 
 **Smooth steering** (the Robot Car app 4.0 and the web remote): codes above 127 set the speed of each side of the car,
 `128 + 64 x side + speed + 32` (side 0 = left, 1 = right; speed -31 ... 31, 0 = stop). The car still stops for walls, and
-stops by itself if these codes stop coming for 0.6 s (phone out of range). Simple RC apps keep using the letters.
+stops by itself if these codes stop coming for 0.6 s (phone out of range).
+**Sensor head:** the codes 6 ... 26 point the servo (6 = 50 degrees right, 16 = straight ahead, 26 = 50 degrees left). Simple RC apps keep using the letters.
 
 The car answers the app with a status line - `~MODE|1010`: what it is doing, then 1/0 for muted,
-football, slow and low battery - plus `#S:` + its song name and `#V:2` ("I know steering") when the app asks with `?`, and `#R:` radar dots. It also warns by itself when the battery is nearly empty.
+football, slow and low battery - plus `#S:` + its song name and `#V:3` ("I know steering and the head codes") when the app asks with `?`, and `#R:` radar dots. It also warns by itself when the battery is nearly empty.
 
 ## Parts and wiring
 

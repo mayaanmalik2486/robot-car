@@ -110,6 +110,7 @@ class SceneView extends View {
     private String[] flags = new String[0];
     private boolean[] flagGood = new boolean[0];
     private boolean bars;
+    private float headWanted;                   // where the app pointed the sensor head: -1 (right) ... 1 (left)
 
     // ---------- drawing ----------
     private final Paint fill = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -180,6 +181,11 @@ class SceneView extends View {
         this.bars = bars;
     }
 
+    /** Where the app pointed the sensor head, in degrees: -50 (right) ... 50 (left). */
+    void head(float degrees) {
+        headWanted = Math.max(-1, Math.min(1, degrees / 50f));
+    }
+
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
@@ -241,7 +247,7 @@ class SceneView extends View {
         roll += (w * v * 0.012f - roll) * k;
         pitch += (-accel * 0.035f - pitch) * k * 0.6f;
         bob = dance ? (float) Math.abs(Math.sin(time * 6.3f)) * 0.16f : bob * (1 - k);
-        float look = radar && car != null ? (car.radarLook - 5) / 5f : 0;
+        float look = radar && car != null ? (car.radarLook - 5) / 5f : headWanted;
         headAngle += (look * 0.87f - headAngle) * k;
         wall += ((mode.equals("BLOCKED") ? 1 : 0) - wall) * k;
         boolean moving = Math.abs(v) > 0.15f || Math.abs(w) > 0.1f;

@@ -1,4 +1,4 @@
-# Robot Car app (Android) - version 4.1
+# Robot Car app (Android) - version 4.2
 
 <img src="icon-512.png" width="96" align="right" alt="app icon">
 
@@ -12,7 +12,7 @@ There is also a **web version for computers**: [Web/README.md](../Web/README.md)
 
 ## Download
 
-**[⬇ Download RobotCar.apk](https://github.com/mayaanmalik2486/robot-car/raw/main/App/RobotCar.apk)** (version 4.1)
+**[⬇ Download RobotCar.apk](https://github.com/mayaanmalik2486/robot-car/raw/main/App/RobotCar.apk)** (version 4.2)
 
 <img src="../Docs/qr/qr-app-download.png" width="160" align="right" alt="QR: download the app">
 
@@ -26,7 +26,15 @@ Android updates it and keeps nothing broken. Older versions: [Old_APKs](Old_APKs
 Works on Android phones and tablets (Android 5 and newer), and on Chromebooks that run Android apps.
 It does **not** work on iPhones: Apple doesn't let apps talk to HC-05-type Bluetooth modules.
 
-## What's new in 4.1 (the new look)
+## What's new in 4.2
+
+- **HEAD: turn the car's sensor head yourself.** A new fourth page with a blue wheel, like the
+  steering wheel: turn it and the car's "eyes" (the distance sensor on its servo) look left or right,
+  up to 50 degrees each way, and stay there. **LOOK STRAIGHT** (or STOP) centres them. The 3D car's
+  head turns too. On the controller: **hold LB and move the right stick**. It needs the newest car
+  program (upload Robot_Car_Main or a song again).
+
+## What was new in 4.1 (the new look)
 
 - **A live 3D car** in the middle of the screen: its wheels spin, the floor rushes by and turns when
   you steer, it leans in bends, bounces when it dances, sweeps its sensor head in radar mode (with the
@@ -122,6 +130,7 @@ does the same job (A, RT, LB+A, ▲ ...). Switch them off in Settings.
 | **Moves** | search · chaos · donut · 180° · auto (forward, stops at walls) · reverse · smooth brake · horn |
 | **Play** | follow me · goalkeeper · guard (alarm) · music (your hand plays notes) · gestures · pet |
 | **Radar** | the car stands still and sweeps its sensor; the page draws a dot for everything it sees (up to 1.5 m) |
+| **Head** | turn the blue wheel: the sensor head looks left or right (5 degrees a step, up to 50) and stays there. **LOOK STRAIGHT** centres it |
 
 When a mode is running (a dance, search ...), the sticks leave it alone until you let them go and
 push again, or move them clearly - so a thumb resting on a stick can't stop it by accident.
@@ -142,7 +151,7 @@ it connects to the **phone**, and the app passes everything on.
 
 | Button | Job |
 |---|---|
-| **Left stick** up / down | **Throttle**: forward / backward, as fast as you push |
+| **Left stick** up / down | **Throttle**: forward / backward - the further you push, the faster it goes (31 steps) |
 | **Right stick** left / right | **Steering**: with throttle = a bend (backward too), without = spin on the spot |
 | **RT** | Turbo (pull past 60 %; let it back under 30 % to use it again) |
 | **LT** | Smooth brake |
@@ -163,6 +172,7 @@ it connects to the **phone**, and the app passes everything on.
 | **A / B / X / Y** | Follow me / guard / goalkeeper / pet |
 | **D-pad ▲ / ▼** | Music / gestures |
 | **D-pad ◀ / ▶** | Top speed slow / fast |
+| **Right stick** left / right | Turn the sensor head (the stick then does not steer) |
 
 Why this map: it is like an RC-car transmitter - throttle on one thumb, steering on the other, so
 you can do both at once. The triggers are for the things you do *while* driving (turbo, brake), the
@@ -214,7 +224,7 @@ disconnects while the car is driving, the car stops at once.
 |---|---|
 | `~MODE\|1010` | what it is doing (`READY`, `DRIVE`, `BLOCKED`, `DANCE` ...), then 1/0 for muted, football, slow, low battery |
 | `#S:Badtameez Dil` | the song it dances to (answer to `?`) |
-| `#V:2` | "I know steering" (answer to `?`; older programs don't send it) |
+| `#V:3` | "I know steering (2) and the head codes (3)" (answer to `?`; older programs don't send it) |
 | `#R:f42` | radar: direction `a` (50° right) ... `f` (ahead) ... `k` (50° left), distance in cm (999 = nothing) |
 
 ## For developers
@@ -224,7 +234,8 @@ codes above 127 that the car can't confuse with a letter: `128 + 64 x side + spe
 is 0 for left and 1 for right, and speed is -31 ... 31 (0 = stop). While you drive, the app sends a
 side when it changes (at most every 60 ms) and both sides again every 0.2 s; when you let go, both
 sides 0 and then `S`. The car stops by itself if nothing arrives for 0.6 s, and never drives forward
-into a wall. With older car programs it sends the letters instead: only when the direction changes,
+into a wall. The sensor head: the codes 6 ... 26 point it (6 = 50 degrees right, 16 = straight, 26 = 50 degrees left), sent
+only when it changes, at most every 70 ms. With older car programs it sends the letters instead: only when the direction changes,
 at most 18 a second, `Q` / `W` when the stick crosses 65 % / 75 %, and `S` twice when you let go.
 
 **The code** (plain Java, no libraries, `source/java/...`):

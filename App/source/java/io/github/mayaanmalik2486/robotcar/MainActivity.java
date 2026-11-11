@@ -56,7 +56,7 @@ public class MainActivity extends Activity implements CarLink.Listener, StickVie
     static final String APP_LINK = "https://github.com/mayaanmalik2486/robot-car/raw/main/App/RobotCar.apk";
     private static final int ASK_PERMISSION = 1;
     private static final int ASK_BLUETOOTH_ON = 2;
-    private static final int PAGE_MOVES = 0, PAGE_PLAY = 1, PAGE_RADAR = 2;
+    private static final int PAGE_MOVES = 0, PAGE_PLAY = 1, PAGE_RADAR = 2, PAGE_HEAD = 3;
     private static final int SRC_TOUCH = 0, SRC_TILT = 1, SRC_PAD = 2;
     private static final long[] RUMBLE_INTRUDER = {0, 400, 150, 400, 150, 800};
     private static final long[] RUMBLE_BATTERY = {0, 300, 200, 300};
@@ -79,10 +79,12 @@ public class MainActivity extends Activity implements CarLink.Listener, StickVie
     private TextView songChip;
     private SceneView scene;
     private StickView stick;
-    private WheelView wheel;
+    private WheelView wheel, headWheel;
+    private int headCode = 16, headSent = 16;                // where the sensor head should point / was told to (16 = straight)
+    private long headSentAt, headWarnAt;
     private RadarView radar;
-    private final PadButton[] tabs = new PadButton[3];
-    private final View[] pages = new View[3];
+    private final PadButton[] tabs = new PadButton[4];
+    private final View[] pages = new View[4];
     private int page = PAGE_MOVES;
     private final Map<Character, List<PadButton>> buttonsFor = new HashMap<>();   // a job -> its buttons on the screen
 
@@ -220,6 +222,7 @@ public class MainActivity extends Activity implements CarLink.Listener, StickVie
         public void run() {
             long now = SystemClock.uptimeMillis();
             drive.tick(now);
+            sendHead(now);
             showScene(now);
             if (now - lastClock >= 500) {
                 lastClock = now;
@@ -303,13 +306,13 @@ public class MainActivity extends Activity implements CarLink.Listener, StickVie
         });
         board.put(Layout.LCD, scene);
 
-        String[] names = {"MOVES", "PLAY", "RADAR"};
-        String[] tabKeys = {Layout.TAB0, Layout.TAB1, Layout.TAB2};
-        for (int i = 0; i < 3; i++) {
+        String[] names = {"MOVES", "PLAY", "RADAR", "HEAD"};
+        String[] tabKeys = {Layout.TAB0, Layout.TAB1, Layout.TAB2, Layout.TAB3};
+        for (int i = 0; i < 4; i++) {
             final int p = i;
-            tabs[i] = key(names[i], 15);
+            tabs[i] = key(names[i], 13);
             tabs[i].setFlat(true);
-            tabs[i].setLetterSpacing(0.12f);
+            tabs[i].setLetterSpacing(0.08f);
             tabs[i].setTextColor(Ui.LABEL);
             tabs[i].setOnClickListener(v -> showPage(p));
             board.put(tabKeys[i], tabs[i]);
@@ -333,13 +336,20 @@ public class MainActivity extends Activity implements CarLink.Listener, StickVie
         radarB.setOnClickListener(v -> doJob(Car.RADAR));
         addJob(Car.RADAR, radarB);
         pages[PAGE_RADAR] = new Boards.RadarPage(this, radar, radarB);
+        // the HEAD page: a wheel that turns the sensor head, and a button that points it straight again
+        headWheel = new WheelView(this, this, true);
+        PadButton centre = key("LOOK STRAIGHT", 14);
+        centre.setHue(Ui.HUE_TEAL);
+        centre.setDarkText(true);
+        centre.setOnClickListener(v -> setHead(0, true));
+        pages[PAGE_HEAD] = new Boards.RadarPage(this, headWheel, centre);
         for (View v : pages)
             stack.addView(v, new FrameLayout.LayoutParams(-1, -1));
         board.put(Layout.PAGES, stack);
 
         stick = new StickView(this, this);
         board.put(Layout.STICK, stick);
-        wheel = new WheelView(this, this);
+        wheel = new WheelView(this, this, false);
         board.put(Layout.STICK2, wheel);
 
         stopB = action("STOP", Car.STOP, Ui.HUE_STOP, 21, false);
@@ -401,7 +411,7 @@ public class MainActivity extends Activity implements CarLink.Listener, StickVie
         boolean changed = p != page || pages[p].getVisibility() != View.VISIBLE;
         page = p;
         board.setTab(p);
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 4; i++) {
             pages[i].setVisibility(i == p ? View.VISIBLE : View.GONE);
             tabs[i].setOn(i == p);
         }
@@ -591,6 +601,7 @@ public class MainActivity extends Activity implements CarLink.Listener, StickVie
             drive.reset();
             drive.setSteering(false);
             heardStatus = heardSong = false;
+            headCode = headSent = 16;
             lastSent = "";
             connectedAt = SystemClock.uptimeMillis();
             log("(connected)");
@@ -756,6 +767,9 @@ public class MainActivity extends Activity implements CarLink.Listener, StickVie
         }
         switch (job) {
             case Car.STOP:
+                headCode = headSent = 16;                    // (STOP centres the head on the car too)
+                scene.head(0);
+                headWheel.show(0);
                 if (!link.isConnected()) {
                     notConnected();
                     return;
@@ -856,9 +870,48 @@ public class MainActivity extends Activity implements CarLink.Listener, StickVie
     }
 
     @Override
-    public void onWheel(float steer) {
+    public void onWheel(WheelView w, float steer) {
+        if (w == headWheel) {                                // the HEAD dial: wheel right = look right
+            setHead(-steer * 50, false);
+            return;
+        }
         touchSteer = DriveLogic.deadZone(steer, settings.touchDeadZone());
         setSource(SRC_TOUCH, touchThrottle, touchSteer);
+    }
+
+    // ------------------------------------------------------------------ the sensor head
+
+    /** Points the sensor head: degrees -50 (right) ... 50 (left). show = also turn the dial there. */
+    private void setHead(float degrees, boolean show) {
+        headCode = Car.head(degrees);
+        scene.head((headCode - 16) * 5);
+        if (show)
+            headWheel.show(-(headCode - 16) / 10f);
+        long now = SystemClock.uptimeMillis();
+        if (!link.isConnected()) {
+            notConnected();
+        } else if (heardStatus && !car.head && now - headWarnAt > 6000) {
+            headWarnAt = now;
+            toast("Turning the head needs the newest car program - upload Robot_Car_Main again");
+        }
+    }
+
+    // the head's code goes out when it changed, at most every 70 ms (so the car is never flooded)
+    private void sendHead(long now) {
+        if (headCode == headSent || !link.isConnected() || !car.head || now - headSentAt < 70)
+            return;
+        headSent = headCode;
+        headSentAt = now;
+        link.send((char) headCode);
+        int deg = (headCode - 16) * 5;
+        log("-> head " + (deg == 0 ? "straight" : Math.abs(deg) + (deg > 0 ? " left" : " right")));
+    }
+
+    @Override
+    public void onPadHead(float turn) {
+        setHead(-turn * 50, true);                           // SHIFT + right stick
+        if (page != PAGE_HEAD)
+            showPage(PAGE_HEAD);
     }
 
     @Override
@@ -1033,7 +1086,7 @@ public class MainActivity extends Activity implements CarLink.Listener, StickVie
     private void showHelp() {
         String map = pad.map.describe();
         new AlertDialog.Builder(this)
-            .setTitle("Robot Car 4.1")
+            .setTitle("Robot Car 4.2")
             .setMessage(
                 "DRIVING\n"
                 + "WHEEL: push the lever on the left up for forward, down for backward - a little = slowly. Turn the "
@@ -1047,6 +1100,8 @@ public class MainActivity extends Activity implements CarLink.Listener, StickVie
                 + "MOVES: search, chaos, donut, 180°, auto, reverse, brake, horn.\n"
                 + "PLAY: follow me, goalkeeper, guard, music, gestures, pet.\n"
                 + "RADAR: the car stands still and sweeps its sensor; dots = what it sees (up to 1.5 m).\n"
+                + "HEAD: turn the blue wheel to point the car's sensor head (its \"eyes\") left or right - it stays there. "
+                + "On the controller: hold LB and move the right stick.\n"
                 + "The 3D car shows what the real one does. Hold it: the link log.\n\n"
                 + "GAMESIR CYCLONE 2\n"
                 + "Phone by Bluetooth: hold HOME + A for 2 s until the light flashes YELLOW (Android mode), then pick "

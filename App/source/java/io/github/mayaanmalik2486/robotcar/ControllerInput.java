@@ -24,7 +24,8 @@ import android.view.MotionEvent;
  * </pre>
  * The D-pad arrives as keys on some, as a "hat" axis on others (and as both on a few): PadState
  * counts every press once. The sticks: left = throttle (up / down), right = steering
- * (left / right), with a round dead zone. Buttons go through the ControllerMap.
+ * (left / right), with a round dead zone. Hold SHIFT (LB) and the right stick points the
+ * sensor head instead. Buttons go through the ControllerMap.
  * The back buttons M1 / M2 have no code of their own: in the GameSir app you set them to
  * copy another button, and then they work like that button.
  */
@@ -39,6 +40,9 @@ final class ControllerInput implements PadState.Listener {
 
         /** A button went down or up (always - also on the controller screen, where buttons have no jobs). */
         void onPadButton(int button, boolean down);
+
+        /** SHIFT + the right stick: point the sensor head, -1 (left) ... 1 (right). */
+        void onPadHead(float turn);
 
         /** Any change at all (for the live drawing). */
         void onPadChanged();
@@ -186,8 +190,10 @@ final class ControllerInput implements PadState.Listener {
         return -ly * k;
     }
 
-    /** The steering after the dead zone (right = positive). */
+    /** The steering after the dead zone (right = positive). With SHIFT held the right stick turns the head instead. */
     float steer() {
+        if (shiftHeld())
+            return 0;
         float k = DriveLogic.deadZone(rx, ry, deadZone);
         float s = rx * k;
         if (s == 0 && leftSteers)
@@ -195,7 +201,17 @@ final class ControllerInput implements PadState.Listener {
         return s;
     }
 
+    private float sentHead;
+
     private void drive() {
+        if (shiftHeld() && enabled) {                       // SHIFT + right stick = the sensor head
+            float h = rx * DriveLogic.deadZone(rx, ry, deadZone);
+            if (h != sentHead) {
+                sentHead = h;
+                if (h != 0)
+                    listener.onPadHead(h);
+            }
+        }
         float t = throttle(), s = steer();
         if (t == sentThrottle && s == sentSteer)
             return;                                         // (resting sticks: nothing new)

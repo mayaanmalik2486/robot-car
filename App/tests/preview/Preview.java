@@ -48,6 +48,8 @@ public final class Preview {
         render(out, "upright-blocked", 600, 900, Layout.TWO_STICKS, "blocked");
         render(out, "phone-not-connected", 800, 400, Layout.TWO_STICKS, "off");
         render(out, "phone-tilt", 760, 360, Layout.TILT, "ready");
+        render(out, "phone-head", 800, 400, Layout.TWO_STICKS, "head");
+        render(out, "small-phone-head", 640, 360, Layout.TWO_STICKS, "head");
         controller(out);
         controls();
         System.out.println(bad == 0 ? "\nALL " + checks + " PREVIEW CHECKS PASSED - pictures in " + out : "\n" + bad + " PREVIEW CHECK(S) FAILED");
@@ -117,9 +119,9 @@ public final class Preview {
         scene.setCar(car);
         board.put(Layout.LCD, scene);
 
-        int page = state.equals("radar") ? 2 : state.equals("dance") ? 1 : 0;
-        String[] names = {"MOVES", "PLAY", "RADAR"}, tabKeys = {Layout.TAB0, Layout.TAB1, Layout.TAB2};
-        for (int i = 0; i < 3; i++) {
+        int page = state.equals("radar") ? 2 : state.equals("dance") ? 1 : state.equals("head") ? 3 : 0;
+        String[] names = {"MOVES", "PLAY", "RADAR", "HEAD"}, tabKeys = {Layout.TAB0, Layout.TAB1, Layout.TAB2, Layout.TAB3};
+        for (int i = 0; i < 4; i++) {
             PadButton t = key(c, names[i], 15);
             t.setFlat(true);
             t.setLetterSpacing(0.12f);
@@ -131,7 +133,7 @@ public final class Preview {
 
         List<PadButton> modes = new ArrayList<>();
         FrameLayout stack = new FrameLayout(c);
-        View[] pages = new View[3];
+        View[] pages = new View[4];
         pages[0] = grid(c, new Object[][]{{"🔍", "Search", 210}, {"😈", "Chaos", 275}, {"🍩", "Donut", 330}, {"↩", "180°", 186},
             {"⏫", "Auto", 145}, {"⏬", "Reverse", 38}, {"🅿", "Brake", 355}, {"📯", "Horn", 48}}, modes);
         pages[1] = grid(c, new Object[][]{{"🚶", "Follow me", 150}, {"🥅", "Goalkeeper", 215}, {"🚨", "Guard", 2},
@@ -142,7 +144,16 @@ public final class Preview {
         radarB.setHue(Ui.HUE_TEAL);
         radarB.setDarkText(true);
         pages[2] = new Boards.RadarPage(c, radar, radarB);
-        for (int i = 0; i < 3; i++) {
+        WheelView headWheel = new WheelView(c, (wv, s) -> { }, true);
+        PadButton centre = key(c, "LOOK STRAIGHT", 14);
+        centre.setHue(Ui.HUE_TEAL);
+        centre.setDarkText(true);
+        pages[3] = new Boards.RadarPage(c, headWheel, centre);
+        if (state.equals("head")) {
+            headWheel.show(0.6f);
+            scene.head(-30);
+        }
+        for (int i = 0; i < 4; i++) {
             stack.addView(pages[i]);
             pages[i].setVisibility(i == page ? View.VISIBLE : View.GONE);
         }
@@ -163,7 +174,7 @@ public final class Preview {
         stick.setKind(style == Layout.TWO_STICKS ? StickView.LEVER : StickView.STICK);
         stick.setTiltMode(style == Layout.TILT);
         board.put(Layout.STICK, stick);
-        WheelView wheel = new WheelView(c, steer -> got[2] = steer);
+        WheelView wheel = new WheelView(c, (wv, steer) -> got[2] = steer, false);
         board.put(Layout.STICK2, wheel);
 
         PadButton stop = action(c, "STOP", Ui.HUE_STOP, 21, false);
@@ -253,6 +264,7 @@ public final class Preview {
             @Override public void onPadDrive(float throttle, float steer) { }
             @Override public void onPadChanged() { }
             @Override public void onPadDevice(android.view.InputDevice d) { }
+            @Override public void onPadHead(float turn) { }
         });
         pad.enabled = false;
         pad.onKey(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_A));
@@ -307,10 +319,10 @@ public final class Preview {
         lever.onTouchEvent(new MotionEvent(MotionEvent.ACTION_UP, 168, cy + 60));
         check("lever: let go = 0 at once", got[1] == 0, "" + got[1]);
 
-        WheelView wheel = new WheelView(c, s -> {
+        WheelView wheel = new WheelView(c, (wv, s) -> {
             got[2] = s;
             steers.add(s);
-        });
+        }, false);
         wheel.layout(0, 0, 600, 600);
         float wx = 300, wy = (600 - 44) / 2f, rad = 200;
         wheel.onTouchEvent(new MotionEvent(MotionEvent.ACTION_DOWN, wx, wy - rad));          // grab it at the top

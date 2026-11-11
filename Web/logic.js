@@ -13,6 +13,8 @@
       speed = Math.max(-31, Math.min(31, speed));
       return 0x80 | (rightSide ? 0x40 : 0) | (speed + 32);
     },
+    /** The code that points the sensor head: degrees -50 (right) ... 50 (left), in steps of 5. */
+    head(degrees) { return 16 + Math.max(-10, Math.min(10, Math.round(degrees / 5))); },
     takesTheWheels(c) { return 'I12J34UMKANEPOkuT'.indexOf(c) >= 0; },
     direction(x, y) {
       if (Math.hypot(x, y) < 0.35) return 'S';
@@ -255,7 +257,7 @@
   class CarState {
     constructor() { this.reset(); }
     reset() {
-      this.mode = ''; this.song = ''; this.steers = false; this.muted = this.football = this.slow = this.batteryLow = false;
+      this.mode = ''; this.song = ''; this.steers = false; this.head = false; this.muted = this.football = this.slow = this.batteryLow = false;
       this.radarCm = new Array(11).fill(999); this.radarAt = new Array(11).fill(0); this.radarLook = 5; this.modeSince = 0;
     }
     read(line, now) {
@@ -269,7 +271,7 @@
         return 'status';
       }
       if (line.startsWith('#S:')) { this.song = line.slice(3).trim(); return 'song'; }
-      if (line.startsWith('#V:')) { const v = parseInt(line.slice(3), 10); if (isNaN(v)) return 'nothing'; this.steers = v >= 2; return 'version'; }
+      if (line.startsWith('#V:')) { const v = parseInt(line.slice(3), 10); if (isNaN(v)) return 'nothing'; this.steers = v >= 2; this.head = v >= 3; return 'version'; }
       if (line.startsWith('#R:') && line.length >= 5) {
         const k = line.charCodeAt(3) - 97;
         const cm = parseInt(line.slice(4), 10);
@@ -365,10 +367,11 @@
   }
 
   function tabs(out, x, y, w, h) {
-    const each = div(w - 2 * GAP, 3);
+    const each = div(w - 3 * GAP, 4);
     out.tab0 = box(x, y, each, h);
     out.tab1 = box(x + each + GAP, y, each, h);
-    out.tab2 = box(x + 2 * (each + GAP), y, w - 2 * (each + GAP), h);
+    out.tab2 = box(x + 2 * (each + GAP), y, each, h);
+    out.tab3 = box(x + 3 * (each + GAP), y, w - 3 * (each + GAP), h);
   }
 
   function diamond(out, x, y, w, h) {

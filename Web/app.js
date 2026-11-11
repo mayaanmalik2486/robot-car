@@ -169,7 +169,10 @@
     if (!connected && DEMO[job]) { demoMode = DEMO[job]; demoUntil = now() + (job === 'T' ? 1500 : job === 'U' ? 700 : 3500); }
     if (!connected && job === 'S') { demoUntil = 0; }
     switch (job) {
-      case 'S': if (!connected) return notConnected(); drive.stopAll(now()); break;
+      case 'S':
+        headCode = headSent = 16; if (ctl[2].id === null) ctl[2].ang = 0;      // (STOP centres the head on the car too)
+        if (!connected) return notConnected();
+        drive.stopAll(now()); break;
       case '%': setSlowTop(!S.slowTop); break;
       case 'Q': setSlowTop(true); break;
       case 'W': setSlowTop(false); break;
@@ -186,6 +189,24 @@
     drive.setSlowTop(slow);
     if (connected) sendLetter(slow ? 'Q' : 'W');
     render();
+  }
+
+  // ------------------------------------------------------------------ the sensor head
+  let headCode = 16, headSent = 16, headSentAt = 0, headWarnAt = 0;      // 16 = straight; 6 = 50 degrees right ... 26 = 50 degrees left
+  /** Points the sensor head: degrees -50 (right) ... 50 (left). show = also turn the dial there. */
+  function setHead(degrees, show) {
+    headCode = Car.head(degrees);
+    if (show && ctl[2].id === null) ctl[2].ang = -(headCode - 16) / 10 * WHEEL_MAX;
+    if (!connected) notConnected();
+    else if (heardStatus && !car.head && now() - headWarnAt > 6000) { headWarnAt = now(); toast('Turning the head needs the newest car program - upload Robot_Car_Main again'); }
+  }
+  // its code goes out when it changed, at most every 70 ms (so the car is never flooded)
+  function sendHead(t) {
+    if (headCode === headSent || !connected || !car.head || t - headSentAt < 70) return;
+    headSent = headCode; headSentAt = t;
+    sendByte(headCode);
+    const deg = (headCode - 16) * 5;
+    addLog('-> head ' + (deg === 0 ? 'straight' : Math.abs(deg) + (deg > 0 ? ' left' : ' right')));
   }
 
   // ------------------------------------------------------------------ driving: touch / mouse, keyboard, controller
@@ -259,7 +280,10 @@
     const kl = DriveLogic.deadZone2(pad.lx, pad.ly, S.padDead), kr = DriveLogic.deadZone2(pad.rx, pad.ry, S.padDead);
     const t = Math.fround(-pad.ly * kl);
     let s = Math.fround(pad.rx * kr);
-    if (s === 0 && S.leftSteers) s = Math.fround(pad.lx * kl);
+    if (shiftHeld()) {                                       // SHIFT (LB) + the right stick = the sensor head
+      if (s !== 0 && !$('controller').open) { setHead(-s * 50, true); if (page !== 3) showPage(3); }
+      s = 0;
+    } else if (s === 0 && S.leftSteers) s = Math.fround(pad.lx * kl);
     if (t !== pad.t || s !== pad.s) {
       pad.t = t; pad.s = s;
       if (!$('controller').open) setSource(SRC_PAD, t, s);
@@ -344,7 +368,7 @@
 
   put('tabtrack', Object.assign(document.createElement('div'), { id: 'tabtrack' }));
   put('tabglow', Object.assign(document.createElement('div'), { id: 'tabglow' }));
-  ['MOVES', 'PLAY', 'RADAR'].forEach((n, i) => key('tab' + i, `<span>${n}</span>`, () => showPage(i), 'tab'));
+  ['MOVES', 'PLAY', 'RADAR', 'HEAD'].forEach((n, i) => key('tab' + i, `<span>${n}</span>`, () => showPage(i), 'tab'));
   put('pages', document.createElement('div'));
   const PAGES = [
     [['🔍', 'Search', 'I', 210], ['😈', 'Chaos', '1', 275], ['🍩', 'Donut', '3', 330], ['↩️', '180°', 'U', 186], ['⏫', 'Auto', '2', 145], ['⏬', 'Reverse', 'J', 38], ['🅿️', 'Brake', 'u', 355], ['📯', 'Horn', 'Y', 48]],
@@ -377,6 +401,19 @@
   el.pages.appendChild(radarPage);
   pageEls.push(radarPage);
 
+  // the HEAD page: a wheel that turns the sensor head, and a button that points it straight again
+  const headPage = document.createElement('div');
+  headPage.className = 'page';
+  el.headWheel = document.createElement('canvas');
+  headPage.appendChild(el.headWheel);
+  el.headB = document.createElement('button');
+  el.headB.className = 'key c dark-text'; el.headB.style.setProperty('--h', 172); el.headB.style.setProperty('--k', 1);
+  el.headB.innerHTML = '<span>Look</span><span>straight</span>';
+  el.headB.addEventListener('click', () => setHead(0, true));
+  headPage.appendChild(el.headB);
+  el.pages.appendChild(headPage);
+  pageEls.push(headPage);
+
   put('stick', document.createElement('canvas'));
   put('stick2', document.createElement('canvas'));
   [['stop', 'STOP', 'S', 'c stop', 350], ['dance', 'Dance', '4', 'c', 325], ['kick', 'Kick', 'k', 'c', 215], ['horn', 'Horn', 'Y', 'c dark-text', 46], ['turbo', 'Turbo', 'T', 'c dark-text', 172]]
@@ -386,7 +423,7 @@
   function showPage(i) {
     page = i;
     pageEls.forEach((p, k) => p.classList.toggle('show', k === i));
-    [0, 1, 2].forEach((k) => el['tab' + k].classList.toggle('on', k === i));
+    [0, 1, 2, 3].forEach((k) => el['tab' + k].classList.toggle('on', k === i));
     layout();
   }
 
@@ -412,9 +449,9 @@
   function layout() {
     const W = window.innerWidth, H = window.innerHeight;
     boxes = Layout.screen(W, H, S.style);
-    for (const n of ['connect', 'song', 'pad', 'speed', 'style', 'settings', 'help', 'lcd', 'tab0', 'tab1', 'tab2', 'pages', 'stick', 'stick2', 'stop', 'dance', 'kick', 'horn', 'turbo'])
+    for (const n of ['connect', 'song', 'pad', 'speed', 'style', 'settings', 'help', 'lcd', 'tab0', 'tab1', 'tab2', 'tab3', 'pages', 'stick', 'stick2', 'stop', 'dance', 'kick', 'horn', 'turbo'])
       place(el[n], boxes[n]);
-    const t0 = boxes.tab0, t2 = boxes.tab2, tc = boxes['tab' + page];
+    const t0 = boxes.tab0, t2 = boxes.tab3, tc = boxes['tab' + page];
     place(el.tabtrack, { x: t0.x, y: t0.y, w: t2.x + t2.w - t0.x, h: t0.h });
     place(el.tabglow, { x: tc.x + 4, y: tc.y + 4, w: tc.w - 8, h: tc.h - 8 });
     for (const n of ['dance', 'kick', 'horn', 'turbo']) el[n].classList.toggle('round', Math.abs(boxes[n].w - boxes[n].h) < 4);
@@ -434,8 +471,8 @@
       } else {
         const side = P.w > P.h * 1.6;
         const bw = side ? Layout.RADAR_BUTTON : P.w, bh = side ? P.h : 48;
-        place(el.radar, { x: 0, y: 0, w: side ? P.w - bw - 8 : P.w, h: side ? P.h : P.h - bh - 8 });
-        place(el.radarB, { x: P.w - bw, y: P.h - bh, w: bw, h: bh });
+        place(i === 2 ? el.radar : el.headWheel, { x: 0, y: 0, w: side ? P.w - bw - 8 : P.w, h: side ? P.h : P.h - bh - 8 });
+        place(i === 2 ? el.radarB : el.headB, { x: P.w - bw, y: P.h - bh, w: bw, h: bh });
       }
     });
     el.pad.innerHTML = boxes.pad && boxes.pad.w > 100 ? '' : icons.pad;
@@ -504,7 +541,7 @@
     else { DriveLogic.mix(wanted[0], wanted[1], S.slowTop, S.feel, mixOut); l = mixOut[0] / 31; r = mixOut[1] / 31; }
     const mode = sceneMode();
     const t = now();
-    scene.update(dt / 1000, l, r, mode, (car.radarLook - 5) / 5);
+    scene.update(dt / 1000, l, r, mode, (car.radarLook - 5) / 5, (headCode - 16) / 10);
 
     g.setTransform(d, 0, 0, d, 0, 0);
     g.clearRect(0, 0, w, h);
@@ -663,6 +700,7 @@
   const ctl = [
     { c: el.stick, x: 0, y: 0, id: null, shownY: 0, shownX: 0 },
     { c: el.stick2, x: 0, ang: 0, id: null, last: 0 },
+    { c: el.headWheel, ang: 0, id: null, last: 0, head: true },       // the HEAD dial: it stays where you leave it
   ];
   let touchT = 0, touchS = 0;
   const wheelMode = () => S.style === 1;
@@ -700,9 +738,8 @@
     st.c.addEventListener('pointercancel', up);
   })();
 
-  // the steering wheel: grab it anywhere and turn
-  (() => {
-    const st = ctl[1];
+  // the steering wheel and the HEAD dial: grab one anywhere and turn
+  [ctl[1], ctl[2]].forEach((st) => {
     const angleAt = (e) => { const r = st.c.getBoundingClientRect(), geo = wheelGeo(st.c); return Math.atan2(e.clientY - r.top - geo.cy, e.clientX - r.left - geo.cx); };
     st.c.addEventListener('pointerdown', (e) => { st.id = e.pointerId; try { st.c.setPointerCapture(e.pointerId); } catch (x) { /* */ } st.last = angleAt(e); });
     st.c.addEventListener('pointermove', (e) => {
@@ -712,13 +749,19 @@
       if (d > Math.PI) d -= TAU; if (d < -Math.PI) d += TAU;
       st.last = a;
       st.ang = Math.max(-WHEEL_MAX, Math.min(WHEEL_MAX, st.ang + d));
+      if (st.head) { setHead(-st.ang / WHEEL_MAX * 50, false); return; }      // wheel right = look right
       touchS = DriveLogic.deadZone1(st.ang / WHEEL_MAX, S.touchDead);
       setSource(SRC_TOUCH, touchT, touchS);
     });
-    const up = (e) => { if (st.id !== e.pointerId) return; st.id = null; touchS = 0; setSource(SRC_TOUCH, touchT, touchS); };
+    const up = (e) => {
+      if (st.id !== e.pointerId) return;
+      st.id = null;
+      if (st.head) return;
+      touchS = 0; setSource(SRC_TOUCH, touchT, touchS);
+    };
     st.c.addEventListener('pointerup', up);
     st.c.addEventListener('pointercancel', up);
-  })();
+  });
 
   function stickGeo(c) { const w = c.clientWidth, h = c.clientHeight - 22; return { cx: w / 2, cy: h / 2, r: Math.min(w, h) / 2 * 0.9 }; }
   function leverGeo(c) {
@@ -744,7 +787,8 @@
   }
 
   function drawControls() {
-    if (wheelMode()) { drawLever(); drawWheel(); } else drawStick();
+    if (wheelMode()) { drawLever(); drawWheel(ctl[1]); } else drawStick();
+    if (page === 3) drawWheel(ctl[2]);
   }
   function begin(c) {
     const g = c.getContext('2d'), d = dpr(), w = c.width / d, h = c.height / d;
@@ -752,10 +796,10 @@
     g.clearRect(0, 0, w, h);
     return { g, w, h };
   }
-  function label(g, text, value, cx, y) {
+  function label(g, text, value, cx, y, color) {
     g.font = `600 10.5px ${MONO}`; g.textAlign = 'center'; g.textBaseline = 'alphabetic';
     g.fillStyle = C.label; g.fillText(text + (value ? '  ' : ''), cx - (value ? g.measureText(value).width / 2 : 0), y);
-    if (value) { g.fillStyle = C.accent2; g.fillText(value, cx + g.measureText(text + '  ').width / 2, y); }
+    if (value) { g.fillStyle = color || C.accent2; g.fillText(value, cx + g.measureText(text + '  ').width / 2, y); }
   }
 
   function drawLever() {
@@ -800,16 +844,17 @@
     label(g, 'THROTTLE', Math.abs(st.y) > 0.02 ? sign(Math.round(-st.y * 100)) + '%' : '', cx, h - 4);
   }
 
-  function drawWheel() {
-    const st = ctl[1], { g, w, h } = begin(st.c);
+  function drawWheel(st) {
+    const { g, w, h } = begin(st.c);
     if (!w) return;
+    const A = st.head ? '#14B8C8' : C.accent, A2 = st.head ? C.cyan : C.accent2;
     const { cx, cy, r } = wheelGeo(st.c);
     const active = st.id !== null || Math.abs(st.ang) > 0.03;
     // the dial behind the wheel: how far it is turned
     g.lineCap = 'round'; g.lineWidth = Math.max(4, r * 0.05);
     g.strokeStyle = 'rgba(255,255,255,.09)'; g.beginPath(); g.arc(cx, cy, r * 1.12, -Math.PI / 2 - WHEEL_MAX, -Math.PI / 2 + WHEEL_MAX); g.stroke();
     if (active) {
-      g.strokeStyle = C.accent2; g.shadowColor = C.accent; g.shadowBlur = 16;
+      g.strokeStyle = A2; g.shadowColor = A; g.shadowBlur = 16;
       g.beginPath(); g.arc(cx, cy, r * 1.12, -Math.PI / 2 + Math.min(0, st.ang), -Math.PI / 2 + Math.max(0, st.ang)); g.stroke(); g.shadowBlur = 0;
     }
     g.fillStyle = 'rgba(255,255,255,.6)'; g.beginPath(); g.arc(cx, cy - r * 1.12, g.lineWidth * 0.7, 0, TAU); g.fill();
@@ -835,9 +880,9 @@
     g.strokeStyle = rim; g.lineWidth = r * 0.22; g.beginPath(); g.arc(0, 0, r * 0.87, 0, TAU); g.stroke();
     // the two grips, and the mark on top
     const grip = g.createLinearGradient(0, -r, 0, r);
-    grip.addColorStop(0, '#FFB56A'); grip.addColorStop(1, '#F25A0A');
-    g.strokeStyle = active ? grip : '#FF7A1A'; g.lineWidth = r * 0.225; g.lineCap = 'butt';
-    if (active) { g.shadowColor = C.accent; g.shadowBlur = 18; }
+    grip.addColorStop(0, st.head ? '#8CF5EA' : '#FFB56A'); grip.addColorStop(1, st.head ? '#0E9AAA' : '#F25A0A');
+    g.strokeStyle = grip; g.lineWidth = r * 0.225; g.lineCap = 'butt';
+    if (active) { g.shadowColor = A; g.shadowBlur = 18; }
     g.beginPath(); g.arc(0, 0, r * 0.87, Math.PI - 0.42, Math.PI + 0.42); g.stroke();
     g.beginPath(); g.arc(0, 0, r * 0.87, -0.42, 0.42); g.stroke();
     g.shadowBlur = 0;
@@ -847,13 +892,16 @@
     hub.addColorStop(0, '#6E80DA'); hub.addColorStop(1, '#1A2250');
     g.fillStyle = '#0A0F28'; g.beginPath(); g.arc(0, r * 0.025, r * 0.3, 0, TAU); g.fill();
     g.fillStyle = hub; g.beginPath(); g.arc(0, 0, r * 0.28, 0, TAU); g.fill();
-    g.fillStyle = C.accent; g.beginPath(); g.arc(0, 0, r * 0.13, 0, TAU); g.fill();
-    g.fillStyle = '#fff'; g.font = `900 ${r * 0.15}px ${FONT}`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('RC', 0, r * 0.012);
+    g.fillStyle = A; g.beginPath(); g.arc(0, 0, r * 0.13, 0, TAU); g.fill();
+    g.fillStyle = '#fff'; g.font = `900 ${r * (st.head ? 0.11 : 0.15)}px ${FONT}`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(st.head ? 'EYE' : 'RC', 0, r * 0.012);
     g.restore();
     // the shine (it stays where the light is, while the wheel turns under it)
     g.strokeStyle = 'rgba(255,255,255,.30)'; g.lineWidth = r * 0.035; g.lineCap = 'round';
     g.beginPath(); g.arc(cx, cy, r * 0.94, -Math.PI * 0.86, -Math.PI * 0.58); g.stroke();
-    label(g, 'STEER', Math.abs(st.ang) > 0.03 ? sign(Math.round(st.ang * 180 / Math.PI)) + '°' : '', cx, h - 4);
+    if (st.head) {
+      const deg = Math.abs((headCode - 16) * 5);
+      label(g, deg ? 'HEAD' : 'HEAD  STRAIGHT', deg ? deg + '° ' + (headCode < 16 ? 'RIGHT' : 'LEFT') : '', cx, h - 4, C.cyan);
+    } else label(g, 'STEER', Math.abs(st.ang) > 0.03 ? sign(Math.round(st.ang * 180 / Math.PI)) + '°' : '', cx, h - 4);
   }
 
   function drawStick() {
@@ -910,6 +958,8 @@
       Then click <b>Connect</b> and pick it (it may be called "HC-05" or a COM port). Works in Chrome and Edge.</p>
       <p><b>Drive:</b> the <b>lever</b> on the left is the throttle (up = forward, down = backward), the <b>steering wheel</b> on the right steers - grab it and turn.
       Let go and both spring back. Or pick <b>1 stick</b> (top). The 3D car shows what the real one does.</p>
+      <p><b>Head:</b> on the <b>HEAD</b> page, turn the blue wheel to point the car's sensor head (its "eyes") left or right - it stays there.
+      On a controller: hold <b>LB</b> and move the right stick.</p>
       <p><b>Keyboard:</b> <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or the arrows, <kbd>Space</kbd> STOP, <kbd>Enter</kbd> dance, <kbd>H</kbd> horn, <kbd>K</kbd> kick,
       <kbd>T</kbd> turbo, <kbd>B</kbd> brake, <kbd>R</kbd> radar, <kbd>M</kbd> mute, <kbd>F</kbd> football, <kbd>Q</kbd> fast / slow.</p>
       <p><b>GameSir Cyclone 2 on a computer:</b> plug in its 2.4 GHz dongle (Home light <b>green</b> = XInput), or connect it by cable.
@@ -1109,6 +1159,7 @@
     last = t;
     padTick();
     drive.tick(t);
+    sendHead(t);
   }, 20);
   let lastFrame = now();
   function frame() {

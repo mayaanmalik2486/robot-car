@@ -267,7 +267,7 @@ const scenarios = [
       const quiet = motorMs(log, 'LF255 RF255', 6000, 8400);
       const after = st.filter((e) => e.t > 13900).map((e) => e.v);
       return [
-        check('the car says it knows steering (#V:2)', bt.includes('#V:2') && bt.indexOf('#V:2') === bt.indexOf('#S:' + song.name) + 1, bt.slice(0, 4).join(' / ')),
+        check('the car says it knows steering and the head codes (#V:3)', bt.includes('#V:3') && bt.indexOf('#V:3') === bt.indexOf('#S:' + song.name) + 1, bt.slice(0, 4).join(' / ')),
         check('both sides full forward', motorMs(log, 'LF255 RF255', 2000, 3050) > 850, `${motorMs(log, 'LF255 RF255', 2000, 3050).toFixed(0)} ms`),
         check('a bend: left full, right at half speed', motorMs(log, 'LF255 RF135', 3000, 4050) > 850, `${motorMs(log, 'LF255 RF135', 3000, 4050).toFixed(0)} ms`),
         check('spin on the spot: left backward, right forward', motorMs(log, 'LB167 RF167', 4000, 5050) > 850, ''),
@@ -278,6 +278,24 @@ const scenarios = [
         check('backing away from the wall works', motorMs(log, 'LB167 RB167', 10600, 11650) > 850, ''),
         check('steering stops search mode', after.includes('STEERING') && !after.includes('SEARCH') && motorMs(log, 'LF103 RF103', 14000, 15050) > 800, after.join(',')),
         check('ends stopped and READY', st[st.length - 1].v === 'IDLE' && kind(log, 'motor').pop().v === 'L-0 R-0', ''),
+      ];
+    },
+  },
+  {
+    name: 'head',
+    duration: 9,
+    distance: () => 150,
+    // the app points the sensor head: right end, left end, a little right, then STOP centres it
+    inputs: [{ t: 0.5, bt: '?' }, { t: 4.0, bt: String.fromCharCode(6) }, { t: 5.0, bt: String.fromCharCode(26) }, { t: 6.0, bt: String.fromCharCode(13) }, { t: 7.0, bt: 'S' }],
+    check: (log) => {
+      const at = (ms) => { const e = kind(log, 'servo').filter((x) => x.t <= ms).pop(); return e ? e.v : null; };
+      const st = kind(log, 'state').filter((e) => e.t > 3900).map((e) => e.v);
+      return [
+        check('code 6 = 50 degrees right (servo 40)', Math.abs(at(4800) - 40) <= 1, String(at(4800))),
+        check('code 26 = 50 degrees left (servo 140)', Math.abs(at(5800) - 140) <= 1, String(at(5800))),
+        check('code 13 = 15 degrees right (servo 75)', Math.abs(at(6800) - 75) <= 1, String(at(6800))),
+        check('STOP centres the head again (servo 90)', Math.abs(at(8000) - 90) <= 1, String(at(8000))),
+        check('turning the head starts no mode and moves no wheel', st.every((v) => v === 'IDLE') && motorMs(log, 'L-0 R-0', 4000, 9000) > 4900, st.join(',')),
       ];
     },
   },

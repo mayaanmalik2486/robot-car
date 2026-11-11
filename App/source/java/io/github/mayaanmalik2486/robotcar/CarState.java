@@ -7,7 +7,7 @@ import java.util.Arrays;
  * <pre>
  *   ~MODE|1010   what it is doing, then 1/0 for: muted, football, slow, low battery
  *   #S:name      the song this car dances to (an answer to '?')
- *   #V:2         "I know steering" - the app may set the speed of each side (an answer to '?')
+ *   #V:3         "I know steering (2) and the head codes (3)" (an answer to '?')
  *   #R:f42       radar: direction a..k (a = 50 degrees right, f = ahead, k = 50 degrees left), cm (999 = nothing)
  * </pre>
  */
@@ -29,6 +29,7 @@ final class CarState {
     boolean batteryLow;
     String song = "";
     boolean steers;                                    // the car program knows the steering codes
+    boolean head;                                      // ... and the codes that point the sensor head
     long modeSince;                                    // when the mode last changed (the dance clock)
 
     final int[] radarCm = new int[RADAR_STEPS];
@@ -43,6 +44,7 @@ final class CarState {
         mode = "";
         song = "";
         steers = false;
+        head = false;
         muted = football = slow = batteryLow = false;
         Arrays.fill(radarCm, 999);
         Arrays.fill(radarAt, 0);
@@ -71,7 +73,9 @@ final class CarState {
         }
         if (line.startsWith("#V:")) {
             try {
-                steers = Integer.parseInt(line.substring(3).trim()) >= 2;
+                int version = Integer.parseInt(line.substring(3).trim());
+                steers = version >= 2;
+                head = version >= 3;
             } catch (NumberFormatException e) {
                 return NOTHING;
             }

@@ -53,7 +53,9 @@
     O radar: the sensor sweeps left and right and the screen draws a radar map
       (the app draws it too)
     ? the app asks what the car is doing (the car answers "~MODE|flags",
-      then "#S:" + the song name, then "#V:2" = "I know STEERING")
+      then "#S:" + the song name, then "#V:3" = "I know STEERING and HEAD")
+    HEAD (Robot Car app 4.2 and newer): the codes 6 ... 26 point the sensor head
+      (6 = 50 degrees right, 16 = ahead, 26 = 50 degrees left).
     STEERING (Robot Car app 4 and newer): codes above 127 are not letters - each one
       sets the speed of one side of the car (128 + 64 for the right side + speed 1..63,
       32 = stop). That gives smooth steering, like a real RC car. The car still stops
@@ -2968,6 +2970,14 @@ void handleCommand(char c)
         return;
     }
 
+    // HEAD (the Robot Car app): the codes 6 ... 26 point the sensor head, 5 degrees a step:
+    // 6 = 50 degrees right, 16 = straight ahead, 26 = 50 degrees left. (STOP centres it again.)
+    if (c >= 6 && c <= 26)
+    {
+        scanner.write(SERVO_RIGHT + (c - 6) * 5);
+        return;
+    }
+
     if (sameDriving(c))
         return;
 
@@ -3197,7 +3207,7 @@ void handleCommand(char c)
             sendStatus();
             BT.print(F("#S:"));            // ... and which song this car dances to
             BT.print((const __FlashStringHelper*)SONG_NAME);
-            BT.print(F("\n#V:2\n"));       // ... and that it knows STEERING (the app's wheel speeds)
+            BT.print(F("\n#V:3\n"));       // ... and that it knows STEERING (2) and the HEAD codes (3)
             break;
 
         case 'I':                          // search

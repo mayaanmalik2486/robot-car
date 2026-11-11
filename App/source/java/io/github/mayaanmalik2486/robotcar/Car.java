@@ -57,6 +57,14 @@ final class Car {
         return 0x80 | (rightSide ? 0x40 : 0) | (speed + 32);
     }
 
+    /**
+     * The code that points the sensor head (car programs with "#V:3"): degrees from -50 (right)
+     * to 50 (left) in steps of 5 become the codes 6 ... 26 (16 = straight ahead).
+     */
+    static int head(float degrees) {
+        return 16 + Math.max(-10, Math.min(10, Math.round(degrees / 5f)));
+    }
+
     /** A letter that starts something that drives the wheels by itself (so the sticks must leave it alone). */
     static boolean takesTheWheels(char c) {
         return "I12J34UMKANEPOkuT".indexOf(c) >= 0;

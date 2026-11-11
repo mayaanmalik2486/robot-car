@@ -13,7 +13,7 @@ import java.util.Map;
  *   +--------+  +----------------------+  +--------+
  *   |        |  | LCD                  |  |  STOP  |
  *   | stick  |  +----------------------+  |   Y    |       two sticks: the right column is the
- *   |        |  | Moves | Play | Radar |  | X    RT|       steering stick, and STOP + the four
+ *   |        |  | Moves|Play|Radar|Head|  | X    RT|       steering stick, and STOP + the four
  *   |        |  | page of buttons      |  |   A    |       action buttons sit in a row under the LCD
  *   +--------+  +----------------------+  +--------+
  * </pre>
@@ -59,12 +59,12 @@ final class Layout {
     static final int ONE_STICK = 0, TWO_STICKS = 1, TILT = 2;
 
     static final String CONNECT = "connect", SONG = "song", PAD = "pad", SPEED = "speed", STYLE = "style",
-        SETTINGS = "settings", HELP = "help", LCD = "lcd", TAB0 = "tab0", TAB1 = "tab1", TAB2 = "tab2",
+        SETTINGS = "settings", HELP = "help", LCD = "lcd", TAB0 = "tab0", TAB1 = "tab1", TAB2 = "tab2", TAB3 = "tab3",
         PAGES = "pages", STICK = "stick", STICK2 = "stick2", STOP = "stop", DANCE = "dance", KICK = "kick",
         HORN = "horn", TURBO = "turbo";
 
     /** The parts that are tapped (they must be at least 44 dp each way). */
-    static final String[] TOUCHED = {CONNECT, PAD, SPEED, STYLE, SETTINGS, HELP, TAB0, TAB1, TAB2, STOP, DANCE, KICK, HORN, TURBO};
+    static final String[] TOUCHED = {CONNECT, PAD, SPEED, STYLE, SETTINGS, HELP, TAB0, TAB1, TAB2, TAB3, STOP, DANCE, KICK, HORN, TURBO};
 
     static final int GAP = 8;
     static final int MIN_TOUCH = 44;
@@ -186,10 +186,11 @@ final class Layout {
     }
 
     private static void tabs(Map<String, Box> out, int x, int y, int w, int h) {
-        int each = (w - 2 * GAP) / 3;
+        int each = (w - 3 * GAP) / 4;
         out.put(TAB0, new Box(x, y, each, h));
         out.put(TAB1, new Box(x + each + GAP, y, each, h));
-        out.put(TAB2, new Box(x + 2 * (each + GAP), y, w - 2 * (each + GAP), h));
+        out.put(TAB2, new Box(x + 2 * (each + GAP), y, each, h));
+        out.put(TAB3, new Box(x + 3 * (each + GAP), y, w - 3 * (each + GAP), h));
     }
 
     // like the controller's face buttons: horn on top, kick left, turbo right, dance below

@@ -74,6 +74,7 @@ public final class LayoutTests {
             problems.add("the LCD is too small (" + lcd + ")");
         Layout.Box pages = boxes.get(Layout.PAGES);
         for (int n : new int[]{8, 6}) {
+            // (the head page: a dial at least 96 dp high beside or above its button - the same room as the radar)
             int[] g = Layout.grid(n, pages.w, pages.h);
             if (g[2] < Layout.MIN_TOUCH || g[3] < Layout.MIN_TOUCH)
                 problems.add("the page with " + n + " buttons is too small: " + g[2] + "x" + g[3] + " in " + pages);

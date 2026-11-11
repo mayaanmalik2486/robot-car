@@ -271,6 +271,10 @@ public class ControllerActivity extends Activity implements ControllerInput.List
     }
 
     @Override
+    public void onPadHead(float turn) {
+    }
+
+    @Override
     public void onPadChanged() {
         drawing.invalidate();
     }

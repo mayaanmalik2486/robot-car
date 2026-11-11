@@ -89,7 +89,7 @@
      * Moves the scene on by dt seconds. left / right: the wheel speeds -1 ... 1; mode: what the car
      * says it is doing; look: where the sensor looks -1 (right) ... 1 (left).
      */
-    update(dt, left, right, mode, look) {
+    update(dt, left, right, mode, look, headWanted) {
       dt = Math.min(dt, 0.05);
       this.t += dt;
       let l = left, r = right;
@@ -117,7 +117,7 @@
       this.roll += (this.w * this.v * 0.012 - this.roll) * k;
       this.pitch += (-accel * 0.035 - this.pitch) * k * 0.6;
       this.bob = dance ? Math.abs(Math.sin(this.t * 6.3)) * 0.16 : this.bob * (1 - k);
-      this.head += ((radar ? look * 0.87 : 0) - this.head) * k;
+      this.head += ((radar ? look : (headWanted || 0)) * 0.87 - this.head) * k;
       this.wall += ((mode === 'BLOCKED' ? 1 : 0) - this.wall) * k;
       const moving = Math.abs(this.v) > 0.15 || Math.abs(this.w) > 0.1;
       this.idle = moving ? 0 : this.idle + dt;

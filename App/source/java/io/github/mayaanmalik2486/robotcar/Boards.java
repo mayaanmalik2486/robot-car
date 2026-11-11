@@ -166,8 +166,8 @@ final class Boards {
             }
 
             // the tabs' track, and the pill on the chosen tab
-            Layout.Box t0 = boxes == null ? null : boxes.get(Layout.TAB0), t2 = boxes == null ? null : boxes.get(Layout.TAB2);
-            Layout.Box tc = boxes == null ? null : boxes.get(tab == 0 ? Layout.TAB0 : tab == 1 ? Layout.TAB1 : Layout.TAB2);
+            Layout.Box t0 = boxes == null ? null : boxes.get(Layout.TAB0), t2 = boxes == null ? null : boxes.get(Layout.TAB3);
+            Layout.Box tc = boxes == null ? null : boxes.get("tab" + tab);
             if (t0 != null && t2 != null && tc != null) {
                 r.set(t0.x * d, t0.y * d, t2.right() * d, t0.bottom() * d);
                 float rad = 18 * d;
