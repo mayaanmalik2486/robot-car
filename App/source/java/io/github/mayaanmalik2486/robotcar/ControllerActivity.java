@@ -51,7 +51,7 @@ public class ControllerActivity extends Activity implements ControllerInput.List
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setPadding(m, Ui.dp(this, 8), m, Ui.dp(this, 8));
-        root.setBackgroundColor(Ui.BG);
+        root.setBackground(Ui.sky());
 
         LinearLayout bar = new LinearLayout(this);
         bar.setGravity(Gravity.CENTER_VERTICAL);
@@ -60,7 +60,7 @@ public class ControllerActivity extends Activity implements ControllerInput.List
         bar.addView(back, new LinearLayout.LayoutParams(Ui.dp(this, 96), Ui.dp(this, 44)));
         title = new TextView(this);
         title.setTextColor(Ui.TEXT);
-        title.setTextSize(15);
+        title.setTextSize(20);
         title.setTypeface(Ui.BOLD);
         title.setSingleLine(true);
         title.setEllipsize(TextUtils.TruncateAt.END);
@@ -107,7 +107,7 @@ public class ControllerActivity extends Activity implements ControllerInput.List
     }
 
     private PadButton button(String s) {
-        PadButton b = new PadButton(this, s, Ui.KEY, false);
+        PadButton b = new PadButton(this, s, PadButton.GLASS, false);
         b.setTextSize(14);
         return b;
     }
@@ -123,6 +123,12 @@ public class ControllerActivity extends Activity implements ControllerInput.List
     protected void onPause() {
         super.onPause();
         inputs.unregisterInputDeviceListener(this);
+    }
+
+    @Override
+    public void finish() {
+        super.finish();
+        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
     }
 
     @Override
@@ -155,7 +161,7 @@ public class ControllerActivity extends Activity implements ControllerInput.List
         settings.loadMap(pad.map, pad.descriptor);
         pad.deadZone = settings.padDeadZone(pad.descriptor);
         title.setText(found == null ? "No controller connected" : "🎮 " + found.getName() + "   ·   connected");
-        title.setTextColor(found == null ? Ui.LCD_WARN : Ui.TEXT);
+        title.setTextColor(found == null ? Ui.WARN : Ui.TEXT);
         showHint();
         drawing.invalidate();
     }

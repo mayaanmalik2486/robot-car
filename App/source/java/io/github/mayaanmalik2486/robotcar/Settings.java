@@ -21,7 +21,7 @@ final class Settings {
 
     /** Layout.ONE_STICK, TWO_STICKS or TILT. */
     int style() {
-        return p.getInt("style", Layout.ONE_STICK);
+        return p.getInt("style", Layout.TWO_STICKS);          // (new: the wheel + lever)
     }
 
     void setStyle(int s) {
@@ -29,7 +29,7 @@ final class Settings {
     }
 
     float touchDeadZone() {
-        return p.getFloat("touchDead", 0.10f);
+        return p.getFloat("touchDead", 0.08f);
     }
 
     void setTouchDeadZone(float v) {

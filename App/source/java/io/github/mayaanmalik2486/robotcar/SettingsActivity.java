@@ -21,6 +21,12 @@ import android.widget.TextView;
  */
 public class SettingsActivity extends Activity {
 
+    @Override
+    public void finish() {
+        super.finish();
+        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+    }
+
     private Settings s;
     private String padKey;
     private LinearLayout list;
@@ -37,7 +43,7 @@ public class SettingsActivity extends Activity {
     private void build() {
         int m = Ui.dp(this, 16);
         ScrollView scroll = new ScrollView(this);
-        scroll.setBackgroundColor(Ui.BG);
+        scroll.setBackground(Ui.sky());
         LinearLayout outer = new LinearLayout(this);
         outer.setGravity(Gravity.CENTER_HORIZONTAL);
         list = new LinearLayout(this);
@@ -48,10 +54,10 @@ public class SettingsActivity extends Activity {
 
         LinearLayout bar = new LinearLayout(this);
         bar.setGravity(Gravity.CENTER_VERTICAL);
-        PadButton back = new PadButton(this, "‹  Back", Ui.KEY, false);
+        PadButton back = new PadButton(this, "‹  Back", PadButton.GLASS, false);
         back.setOnClickListener(v -> finish());
         bar.addView(back, new LinearLayout.LayoutParams(Ui.dp(this, 96), Ui.dp(this, 44)));
-        TextView title = text("Settings", 20, Ui.TEXT);
+        TextView title = text("SETTINGS", 26, Ui.TEXT);
         title.setTypeface(Ui.BOLD);
         LinearLayout.LayoutParams tp = new LinearLayout.LayoutParams(-2, -2);
         tp.leftMargin = m;
@@ -60,10 +66,13 @@ public class SettingsActivity extends Activity {
 
         section("DRIVING");
         boolean tilt = getIntent().getBooleanExtra("tilt", true);
-        choice("On-screen controls", new String[]{"1 stick", "2 sticks", tilt ? "Tilt" : "Tilt (no sensor)"}, s.style(), i -> {
-            if (i == Layout.TILT && !tilt)
+        // (shown as wheel / 1 stick / tilt; saved as Layout.TWO_STICKS, ONE_STICK, TILT)
+        final int[] styles = {Layout.TWO_STICKS, Layout.ONE_STICK, Layout.TILT};
+        int nowStyle = s.style() == Layout.TWO_STICKS ? 0 : s.style() == Layout.ONE_STICK ? 1 : 2;
+        choice("On-screen controls", new String[]{"Wheel + lever", "1 stick", tilt ? "Tilt" : "Tilt (no sensor)"}, nowStyle, i -> {
+            if (styles[i] == Layout.TILT && !tilt)
                 return false;
-            s.setStyle(i);
+            s.setStyle(styles[i]);
             return true;
         });
         choice("Top speed", new String[]{"Fast", "Slow"}, s.slowTop() ? 1 : 0, i -> {
@@ -71,7 +80,7 @@ public class SettingsActivity extends Activity {
             return true;
         });
         slider("Steering feel", "Direct", "Gentle in the middle", Math.round(s.feel() * 100), 100, v -> s.setFeel(v / 100f), null);
-        slider("On-screen stick dead zone", "0 %", "25 %", Math.round(s.touchDeadZone() * 100), 25, v -> s.setTouchDeadZone(v / 100f), "%");
+        slider("On-screen dead zone", "0 %", "25 %", Math.round(s.touchDeadZone() * 100), 25, v -> s.setTouchDeadZone(v / 100f), "%");
 
         section("GAME CONTROLLER");
         String padName = getIntent().getStringExtra("padName");
@@ -80,7 +89,7 @@ public class SettingsActivity extends Activity {
             Math.round(s.padDeadZone(padKey) * 100), 30, v -> s.setPadDeadZone(padKey, v / 100f), "%");
         toggle("The left stick steers too", "when the right stick is in the middle", s.leftSteers(), s::setLeftSteers);
         toggle("Show the controller's buttons on the screen", "little A / B / RT ... badges on the buttons", s.overlay(), s::setOverlay);
-        PadButton map = new PadButton(this, "Controller buttons and remap  ›", Ui.KEY, false);
+        PadButton map = new PadButton(this, "Controller buttons and remap  ›", PadButton.GLASS, false);
         map.setOnClickListener(v -> startActivity(new Intent(this, ControllerActivity.class)));
         add(map, Ui.dp(this, 52));
 
@@ -89,8 +98,8 @@ public class SettingsActivity extends Activity {
             s.setHaptics(on);
             Ui.haptics = on;
         });
-        PadButton reset = new PadButton(this, "Reset everything to the defaults", Ui.KEY, false);
-        reset.setTextColor(Ui.STOP);
+        PadButton reset = new PadButton(this, "Reset everything to the defaults", PadButton.GLASS, false);
+        reset.setTextColor(0xFFFF8FA3);
         reset.setOnClickListener(v -> new AlertDialog.Builder(this)
             .setMessage("Put every setting and every controller button back as it came? (The car stays remembered.)")
             .setPositiveButton("Reset", (d, w) -> {
@@ -137,8 +146,8 @@ public class SettingsActivity extends Activity {
     }
 
     private void section(String name) {
-        TextView t = text(name, 12, Ui.ACCENT);
-        t.setTypeface(Ui.BOLD);
+        TextView t = text(name, 11, Ui.ACCENT2);
+        t.setTypeface(Ui.MONO);
         t.setLetterSpacing(0.12f);
         t.setPadding(0, Ui.dp(this, 24), 0, Ui.dp(this, 8));
         list.addView(t);
@@ -155,7 +164,7 @@ public class SettingsActivity extends Activity {
         c.setOrientation(LinearLayout.VERTICAL);
         int p = Ui.dp(this, 16);
         c.setPadding(p, Ui.dp(this, 12), p, Ui.dp(this, 12));
-        c.setBackground(Ui.rounded(Ui.PANEL, Ui.px(this, 12)));
+        c.setBackground(Ui.rounded(0x14FFFFFF, Ui.px(this, 16)));
         add(c, -2);
         return c;
     }
@@ -174,7 +183,7 @@ public class SettingsActivity extends Activity {
         PadButton[] bs = new PadButton[options.length];
         for (int i = 0; i < options.length; i++) {
             final int k = i;
-            bs[i] = new PadButton(this, options[i], Ui.KEY, false);
+            bs[i] = new PadButton(this, options[i], PadButton.GLASS, false);
             bs[i].setOn(i == now);
             bs[i].setOnClickListener(v -> {
                 if (!pick.pick(k))
@@ -202,7 +211,7 @@ public class SettingsActivity extends Activity {
         SeekBar bar = new SeekBar(this);
         bar.setMax(max);
         bar.setProgress(now);
-        bar.setThumbTintList(ColorStateList.valueOf(Ui.ACCENT));
+        bar.setThumbTintList(ColorStateList.valueOf(Ui.ACCENT2));
         bar.setProgressTintList(ColorStateList.valueOf(Ui.ACCENT));
         bar.setProgressBackgroundTintList(ColorStateList.valueOf(Ui.KEY_EDGE));
         bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {

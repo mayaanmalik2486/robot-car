@@ -1,4 +1,4 @@
-# Robot Car app (Android) - version 4.0
+# Robot Car app (Android) - version 4.1
 
 <img src="icon-512.png" width="96" align="right" alt="app icon">
 
@@ -12,7 +12,7 @@ There is also a **web version for computers**: [Web/README.md](../Web/README.md)
 
 ## Download
 
-**[⬇ Download RobotCar.apk](https://github.com/mayaanmalik2486/robot-car/raw/main/App/RobotCar.apk)** (version 4.0)
+**[⬇ Download RobotCar.apk](https://github.com/mayaanmalik2486/robot-car/raw/main/App/RobotCar.apk)** (version 4.1)
 
 <img src="../Docs/qr/qr-app-download.png" width="160" align="right" alt="QR: download the app">
 
@@ -26,7 +26,21 @@ Android updates it and keeps nothing broken. Older versions: [Old_APKs](Old_APKs
 Works on Android phones and tablets (Android 5 and newer), and on Chromebooks that run Android apps.
 It does **not** work on iPhones: Apple doesn't let apps talk to HC-05-type Bluetooth modules.
 
-## What's new in 4.0
+## What's new in 4.1 (the new look)
+
+- **A live 3D car** in the middle of the screen: its wheels spin, the floor rushes by and turns when
+  you steer, it leans in bends, bounces when it dances, sweeps its sensor head in radar mode (with the
+  dots it sees on the floor) and meets a red wall when it is blocked. Not connected yet? It still
+  follows your controls, so you can try everything.
+- **A real steering wheel and a throttle lever** ("WHEEL" driving, the new default): push the lever
+  on the left up for forward and down for backward; grab the wheel on the right anywhere and turn it
+  (126 degrees each way = full steering). Let go and both spring back.
+- **Glossy 3D bubble buttons** in bright colours, with a ripple and a springy press; the mode buttons
+  carry a little picture bubble; the tabs have a sliding orange pill; everything rises into place.
+- **A night-sky background** with slow bubbles, big condensed letters, and one orange accent.
+- 1 stick and tilt are still there (tap **WHEEL** at the top to switch).
+
+## What was new in 4.0
 
 - **Real steering.** With the newest car program, the app sets the speed of each side of the car
   itself, like a real RC car: push a little = slowly, all the way = full speed; steer a little =
@@ -67,28 +81,29 @@ It does **not** work on iPhones: Apple doesn't let apps talk to HC-05-type Bluet
 ## The screen
 
 ```
- [Connect]  ♪ Robot Groove ........  [controller] [FAST] [1 STICK] [⚙] [?]
- +---------+  +--------------------------+  +---------+
- |         |  | ● CONNECTED  STEERING    |  |  STOP   |
- |  stick  |  | DRIVE  82%               |  |  Horn   |
- |         |  | SOUND ON  SENSOR ON ...  |  | Kick  Turbo
- |         |  +--------------------------+  |  Dance  |
- |         |  [ MOVES ] [ PLAY ] [ RADAR ]  |         |
- |  DRIVE  |  [ the page's buttons ...   ]  |         |
- +---------+                                +---------+
+ [Connect]  ♪ Robot Groove ........  [controller] [FAST] [WHEEL] [⚙] [?]
+ +----------+  +---------------------------+  +----------+
+ |   GAS    |  | ● CONNECTED · STEERING    |  |          |
+ |   ║      |  |      (the 3D car)         |  | steering |
+ | [lever]  |  | DRIVE 82%                 |  |  wheel   |
+ |   ║      |  +---------------------------+  |          |
+ |   REV    |  (STOP) (Dance)(Kick)(Horn)(Turbo)         |
+ |          |  [ MOVES ] [ PLAY ] [ RADAR ]   |          |
+ | THROTTLE |  [ the page's buttons ...   ]   |  STEER   |
+ +----------+                                 +----------+
 ```
 
 | Where | What |
 |---|---|
 | Top | **Connect** (shows the car when connected; tap again to disconnect) · the song this car dances to · your **controller** (tap: the controller screen) · **FAST / SLOW** · **1 STICK / 2 STICKS / TILT** (tap to switch) · **⚙ settings** · **? help** |
-| Left | the stick (or, with 2 sticks, the **throttle** stick) |
-| Middle | the car's green screen, then the pages: **Moves**, **Play**, **Radar** |
-| Right | **STOP** and the four action keys: horn, kick, turbo, dance (with 2 sticks: the **steering** stick, and STOP + the action keys move under the screen) |
+| Left | the **throttle lever** (or the stick, with 1 stick / tilt) |
+| Middle | the live **3D car** with the car's status written over it, **STOP** and the action bubbles, then the pages: **Moves**, **Play**, **Radar** |
+| Right | the **steering wheel** (with 1 stick / tilt: STOP and the four action bubbles) |
 
-The green screen shows: connected or not, and whether the car is **steering** or using **letters**
+The 3D picture shows: connected or not, and whether the car is **steering** or using **letters**
 (an older program) · what the car is doing (with a dance clock and the song while dancing, the nearest
 thing while the radar runs, the speed while driving) · sound, sensor, speed and battery. With
-steering, two bars at its sides show how fast each side of the car turns. **Hold the green screen**
+steering, two bars at its sides show how fast each side of the car turns. **Hold the 3D picture**
 for the link log. The button of the mode that is running lights up orange.
 
 With a controller connected, every button shows a small **badge** with the controller button that
@@ -99,7 +114,7 @@ does the same job (A, RT, LB+A, ▲ ...). Switch them off in Settings.
 | Control | What the car does |
 |---|---|
 | **1 STICK** | push where you want to go: up = forward, down = backward, sideways = spin, in between = a bend. A little = slowly, all the way = full speed. Let go = stop |
-| **2 STICKS** | left stick up / down = throttle, right stick left / right = steering. Steering with no throttle = spin on the spot |
+| **WHEEL** | the lever on the left = throttle (up = forward, down = backward, a little = slowly); the steering wheel on the right = steering (grab it anywhere and turn). Wheel with no throttle = spin on the spot. Let go = both spring back, the car stops |
 | **TILT** | hold the round pad and tilt the phone like a steering wheel (tip it away = forward). Let go = stop |
 | **FAST / SLOW** | the top speed (also for the car's own modes: auto, chaos, donut ...) |
 | **STOP** | stops everything, also a running mode |
@@ -168,7 +183,7 @@ disconnects while the car is driving, the car stops at once.
 
 | Setting | What it does |
 |---|---|
-| On-screen controls | 1 stick, 2 sticks or tilt |
+| On-screen controls | wheel + lever, 1 stick or tilt |
 | Top speed | fast or slow |
 | Steering feel | direct, or gentle around the middle (small stick moves = small turns, the end = full turn) |
 | On-screen stick dead zone | how far the on-screen stick moves before the car does |
@@ -222,7 +237,8 @@ at most 18 a second, `Q` / `W` when the stick crosses 65 % / 75 %, and `S` twice
 | `ControllerInput`, `ControllerMap`, `PadState` | the game controller: Android's events (all four Cyclone 2 modes) -> buttons and sticks; which button does what; each press counted once |
 | `Layout`, `Boards` | where everything sits, for any screen size (tested on the computer for 31 sizes x 3 styles) |
 | `Car`, `CarLink`, `CarState` | the car's language; Bluetooth; what the car says |
-| `StickView`, `TiltDriver`, `LcdView`, `RadarView`, `ControllerView`, `PadButton`, `Ui`, `Settings` | the sticks, tilt, the green screen, the radar, the controller drawing, the keys, the look, what is saved |
+| `SceneView` | the live 3D car: a little 3D engine of our own (boxes and wheels, lit and sorted), the same as the web page's `scene.js` |
+| `WheelView`, `StickView`, `TiltDriver`, `RadarView`, `ControllerView`, `PadButton`, `Ui`, `Settings` | the steering wheel, the throttle lever / stick, tilt, the radar, the controller drawing, the bubble keys, the look, what is saved |
 
 - `build-app.ps1` - builds and signs `RobotCar.apk`: `powershell -ExecutionPolicy Bypass -File App\build-app.ps1`
   (needs Java 17 + the Android SDK in `C:\Users\DELL\android-build`; the signing key is kept outside
@@ -231,4 +247,6 @@ at most 18 a second, `Q` / `W` when the stick crosses 65 % / 75 %, and `S` twice
   controller map, button presses, the layout at 31 screen sizes, and every Android call checked
   against Android 5. It also writes a drive that the car simulator plays to the real car program
   (`Tools\tools\test-all.ps1`, scenario `app-replay`).
+- `tests\preview\make-previews.ps1` - draws the app's main screen to PNG pictures on the PC with the app's real view
+  code (on stand-in Android classes), to check the look without a phone.
 - `tools/IconGen.java` - draws the icon.

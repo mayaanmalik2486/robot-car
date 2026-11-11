@@ -104,9 +104,9 @@ The car protects itself from crashes and warns you before the battery dies.
 
 ## The app
 
-The car has its own Android app, laid out like a game controller and held sideways. Anyone can download it from one link: [RobotCar.apk](https://github.com/mayaanmalik2486/robot-car/raw/main/App/RobotCar.apk) (version 4.0). Install guide: [App/README.md](../App/README.md). On a computer, the same remote runs in Chrome or Edge: [Web/README.md](../Web/README.md).
+The car has its own Android app, laid out like a game controller and held sideways. Anyone can download it from one link: [RobotCar.apk](https://github.com/mayaanmalik2486/robot-car/raw/main/App/RobotCar.apk) (version 4.1). Install guide: [App/README.md](../App/README.md). On a computer, the same remote runs in Chrome or Edge: [Web/README.md](../Web/README.md).
 
-- **Steering** – smooth, like a real RC car: the app sets the speed of each side of the car (push a little = slowly, steer a little = a wide bend). One stick, two sticks (throttle + steering) or tilt.
+- **Steering** – smooth, like a real RC car: the app sets the speed of each side of the car (push a little = slowly, steer a little = a wide bend). A steering wheel + throttle lever, one stick, or tilt. A live 3D car in the middle shows what the real one does.
 - **Left** – the stick (with two sticks: the throttle stick).
 - **Right** – a big red STOP and the action keys: horn, kick, turbo, dance (with two sticks: the steering stick).
 - **Middle** – a small green screen showing whether it is connected, what the car is doing, and mute / football / speed / battery. Under it are three pages: **Moves** (search, chaos, donut, 180°, auto, reverse, brake, horn), **Play** (the six games) and **Radar** (a live radar map and a start/stop button).

@@ -26,12 +26,12 @@ all. On an Android phone, use the app instead - it is made for phones.
 
 | With | How |
 |---|---|
-| **Mouse / finger** | drag the stick (or the two sticks: Settings > 2 sticks) |
+| **Mouse / finger** | push the **throttle lever** (left) and turn the **steering wheel** (right) - or pick 1 stick at the top |
 | **Keyboard** | **W A S D** or the arrow keys (they speed up smoothly), **Space** STOP, **Enter** dance, **H** horn, **K** kick, **T** turbo, **B** brake, **R** radar, **M** mute, **F** football, **Q** fast / slow |
 | **GameSir Cyclone 2** | plug its 2.4 GHz dongle into the computer (light **green**, XInput) or use a USB cable, then press any button so the browser sees it. Left stick = throttle, right stick = steering, and every button as in the [app's table](../App/README.md#the-gamesir-cyclone-2) |
 
 Click the controller button at the top for the live drawing of the controller and to change any
-button. **Right-click the green screen** for the link log.
+button. **Right-click the 3D picture** for the link log. Not connected? The 3D car still follows your controls.
 
 ## For developers
 
@@ -41,5 +41,6 @@ button. **Right-click the green screen** for the link log.
   styles, the same wheel speeds for 882 stick positions, and exactly the same codes at the same
   moments in 6 long random drives. Run `App\tests\run-tests.ps1` first (it writes the Java side),
   then `node Web\test-logic.js`.
+- `scene.js` - the live 3D car (a small 3D engine of our own, the same as the app's `SceneView`).
 - `app.js` - the page itself: Web Serial (the HC-05), the Gamepad API (the controller), the keyboard,
   the sticks, the screen, settings and the controller drawing.

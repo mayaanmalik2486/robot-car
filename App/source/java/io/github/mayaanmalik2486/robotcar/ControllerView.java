@@ -70,7 +70,7 @@ class ControllerView extends View {
         super(c);
         this.pad = pad;
         this.listener = listener;
-        body.setColor(0xFF1C2028);
+        body.setColor(0xFF1E2860);
         line.setStyle(Paint.Style.STROKE);
         line.setStrokeCap(Paint.Cap.ROUND);
         text.setTypeface(Ui.MEDIUM);
@@ -219,7 +219,7 @@ class ControllerView extends View {
     }
 
     private void stick(Canvas c, float x, float y, float sx, float sy, int click) {
-        fill.setColor(0xFF12151B);
+        fill.setColor(0xFF0A0F28);
         c.drawCircle(X(x), Y(y), 66 * scale, fill);
         float kx = x + sx * 26, ky = y + sy * 26;
         boolean moved = Math.abs(sx) > 0.05f || Math.abs(sy) > 0.05f;
@@ -255,7 +255,7 @@ class ControllerView extends View {
             boolean lit = b >= 0 && (down(b) || b == highlight) || b < 0 && (row == LSTICK ? pad.throttle() != 0 : pad.steer() != 0);
             RectF box = new RectF(x, cy - rowH * 0.42f, x + w, cy + rowH * 0.42f);
             labelBox[row] = box;
-            fill.setColor(lit ? Ui.alpha(Ui.ACCENT, 0.18f) : Ui.PANEL);
+            fill.setColor(lit ? Ui.alpha(Ui.ACCENT, 0.22f) : 0x12FFFFFF);
             c.drawRoundRect(box, Ui.px(getContext(), 8), Ui.px(getContext(), 8), fill);
 
             float pad8 = Ui.px(getContext(), 8);
@@ -263,7 +263,7 @@ class ControllerView extends View {
             name.setColor(b >= ControllerMap.A && b <= ControllerMap.Y ? Ui.padColor(ControllerMap.BUTTON_NAMES[b]) : Ui.LABEL);
             float nameW = name.measureText("D-pad right ");
             c.drawText(who, box.left + pad8, cy + text.getTextSize() * 0.36f, name);
-            text.setColor(lit ? Ui.ACCENT : Ui.TEXT);
+            text.setColor(lit ? Ui.ACCENT2 : Ui.TEXT);
             String shown = job;
             float room = box.width() - nameW - 2 * pad8;
             while (shown.length() > 3 && text.measureText(shown) > room)

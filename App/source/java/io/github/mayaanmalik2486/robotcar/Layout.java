@@ -124,7 +124,10 @@ final class Layout {
             cw = w - 2 * side - 2 * GAP;
         }
         int cx = x + side + GAP;
-        int lcdH = Math.max(64, Math.min(120, snap(h * 0.25f)));
+        // the 3D scene gets everything the button rows and the pages don't need
+        int rows = (two ? 56 : 0) + 56 + GAP;
+        int pagesH = Math.max(104, Math.min(264, snap(h * 0.36f)));
+        int lcdH = Math.max(64, Math.min(400, h - rows - pagesH));
 
         int cy = y;
         out.put(LCD, new Box(cx, cy, cw, lcdH));
@@ -148,7 +151,7 @@ final class Layout {
     }
 
     private static void stacked(Map<String, Box> out, int x, int y, int w, int h, boolean two) {
-        int lcdH = Math.max(64, Math.min(112, snap(h * 0.14f)));
+        int lcdH = Math.max(64, Math.min(240, snap(h * 0.22f)));
         int stickH = Math.max(136, Math.min(320, snap(Math.min(w * 0.5f, h * 0.38f))));
         int cy = y;
         out.put(LCD, new Box(x, cy, w, lcdH));

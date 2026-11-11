@@ -81,7 +81,7 @@ public final class LayoutTests {
                 problems.add("the page with " + n + " buttons does not fit in " + pages);
         }
         // the radar page: the radar beside or above its button
-        boolean side = pages.w > pages.h * 2;
+        boolean side = pages.w > pages.h * 1.6f;
         int radarH = side ? pages.h : pages.h - 48 - 8;
         int radarW = side ? pages.w - Layout.RADAR_BUTTON - 8 : pages.w;
         if (radarH < 96 || radarW < 140)

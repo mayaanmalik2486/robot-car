@@ -50,7 +50,7 @@ final class ControllerInput implements PadState.Listener {
     final PadState buttons = new PadState(this);
     final ControllerMap map = new ControllerMap();
     private final Listener listener;
-    float deadZone = Settings.DEAD_ZONE;
+    float deadZone = 0.12f;                        // (the same as Settings.DEAD_ZONE)
     boolean leftSteers;
     boolean enabled = true;                        // false = buttons are only shown, not used (the controller screen)
 

@@ -326,7 +326,9 @@
     let cw = w - 2 * side - 2 * GAP;
     if (cw < 256) { side = snap(f32((w - 2 * GAP - 256) / 2)); cw = w - 2 * side - 2 * GAP; }
     const cx = x + side + GAP;
-    const lcdH = Math.max(64, Math.min(120, snap(f32(h * f32(0.25)))));
+    const rows = (two ? 56 : 0) + 56 + GAP;
+    const pagesH = Math.max(104, Math.min(264, snap(f32(h * f32(0.36)))));
+    const lcdH = Math.max(64, Math.min(400, h - rows - pagesH));
     let cy = y;
     out.lcd = box(cx, cy, cw, lcdH); cy += lcdH + GAP;
     if (two) { actionRow(out, cx, cy, cw, 48); cy += 48 + GAP; }
@@ -340,7 +342,7 @@
   }
 
   function stacked(out, x, y, w, h, two) {
-    const lcdH = Math.max(64, Math.min(112, snap(f32(h * f32(0.14)))));
+    const lcdH = Math.max(64, Math.min(240, snap(f32(h * f32(0.22)))));
     const stickH = Math.max(136, Math.min(320, snap(Math.min(f32(w * f32(0.5)), f32(h * f32(0.38))))));
     let cy = y;
     out.lcd = box(x, cy, w, lcdH); cy += lcdH + GAP;

@@ -19,7 +19,7 @@ your phone), **music** (your hand plays notes), **gestures** and a little **robo
 ## 📱 The app
 
 **[⬇ Download the Robot Car app](https://github.com/mayaanmalik2486/robot-car/raw/main/App/RobotCar.apk)**
-(Android, version 4.0). Send that link to anyone. How to install and connect: [App/README.md](App/README.md). It looks and feels like a game controller, steers smoothly like a real RC car (one stick, two sticks or tilt), and is mapped to the **GameSir Cyclone 2** - both sticks, both triggers, every button, all changeable, with a live drawing of the controller.
+(Android, version 4.1). Send that link to anyone. How to install and connect: [App/README.md](App/README.md). It looks and feels like a game controller, shows a live 3D car, steers smoothly with a real steering wheel and throttle lever (or one stick, or tilt), and is mapped to the **GameSir Cyclone 2** - both sticks, both triggers, every button, all changeable, with a live drawing of the controller.
 
 **On a computer?** The same remote runs in Chrome or Edge: [Web/README.md](Web/README.md) (open `Web/index.html`) - with the mouse, the keyboard or the controller.
 
