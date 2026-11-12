@@ -1,33 +1,33 @@
 # Robot Car – CV
 
-*Oct 20, 2026 · also as a [PDF](Robot_Car_CV.pdf)*
+*Updated Nov 12, 2026 (app 4.2) · also as a [PDF](Robot_Car_CV.pdf)*
 
 ![The Robot Car on the desk: ultrasonic sensor eyes on top, the OLED screen showing "Hello! :-)" and "I'm awake!"](robot-car-photo.jpg)
 
 ## Profile
 
-A 4-wheel-drive Arduino robot car that drives from a phone or game controller, avoids obstacles, maps the room with radar, plays six games and dances to 39 songs with real choreography. Built by Muhammad Ayaan Malik, from a starter tutorial (version 0) to version 9 plus play modes, radar and its own Android app (October 2026).
+A 4-wheel-drive Arduino robot car that drives from a phone, a computer or a game controller with smooth RC-car steering, avoids obstacles, maps the room with radar, turns its sensor head on command, plays six games and dances to 39 songs with real choreography. Built by Muhammad Ayaan Malik, from a starter tutorial (version 0) to version 9 plus play modes, radar, smooth steering, its own Android app with a live 3D car, and a web remote (November 2026).
 
 | | |
 | --- | --- |
-| Name | Robot Car (program: Robot_Car_Main, v9 + play modes + radar) |
+| Name | Robot Car (program: Robot_Car_Main, v9 + play modes + radar + steering + head) |
 | Brain | Arduino UNO (ATmega328P, 32 KB program memory, 2 KB RAM) on a Sensor Shield V5 |
-| Drive | 4 DC motors through an L298N driver, 2 speeds (full 255, slow 153) |
-| Senses | HC-SR04 ultrasonic distance sensor on an SG90 servo (looks 50° left and right) |
+| Drive | 4 DC motors through an L298N driver; each side at its own speed, 31 steps forward and 31 backward |
+| Senses | HC-SR04 ultrasonic distance sensor on an SG90 servo (looks 50° left and right, by itself or where you point it) |
 | Shows | 128 x 64 SSD1306 OLED screen: animated eyes, mode, distance, song, radar map |
 | Sounds | Passive buzzer: jingles, dance tunes, parking beeps, horn, siren |
-| Talks | HC-05 Bluetooth at 9600 baud, to its own Android app |
+| Talks | HC-05 Bluetooth at 9600 baud, to its own Android app (4.2) and a web remote for computers |
 | Power | 3 x 18650 cells (motors + Arduino), 4 x AA (servo) |
-| Skills | 7 driving moves, 6 self-driving modes, 6 play modes, radar, 39 dances |
-| Program size | 30,656 bytes (95.0% of memory); song versions up to 97.7% |
-| Tested | 394 of 394 simulator checks pass; every dance move lands on the beat |
+| Skills | Smooth steering, head control, 6 self-driving modes, 6 play modes, radar, 39 dances |
+| Program size | 31,136 bytes (96.5% of memory); song versions up to 99.2% |
+| Tested | Car simulator: 114 of 114 checks on the newest main program; all 39 dances 847 of 847 one step earlier. App: 256 checks pass |
 | Code | Public on GitHub: [mayaanmalik2486/robot-car](https://github.com/mayaanmalik2486/robot-car) |
 
 ## How it works
 
 ![How the car works: controller, phone, Bluetooth, Arduino, parts](how-it-works-cv.png)
 
-Every button, stick move or controller press becomes one letter sent over Bluetooth. The Arduino turns it into motor moves, sounds, faces and sensor sweeps, and sends back what it is doing, its song and radar readings.
+Every button becomes one letter sent over Bluetooth; the steering wheel, lever and sticks become number codes that set the speed of each side of the car, and the head wheel becomes codes that point the servo. The Arduino turns them into motor moves, sounds, faces and sensor sweeps, and sends back what it is doing, its song, what it understands and radar readings.
 
 ## Hardware and wiring
 
@@ -57,18 +57,35 @@ Two separate battery packs keep the servo's current spikes away from the Arduino
 
 ## Driving skills
 
-The car drives while a button or stick is held and stops the moment it is let go.
+The car drives while a control is held and stops the moment it is let go. There are two ways to drive it.
+
+**Smooth steering (app 4.0 and newer, the web remote).** The app sets the speed of the left wheels and the right wheels separately, from -31 (full backward) to 31 (full forward).
+
+| You do | The car does |
+| --- | --- |
+| Throttle only | Both sides the same speed: straight on. The further you push, the faster (motor power 95 to 255) |
+| Throttle + a little steering | The inner side slows: a wide bend |
+| Full throttle + full steering | The inner side runs backward at 30%: the tightest bend |
+| Steering only | The sides run opposite ways at 85%: spin on the spot |
+| Reverse + steering | Backs up while turning |
+| Let go | Both sides 0, then stop |
+
+The car still refuses to drive forward into a wall, and it stops by itself if no wheel speed arrives for 0.6 s (the app repeats them every 0.2 s), so walking out of range stops it.
+
+**Letters (older apps, any Bluetooth RC app).** Unchanged, so old apps still work:
 
 | Move | Letter | How it works |
 | --- | --- | --- |
 | Forward / backward | F / B | Both sides at the current speed |
 | Spin left / right | L / R | Sides turn opposite ways at 85% of the speed, on the spot |
 | Curve left / right | G / H | Forward while turning: the inner wheels run backward at 30% for a sharp bend |
-| Stop | S | Stops everything, including any mode |
-| Fast / slow | W / Q | Full power (255) or 60% (153) |
+| Stop | S | Stops everything, including any mode, and centres the sensor head |
+| Fast / slow | W / Q | Full power (255) or 60% (153). Now takes effect at once, also while reversing or spinning |
 | Turbo | T | 1.5 s at full power with a whoosh and "TURBO!"; still stops for walls unless football mode is on |
-| Smooth brake | u | Lowers the power by 10 every 40 ms instead of stopping dead |
+| Smooth brake | u | Each side lowers its own power by 10 every 40 ms, so a bend stays a bend |
 | Horn | Y | "Beep beeeep" (880 Hz) |
+
+**Sensor head.** Codes 6 to 26 point the servo in 5° steps: 6 = 50° right, 16 = straight ahead, 26 = 50° left. It stays there until the next code, a mode that uses the servo, or stop.
 
 **Obstacle stop:** driving forward, it measures the distance three times per check (15 ms apart) and keeps the middle value. At 30 cm it stops, giving the wheels a 70 ms burst in reverse so it stops short, and shows surprised eyes for 1 s.
 
@@ -105,7 +122,7 @@ Six games built from the parts already on the car. They always use the distance 
 The car stands still and sweeps its sensor across 11 directions, 10° apart (50° right to 50° left and back), one step every 160 ms – a full sweep in about 2 s.
 
 - **On the car's screen:** the eyes make way for a radar picture – the car at the bottom, dotted rings at 75 cm and 150 cm, the sweep line, and a 3 x 3 dot for everything within 150 cm. The top row reads "RADAR near 42cm".
-- **In the app:** every reading is sent as a line like `#R:f42` (direction a = far right … f = ahead … k = far left, then cm). The app's Radar page draws the same map with rings at 50, 100 and 150 cm; dots fade over 6 s.
+- **In the app:** every reading is sent as a line like `#R:f42` (direction a = far right … f = ahead … k = far left, then cm). The app's Radar page draws the same map with rings at 50, 100 and 150 cm; dots fade over 6 s. The 3D car sweeps its head and shows the same dots on the floor round it.
 - **Start / stop:** letter O (app Radar page, or START on a controller); any other command stops it.
 - **Cost:** about 0.9 KB of program memory; switch HAS_RADAR off to free it.
 
@@ -177,13 +194,14 @@ The screen gives the car a face and the buzzer gives every action a sound.
 
 - **Obstacle stop at 30 cm** with a reverse jerk, in manual forward, auto forward, curves, turbo and dance.
 - **Football mode (V):** the sensor is switched fully off so the car can push a ball or bump into things; search, chaos, radar and the play modes still use it. Press V again to switch it back on.
-- **Never left driving:** the app sends stop when you let go, when it goes to the background, or when a controller disconnects; stop is sent twice to be sure.
+- **Never left driving:** the app sends stop when you let go, when it goes to the background, or when a controller disconnects; stop is sent twice to be sure. With smooth steering the car also stops by itself after 0.6 s without a wheel speed (phone out of range, app crashed).
+- **STOP always works:** the app sends "both sides 0" first, which stops even a mode started less than 1.5 s ago.
 - **Loose-wire proof screen:** the I2C bus has a 3 ms timeout, so a loose OLED wire can never freeze the car.
 - **Low-battery warning:** "LOW BATT!" on the screen, a sad tune (again every minute) and a phone (and controller) vibration.
 
 ## Command language
 
-The phone sends single letters over Bluetooth (9600 baud); the car answers with short lines.
+The phone sends single characters over Bluetooth (9600 baud); the car answers with short lines.
 
 | Letter | Command | Letter | Command |
 | --- | --- | --- | --- |
@@ -200,55 +218,78 @@ The phone sends single letters over Bluetooth (9600 baud); the car answers with 
 | O | Radar | X / x | Mute / unmute |
 | V / v | Football mode on / off | ? | "What are you doing?" |
 
+**Number codes (new):**
+
+| Code | Meaning |
+| --- | --- |
+| 128 to 191 | Left wheels: speed = code - 160 (so 129 = full backward, 160 = stop, 191 = full forward) |
+| 192 to 255 | Right wheels: speed = code - 224 |
+| 6 to 26 | Sensor head: angle = (code - 16) x 5°, plus = left |
+
+These can never be mixed up with a letter. The app sends a wheel code only when the speed changes (at most every 60 ms), repeats both every 0.2 s while driving, and sends a head code only when it changes (at most every 70 ms).
+
 **The car's answers:**
 
 | Line | Meaning | When |
 | --- | --- | --- |
-| `~READY\|0010` | What it is doing, then 1/0 for muted, football, slow, low battery | When something changes (at most 4 times a second, never mid-dance or mid-turn) and after "?" |
+| `~DRIVE\|0010` | What it is doing, then 1/0 for muted, football, slow, low battery | When something changes (at most 4 times a second, never mid-dance or mid-turn) and after "?" |
 | `#S:Badtameez Dil` | The song this program dances to | After "?" |
+| `#V:3` | It knows the steering codes (2) and the head codes (3) | After "?" |
 | `#R:f42` | A radar reading: direction a–k, distance in cm (999 = nothing) | Every 160 ms in radar mode |
 
-Repeated drive letters are ignored (some apps repeat while a button is held), and the same mode letter again does not restart a running mode.
+Repeated drive letters are ignored (some apps repeat while a button is held), and the same mode letter again does not restart a running mode. The car now reads every waiting character on each pass instead of one.
 
 ## The phone app
 
-Robot Car 3.1 is the car's own Android app: 53 KB, Android 5 and newer, free to download from one link and shareable from inside the app. It is held sideways and laid out like a game controller.
+Robot Car 4.2 is the car's own Android app: about 105 KB, Android 5 and newer, free to download from one link and shareable from inside the app. It is held sideways. Every earlier version (1.0 to 4.1) is kept in `App/Old_APKs`.
+
+![The app: throttle lever, live 3D car, bubble buttons, steering wheel](screens/phone-wheel-driving.png)
 
 | Area | What is there |
 | --- | --- |
-| Top bar | Connect / disconnect, the song the car dances to, football switch, sound switch, the connected game controller, help |
-| Left | Fast/slow, tilt on/off, and the thumbstick |
-| Middle | A green LCD-style screen (connection, last letter sent, what the car is doing, a dance clock, mute / football / speed / battery), then three pages: Moves (search, chaos, donut, 180°, auto, reverse, brake, horn), Play (the six games) and Radar (live map + start/stop) |
-| Right | A big red STOP and four round face buttons: dance (yellow), kick (blue), horn (red), turbo (green) |
+| Top bar | Connect, the song the car dances to, the connected controller, top speed (fast / slow), driving style (wheel / 1 stick / tilt), settings, help |
+| Left | The throttle lever (or the thumbstick) |
+| Middle | A live 3D car with the status over it; STOP and four action bubbles (dance, kick, horn, turbo); four pages: Moves, Play, Radar, Head |
+| Right | The steering wheel (with 1 stick or tilt: STOP and the action bubbles) |
 
-- **Thumbstick:** up = forward, diagonals = curve, sides = spin, down = back; it only sends a letter when the direction changes, and stop when let go.
-- **Tilt driving:** hold the pad and tilt the phone like a steering wheel; 25° of tilt = full stick. The way you hold it when you touch the pad counts as straight. Lift your finger and the car stops.
-- **Real-feeling buttons:** every button stands up like a key, sinks and shrinks slightly when pressed, and the phone clicks.
-- **Live status and alerts:** the screen follows what the car reports; guard intruders and low battery pop up a message and vibrate the phone and controller.
-- **Smart connecting:** pick the HC-05 once; the app reconnects by itself next time and keeps the screen on, full-screen.
-- **Old-program check:** if the car doesn't answer within 3 s, the app warns "OLD CAR PROGRAM" and says which program to upload.
-- **Link log:** hold the green screen to see every letter sent and every line the car answered.
-- **Built from scratch:** plain Java with no extra libraries, in nine parts (screen, letters, Bluetooth, car state, buttons, stick, tilt, gamepad, radar), signed with its own key.
+- **Wheel driving (default):** a throttle lever (up = forward, down = backward, as fast as you push) and a steering wheel you grab anywhere and turn, 126° each way for full steering. Both spring back when let go.
+- **1 stick and tilt:** one thumbstick, or hold the pad and tilt the phone like a steering wheel (25° = full).
+- **Live 3D car:** a small 3D engine written for this app. The wheels spin, the floor moves and turns, the car leans in bends, bounces when it dances, sweeps its head in radar mode with the dots on the floor, and meets a red wall when blocked. Without a connection it follows the controls, so everything can be tried first.
+- **Head page:** a blue wheel turns the sensor head up to 50° each way; it stays where it is left. LOOK STRAIGHT or STOP centres it.
+- **Bubble buttons:** glossy 3D keys with a shine, a glow of their own colour, a ripple and a springy press; the button of the running mode glows.
+- **Any screen:** the layout re-arranges itself for small phones, tablets, upright and resized windows (checked at 31 sizes).
+- **Settings:** driving style, top speed, steering feel, dead zones, haptics, controller badges, reset.
+- **Live status and alerts:** guard intruders and low battery pop up a message and vibrate the phone and controller; a blocked car gives a short tick.
+- **Smart connecting:** pick the HC-05 once; the app reconnects by itself, offers Reconnect when the link is lost, and keeps the screen on.
+- **Old-program check:** if the car doesn't answer within 3 s the app warns "OLD CAR PROGRAM"; if it answers without `#V` the app drives with the old letters instead.
+- **Link log:** hold the 3D picture to see everything sent and every line the car answered.
+- **Built from scratch:** plain Java with no extra libraries, about 20 small classes, signed with its own key so each version installs over the last.
+
+## The web remote
+
+The same remote as a web page for Chrome or Edge on a computer: the same layout, 3D car, wheel, lever and controller map. It talks to the HC-05 through Web Serial and drives with the mouse, the keyboard (W A S D, Space = stop) or a controller. Its driving logic is a JavaScript copy of the app's and is checked to give exactly the same output. Open `Web/index.html`.
 
 ## Game controller
 
-A controller such as the GameSir Cyclone 2 drives the car through the phone (the HC-05 can't pair with a controller directly). Connect it by Bluetooth or its USB dongle with a USB-C adapter, in Android / Xbox mode. It drives like a racing game; the pressed button lights up on screen.
+A controller such as the GameSir Cyclone 2 drives the car through the phone (the HC-05 can't pair with a controller directly). Connect it by Bluetooth (Android mode, yellow light) or its 2.4 GHz dongle with a USB-C adapter (green light). It drives like an RC transmitter: throttle on one thumb, steering on the other. The pressed button lights up on screen, and every button can be changed.
 
 | Controller | Does |
 | --- | --- |
-| RT / LT | Gas (forward) / reverse |
-| Left stick | Steer (with RT: curve left / right), or drive with the stick alone |
-| A / B / X / Y | Turbo / STOP / kick / dance |
-| RB | Fast / slow |
-| L3 / R3 (click the sticks) | Horn / brake |
+| Left stick up / down | Throttle: the further you push, the faster |
+| Right stick left / right | Steering (no throttle = spin on the spot) |
+| RT / LT | Turbo / smooth brake |
+| A / B / X / Y | Dance / STOP / kick / horn |
+| RB | Football mode |
+| LB | SHIFT (hold for the second jobs) |
 | D-pad up / right / down / left | Search / chaos / donut / 180° turn |
-| START / SELECT | Radar / football |
+| START / SELECT | Radar / mute |
+| L3 / R3 (click the sticks) | Auto forward / auto backward |
 | Hold LB + A / B / X / Y | Follow me / guard / goalkeeper / pet |
 | Hold LB + D-pad up / down | Music / gestures |
-| Hold LB + D-pad right / left | Auto forward / auto backward |
-| Hold LB + SELECT | Sound on / off |
+| Hold LB + D-pad left / right | Top speed slow / fast |
+| Hold LB + right stick | Turn the sensor head |
 
-The controller rumbles on alerts, and the Cyclone 2's back buttons can copy any button through the GameSir app.
+The app understands all four Cyclone 2 modes, shows a live drawing of the controller with stick and trigger values, remembers a separate button map for each controller, and stops the car if the controller disconnects. It rumbles for an intruder (long), low battery (medium), a blocked car (tick) and turbo (pulse). The back buttons M1 / M2 can copy any button through the GameSir app.
 
 ## Software
 
@@ -256,13 +297,15 @@ The car runs one Arduino program of about 4,500 lines, written in plain language
 
 **Program layout:** 1 libraries · 2 pins · 3 settings · 3b dance moves · 3c the song (tempo, steps, choreography) · 5 memory · 6 motors · 7 buzzer · 8 screen · 9 distance sensor · 10 servo · 11 greeting · 12 timed moves · 13 stop/start helpers · 15 Bluetooth · 16 self-driving modes · 16b play modes, radar, turbo, battery · 17 setup and loop.
 
-**How it runs:** almost no waiting (only 15 ms between distance pings); every mode is a step machine checked on each pass of the loop (about every 50 ms, set by the distance measurement). Timed moves (180° turn, play-mode moves, dance spins) stop on the exact millisecond, and the screen pauses drawing just before a dance step so moves stay on the beat. Bluetooth is read twice per loop for quick answers.
+**How it runs:** almost no waiting (only 15 ms between distance pings); every mode is a step machine checked on each pass of the loop (about every 50 ms, set by the distance measurement). Timed moves (180° turn, play-mode moves, dance spins) stop on the exact millisecond, and the screen pauses drawing just before a dance step so moves stay on the beat. Bluetooth is read twice per loop, and every waiting character is handled each time.
 
 | Memory | Used | Of |
 | --- | --- | --- |
-| Main program | 30,656 bytes (95.0%) | 32,256 |
-| Fullest song file (Get Lucky) | about 31,500 bytes (97.7%) | 32,256 |
-| RAM (variables) | 987 bytes (48%) | 2,048 |
+| Main program | 31,136 bytes (96.5%) | 32,256 |
+| Fullest song file (Get Lucky) | 31,988 bytes (99.2%), 268 bytes left | 32,256 |
+| RAM (variables) | 992 bytes (48%) | 2,048 |
+
+Smooth steering, the four fixes and the head codes cost 480 bytes together.
 
 **Switches (section 3):** HAS_FOLLOW, HAS_KEEPER, HAS_GUARD, HAS_MUSIC, HAS_GESTURE, HAS_PET, HAS_RADAR turn each mode on or off; debug messages are off (saves 2.9 KB).
 
@@ -276,18 +319,22 @@ The car runs one Arduino program of about 4,500 lines, written in plain language
 
 ## Test record
 
-Every change is checked in a computer simulator that runs the real compiled program on a simulated ATmega328P, with a simulated distance sensor, servo, motors, buzzer, screen and Bluetooth.
+Every change is checked on the computer. The car program runs in a simulator: the real compiled program on a simulated ATmega328P, with a simulated distance sensor, servo, motors, buzzer, screen and Bluetooth. The app's logic and drawing code run as plain Java.
 
-| What is checked | Result (Oct 20, 2026) |
+| What is checked | Result (Nov 12, 2026) |
 | --- | --- |
-| Simulator runs | 61 of 61 passed |
-| Individual checks | 394 of 394 passed, 0 failed |
+| Car simulator, newest main program (steering, head codes, safety stop, fixes, every mode, the full demo dance) | 114 of 114 passed, 0 failed |
+| Car simulator, main program + all 39 song dances (run on Nov 10 with steering, before the 44-byte head code was added) | 847 of 847 passed, 0 failed; the re-run with the head code was still going when this was written |
 | Programs compiled and fitting in memory | 40 of 40 (main + 39 songs) |
-| Dance moves on the beat (all 39 songs) | 12,624 of 12,624 |
-| Buzzer notes correct | 18,288 of 18,288 |
-| App session replay (connect, slow, fast, search, follow, radar, pet) | All answers correct, app parses every line |
+| App driving logic, controller map, button presses, car answers | 131 of 131 |
+| App layout: nothing overlapping or cut off at 31 screen sizes x 3 driving styles | 93 of 93 |
+| App drawing code run and drawn to pictures; lever and wheel driven with pretend fingers | 21 of 21 |
+| Web remote gives the same layout, wheel speeds and codes as the app | 11 of 11 |
+| Every Android call checked against Android 5 | All newer calls are behind a version check |
 
-The tests cover driving, curves, turbo, horn and status, every play mode, radar, football mode, mute, stopping each mode, the 180° turn, faces and dizziness, being stuck with no echo, dancing next to a wall, tapping dance back in time, and special song moments. Not yet tested: the app on a real phone and the GameSir Cyclone 2 in hand.
+The simulator tests cover smooth steering, the 0.6 s safety stop, the head codes, the speed and brake fixes, a drive replayed from the app's real logic, curves, turbo, horn and status, every play mode, radar, football mode, mute, stopping each mode, the 180° turn, faces and dizziness, being stuck with no echo, dancing next to a wall, tapping dance back in time, and special song moments.
+
+**Not yet tested:** the app on a real phone, the new car program on the real car, and the GameSir Cyclone 2 in hand.
 
 ## History
 
@@ -295,6 +342,9 @@ The car grew from a tutorial obstacle avoider into a phone-controlled entertaine
 
 | When | Version | What changed |
 | --- | --- | --- |
+| Nov 11, 2026 | App 4.2 + head | A wheel that turns the sensor head (new car codes 6–26), on the controller with LB + right stick |
+| Nov 11, 2026 | App 4.1 | The new look: live 3D car, steering wheel and throttle lever, glossy bubble buttons, animations |
+| Nov 10, 2026 | App 4.0 + steering + web | Smooth steering (the app sets each side's speed), 0.6 s safety stop, four car fixes, GameSir Cyclone 2 map with remapping, settings, controller screen, web remote for computers |
 | Oct 20, 2026 | App 3.1 | Spots an old car program, speed button without status, link log, safer screen tap |
 | Oct 20, 2026 | Radar + app 3.0 | Radar mode, song name to the app, tilt driving, Moves / Play / Radar pages, pressable buttons, racing-style controller map |
 | Oct 20, 2026 | Guide | Full guide to everything the car and app can do (page + PDF) |
@@ -316,12 +366,13 @@ The car grew from a tutorial obstacle avoider into a phone-controlled entertaine
 
 **Limits today:**
 
-- **Memory is nearly full** (95%, up to 97.7% in song files): new features need something switched off first.
-- **Android only:** iPhones can't talk to an HC-05 module.
+- **Memory is nearly full** (96.5%, up to 99.2% in song files; the fullest has 268 bytes left): new features need something switched off first.
+- **Android and computers only:** iPhones can't talk to an HC-05 module, in an app or a web page.
 - **Battery:** it can only warn when nearly empty; a real percentage needs two resistors (a voltage divider into A2).
 - **One sensor, straight ahead:** thin, soft or angled things (chair legs, cushions) can be missed.
 - **Half-duplex Bluetooth:** while the car sends a line, a letter arriving at that moment can be missed.
-- **Old programs:** the songs in the old Robot_Dances folder and the v7.1 sketch don't know the play modes, radar or status line.
+- **Old programs:** the songs in the old Robot_Dances folder and the v7.1 sketch don't know the play modes, radar or status line; any program from before Nov 10 doesn't know smooth steering, and before Nov 11 the head codes. The app falls back to letters for them.
+- **Not tried on real hardware yet:** app 4.x, the steering and the head codes are checked on the computer only.
 
 **Ideas saved for later:** record and replay a route (kept after switch-off), more emoji faces and sound effects (police siren, reversing beep, laser), screen games (reaction game, Simon says), a wall follower for mazes, a line follower or table-edge stop (with the old sensors on free pins A2/A3), and a real battery meter.
 
@@ -334,6 +385,8 @@ All the code, songs, app and guides are public in one GitHub repository.
 | Everything | [github.com/mayaanmalik2486/robot-car](https://github.com/mayaanmalik2486/robot-car) |
 | The app (download) | [RobotCar.apk](https://github.com/mayaanmalik2486/robot-car/raw/main/App/RobotCar.apk) |
 | App guide | [App/README.md](../App/README.md) |
+| Web remote | [Web](../Web) |
+| Full guide with this week's changes | [CAR_AND_APP_GUIDE.md](CAR_AND_APP_GUIDE.md) |
 | Main program | [Robot_Car_Main](../Robot_Car_Main) |
 | Wiring and power guide | [POWER_AND_WIRING.md](../Robot_Car_Main/POWER_AND_WIRING.md) |
 | The 39 song programs | [Dances](../Dances) |
