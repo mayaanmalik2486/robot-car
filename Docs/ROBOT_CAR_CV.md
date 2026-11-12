@@ -20,7 +20,7 @@ A 4-wheel-drive Arduino robot car that drives from a phone, a computer or a game
 | Power | 3 x 18650 cells (motors + Arduino), 4 x AA (servo) |
 | Skills | Smooth steering, head control, 6 self-driving modes, 6 play modes, radar, 39 dances |
 | Program size | 31,136 bytes (96.5% of memory); song versions up to 99.2% |
-| Tested | Car simulator: 114 of 114 checks on the newest main program; all 39 dances 847 of 847 one step earlier. App: 256 checks pass |
+| Tested | Car simulator: 428 of 428 checks in 66 runs (main program + all 39 dances, with steering and the head codes). App: 256 checks pass |
 | Code | Public on GitHub: [mayaanmalik2486/robot-car](https://github.com/mayaanmalik2486/robot-car) |
 
 ## How it works
@@ -323,8 +323,8 @@ Every change is checked on the computer. The car program runs in a simulator: th
 
 | What is checked | Result (Nov 12, 2026) |
 | --- | --- |
-| Car simulator, newest main program (steering, head codes, safety stop, fixes, every mode, the full demo dance) | 114 of 114 passed, 0 failed |
-| Car simulator, main program + all 39 song dances (run on Nov 10 with steering, before the 44-byte head code was added) | 847 of 847 passed, 0 failed; the re-run with the head code was still going when this was written |
+| Car simulator runs (main program, debug build, all 39 song dances) | 66 of 66 passed |
+| Individual simulator checks, with steering and the head codes | 428 of 428 passed, 0 failed |
 | Programs compiled and fitting in memory | 40 of 40 (main + 39 songs) |
 | App driving logic, controller map, button presses, car answers | 131 of 131 |
 | App layout: nothing overlapping or cut off at 31 screen sizes x 3 driving styles | 93 of 93 |
