@@ -1,12 +1,19 @@
 # Robot Car – Everything It Can Do
 
-*Updated Nov 12, 2026 · app 4.2 · also as a [PDF](Robot_Car_Guide.pdf)*
+*Updated Nov 23, 2026 · app 4.2 · also as a [PDF](Robot_Car_Guide.pdf)*
 
 A 4-wheel Arduino robot car you drive from an Android phone, a computer or a game controller. It steers smoothly like a real RC car, avoids walls, dances to 39 songs, plays games, maps the room with a radar, lets you turn its sensor "eyes", and shows a face on its screen. The app shows a live 3D model of the car that does what the real one does.
 
 **Get the app:** [RobotCar.apk](https://github.com/mayaanmalik2486/robot-car/raw/main/App/RobotCar.apk) · **On a computer:** open `Web/index.html` in Chrome or Edge · **Everything:** [github.com/mayaanmalik2486/robot-car](https://github.com/mayaanmalik2486/robot-car)
 
 ---
+
+## Newest (Nov 23, 2026): search rebuilt, code slimmed
+
+- **Search** scans while it drives and no longer takes "no echo" for open space. In the simulator's rooms with real walls it bumped into things about 25 times less often.
+- **Guard** no longer raises the alarm for a far wall whose echo comes and goes. **Pet** scans too, so it doesn't push against tilted walls. The **brake** takes over properly from a 180° turn. Modes that turn the head themselves ignore the app's **head wheel**.
+- **The program is smaller:** 29,726 bytes (92.2%), the fullest song 30,578 bytes (94.8%), with no mode removed. The IR remote fits the main program with every mode on.
+- **WATCH_THE_CAR.bat:** watch your real program drive around a pretend room on the computer before you upload it.
 
 ## 1. What changed this week (Oct 20 → Nov 12, 2026)
 
@@ -99,7 +106,7 @@ The car is built from cheap, common hobby parts around an Arduino UNO. Each part
 | Passive buzzer | Plays jingles, songs, beeps, the horn and alarms |
 | 3 x 18650 cells (+ 4 x AA for the servo) | Power for the motors, the Arduino and the servo |
 
-The program fills 96.5% of the Arduino's memory (up to 99.2% in the song files), so new features have to be tiny. Each play mode can be switched off in the code to free space.
+The program fills 92.2% of the Arduino's memory (up to 94.8% in the song files), so new features have to be small. Each play mode can be switched off in the code to free space.
 
 ## 4. Driving
 
@@ -161,7 +168,7 @@ These run by themselves after one tap and keep going until you send another comm
 | Mode | What it does |
 | --- | --- |
 | Auto forward / auto backward | Drives straight on its own and stops at obstacles |
-| Search | Turns its sensor to look left, ahead and right, then turns toward the side with the most room and drives there. If it is boxed in, it turns 90° at a time until it finds a way out. It also notices when it is stuck on something the sensor can't see |
+| Search | Drives while the sensor scans (ahead, left, ahead, right, 60° to each side), because a wall at an angle sends no echo straight back. Something close at the side that comes closer: it steers away. Something ahead: it backs up, looks left, right and ahead, and turns in small steps toward the side with more room until the way ahead is open and it is past what it turned away from. "No echo" never counts as open space. It notices when it is stuck and backs out |
 | Chaos | Random straight runs, turns, spins and wiggles, a bit slower than full speed so it crashes less. The eyes look angry |
 | Donut | Spins round and round. When you stop it, it shows dizzy eyes and wobbles its head |
 | 180° turn | Turns round to face the other way |
@@ -355,14 +362,14 @@ Nothing below needs the real car; it all runs on the computer.
 
 ## 16. Extras
 
-- **IR remote add-on** – the TV-style IR remote was taken out to make room. One file plus 3 lines puts it back ([IR_Remote_Addon](../IR_Remote_Addon)), but memory is now very tight, so something else has to be switched off.
+- **IR remote add-on** – the TV-style IR remote was taken out to make room. One file plus 3 lines puts it back ([IR_Remote_Addon](../IR_Remote_Addon)). It fits the main program with every mode on; in the biggest song files one mode has to be switched off.
 - **Update all songs in one click** – change the main program, double-click `UPDATE_ALL_SONGS.bat`, and all 39 song programs get the change (each keeps its own dance), then it checks that they all compile and fit.
 - **Every old version kept** – all earlier versions of the car code, the dances from before the choreography, and every app version from 1.0 to 4.1.
 - **Ready to upload** – every program is already set to Arduino Uno on COM4.
 
 ## 17. Limits and ideas for later
 
-- **Memory is nearly full** – 96.5% for the main program and up to 99.2% in song files; the fullest has 268 bytes left. Any new car feature needs something else switched off.
+- **Memory is nearly full** – 92.2% for the main program and up to 94.8% in song files; the fullest has 1,678 bytes left. Any new car feature needs something else switched off.
 - **Android and computers only** – no iPhone app or web page is possible with the HC-05.
 - **Battery** – it warns only when nearly empty; a real battery meter needs two resistors.
 - **The sensor sees only where the head points** – thin, soft or angled things (chair legs, cushions) can be missed.

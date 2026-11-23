@@ -65,6 +65,19 @@ const browsers = ['C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'
 const browser = browsers.find((b) => fs.existsSync(b));
 if (!browser) throw new Error('No Edge or Chrome found to print the PDF');
 const pdf = path.join(docs, target);
-execFileSync(browser, ['--headless', '--disable-gpu', '--no-pdf-header-footer', '--print-to-pdf=' + pdf, 'file:///' + page.replace(/\\/g, '/')], { stdio: 'ignore' });
+// (its own browser profile: an Edge that is already open would swallow the request; and print to a new file, so an old PDF can't pass for a new one)
+const profile = fs.mkdtempSync(path.join(require('os').tmpdir(), 'guide-pdf-'));
+const fresh = path.join(profile, 'out.pdf');
+execFileSync(browser, ['--headless', '--disable-gpu', '--no-first-run', '--user-data-dir=' + path.join(profile, 'p'), '--no-pdf-header-footer', '--print-to-pdf=' + fresh,
+  'file:///' + page.replace(/\\/g, '/')], { stdio: 'ignore', timeout: 90000 });
+const wait = (ms) => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+for (let i = 0, last = -1; i < 120; i++) {              // (Edge can return before it has finished printing)
+  const size = fs.existsSync(fresh) ? fs.statSync(fresh).size : 0;
+  if (size > 0 && size === last) break;
+  last = size;
+  wait(500);
+}
 fs.unlinkSync(page);
+if (!fs.existsSync(fresh)) throw new Error('The browser made no PDF');
+fs.copyFileSync(fresh, pdf);
 console.log('wrote ' + pdf + ' (' + Math.round(fs.statSync(pdf).size / 1024) + ' KB)');

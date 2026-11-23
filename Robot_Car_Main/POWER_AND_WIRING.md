@@ -137,8 +137,7 @@ Your OLED's pins are in the order **GND, VCC, SCL, SDA**.
 | **SCL** | **A5 row S** |
 | **SDA** | **A4 row S** |
 
-SDA goes to A4 and SCL goes to A5. Swapping them gives a blank screen and
-`OLED not found` in the Serial Monitor.
+SDA goes to A4 and SCL goes to A5. Swapping them gives a blank screen.
 
 ---
 
@@ -206,7 +205,7 @@ If the buzzer board gets warm or clicks when it should be quiet, change
 
 Put the car on a box so the wheels are off the ground for steps 1–6.
 
-1. Upload with only USB connected. Serial Monitor at **115200**: `1 … 7`, `OLED ready`, `HELLO`, `READY`.
+1. Upload with only USB connected: the screen shows Hello! and the fanfare plays.
 2. AA pack on, press reset: the servo waves and stops facing forward.
 3. OLED shows Hello!, then "BT:-- SPEED:FULL / READY / xx cm"; your hand changes the cm number.
 4. The fanfare plays at every reset.

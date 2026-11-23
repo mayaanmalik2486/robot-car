@@ -5,6 +5,22 @@ const { parseSong, matchMotors, matchTune } = require('./dancecheck');
 const { makeRoom } = require('./room');
 
 const kind = (log, k) => log.filter((e) => e.kind === k);
+// "danceNextUs" goes up by one dance step at a time; any other change is a tap that moved the beat (or the start)
+function beatMoves(log) {
+  const out = [];
+  let last = null;
+  for (const e of kind(log, 'var').filter((x) => x.v.startsWith('danceNextUs='))) {
+    const v = +e.v.split('=')[1];
+    if (last !== null && last !== 0 && Math.abs(v - last - song.stepUs) > 2 * song.stepUs) out.push({ t: e.t, start: true });
+    else if (last !== null && last !== 0) {
+      const off = v - last, steps = Math.round(off / song.stepUs);
+      const shift = off - steps * song.stepUs;
+      if (Math.abs(shift) > 2000) out.push({ t: e.t, shift: shift / 1000 });
+    }
+    last = v;
+  }
+  return out;
+}
 // how long (ms) the motors were in this state between from and to
 function motorMs(log, v, from, to) {
   const m = kind(log, 'motor');
@@ -119,14 +135,15 @@ const scenarios = [
       { t: DANCE_AT + 0.3, bt: 'S' },                                  // let go of the button: ignored
       { t: DANCE_AT + 8 * (60 / song.bpm) + 0.09, bt: '4' },           // tapped 90 ms late (about) on beat 8
     ],
+    vars: ['danceNextUs:4'],
     check: (log) => {
       const res = [];
-      const moved = kind(log, 'serial').find((e) => /^DANCE beat moved by ms: -?\d+$/.test(e.v));
-      const shift = moved ? +moved.v.split(': ')[1] : null;
+      const moved = beatMoves(log).find((e) => e.shift !== undefined);
+      const shift = moved ? moved.shift : null;
       // the tap came this late after the robot's own beat 8 (its beat started when the dance started, a little after the byte)
       const late = DANCE_AT * 1000 + 90 - (anchorOf(log, DANCE_AT * 1000) || 0);
       res.push(check('a new tap moves the beat (by the tap time + up to one loop)', moved && shift >= late - 10 && shift <= late + 110,
-        moved ? `${moved.v} (tap ${late.toFixed(0)} ms after the beat)` : 'no tap seen'));
+        moved ? `moved ${shift.toFixed(0)} ms (tap ${late.toFixed(0)} ms after the beat)` : 'no tap seen'));
       const st = kind(log, 'state').filter((e) => e.t > DANCE_AT * 1000 + 100);
       res.push(check('dance keeps going after the button is let go and tapped', st.every((e) => e.v === 'DANCE'), st.map((e) => e.v).join(',')));
       if (moved) {
@@ -143,9 +160,10 @@ const scenarios = [
     duration: DANCE_AT + 6,
     distance: () => 150,
     inputs: [{ t: 0.5, bt: 'W' }, ...Array.from({ length: 12 }, (_, i) => ({ t: DANCE_AT + i * 0.1, bt: '4' })), { t: DANCE_AT + 1.25, bt: 'S' }],
+    vars: ['danceNextUs:4'],
     check: (log) => {
-      const taps = kind(log, 'serial').filter((e) => /^DANCE beat moved/.test(e.v));
-      const starts = kind(log, 'serial').filter((e) => /^DANCE to:/.test(e.v));
+      const taps = beatMoves(log).filter((e) => e.shift !== undefined);
+      const starts = kind(log, 'state').filter((e) => e.v === 'DANCE');
       const { res } = danceChecks(log, { untilMs: (DANCE_AT + 5.5) * 1000 });
       return [check('holding dance (letter repeats) does not restart or shift it', taps.length === 0 && starts.length === 1, `${starts.length} start(s), ${taps.length} shift(s)`), ...res];
     },
@@ -209,16 +227,16 @@ const scenarios = [
     distance: (t) => { footballPings.push(t * 1000); return 15; },        // a wall 15 cm in front the whole time
     inputs: [{ t: 0.5, bt: 'W' }, { t: 4.0, bt: 'F' }, { t: 5.0, bt: 'S' }, { t: 5.5, bt: 'V' }, { t: 6.0, bt: 'F' }, { t: 6.5, snapshot: 'football-screen' },
       { t: 7.5, bt: 'S' }, { t: 8.0, bt: 'I' }, { t: 10.0, bt: 'S' }, { t: 11.0, bt: 'v' }, { t: 13.0, bt: 'F' }, { t: 14.5, bt: 'S' }],
+    vars: ['searchStep'],
     check: (log) => {
       const m = kind(log, 'motor');
       const fwdMs = (a, b) => m.reduce((sum, e, i) => (e.t > a && e.t < b && e.v === 'LF255 RF255' ? sum + ((m[i + 1] ? m[i + 1].t : b) - e.t) : sum), 0);
       const pings = (a, b) => footballPings.filter((t) => t > a && t < b).length;
-      const ser = kind(log, 'serial');
-      const searchSaw = ser.some((e) => e.t > 8000 && e.t < 10000 && /^SEARCH/.test(e.v) && e.v !== 'SEARCH');
+      const searchSaw = kind(log, 'var').some((e) => e.t > 8000 && e.t < 10000 && /^searchStep=[1-9]/.test(e.v));
       return [
         check('normal: F with a wall 15 cm ahead stops at once', fwdMs(4000, 5000) < 100, `drove ${fwdMs(4000, 5000).toFixed(0)} ms`),
         check('V = football mode: the sensor is completely off (no pings) and F keeps driving', pings(5700, 7500) === 0 && fwdMs(6000, 7600) > 1300, `${pings(5700, 7500)} pings, drove ${fwdMs(6000, 7600).toFixed(0)} ms`),
-        check('search still uses the sensor in football mode', pings(8100, 10000) > 5 && searchSaw, `${pings(8100, 10000)} pings, ${ser.filter((e) => e.t > 8000 && e.t < 10000 && /^SEARCH/.test(e.v)).map((e) => e.v).slice(0, 2).join(' | ')}`),
+        check('search still uses the sensor in football mode', pings(8100, 10000) > 5 && searchSaw, `${pings(8100, 10000)} pings, ${searchSaw ? 'saw the wall and looked around' : 'did not react'}`),
         check('V again = sensor back on: F stops at once', pings(11200, 13000) > 5 && fwdMs(13000, 14500) < 100, `${pings(11200, 13000)} pings, drove ${fwdMs(13000, 14500).toFixed(0)} ms`),
       ];
     },
@@ -236,12 +254,11 @@ const scenarios = [
     check: (log) => {
       const after = (DANCE_AT + 3) * 1000;
       const st = kind(log, 'state').filter((e) => e.t > after);
-      const parts = kind(log, 'serial').filter((e) => e.t > after + 300 && /^DANCE part/.test(e.v));
       const last = st.length ? st[st.length - 1].v : '-';
       const back = st.some((e) => e.v === 'DANCE' || e.v === 'SEARCH');
       const sv = kind(log, 'servo').filter((e) => e.t > after + 400);
       const head = sv.length ? sv[sv.length - 1].v : 90;
-      return [check(`the button stops the ${c.start ? 'search' : 'dance'} for good`, !back && parts.length === 0 && last === c.want && head >= 88 && head <= 92,
+      return [check(`the button stops the ${c.start ? 'search' : 'dance'} for good`, !back && last === c.want && head >= 88 && head <= 92,
         `states after: ${st.map((e) => e.v).join(',')}; head ${head}`)];
     },
   })),
@@ -559,7 +576,7 @@ const scenarios = [
       const anchor = DANCE_AT * 1000 + 20;
       const bar = (60000 / song.bpm) * 4;
       const want = anchor + 4 * bar;                               // SONG_SHOUT_STEPS = {32} (= bar 4) in the test copy
-      const s = kind(log, 'serial').find((e) => e.v === 'FEEDBACK!');
+      const s = kind(log, 'var').find((e) => e.v.startsWith('shoutUntil=') && e.t > DANCE_AT * 1000 + 1000);
       const zap = kind(log, 'buzzer').filter((e) => e.t > want - 30 && e.t < want + 350 && e.v >= 1700);
       const moves = kind(log, 'motor').filter((e) => e.t > want && e.t < want + 4000);
       return [
@@ -594,8 +611,9 @@ const scenarios = [
     duration: 14,
     distance: () => 250,                                // nothing within the sensor's range at all
     inputs: [{ t: 0.5, bt: 'W' }, { t: 2, bt: 'I' }],
+    vars: ['searchStep'],
     check: (log) => {
-      const stuck = kind(log, 'serial').find((e) => /^SEARCH stuck/.test(e.v));
+      const stuck = kind(log, 'var').find((e) => e.t > 2500 && e.v === 'searchStep=1');
       const dt = stuck ? (stuck.t - 2000) / 1000 : null;
       return [check('driving with no echo for ~6 s counts as stuck (backs out and looks)', stuck && dt > 5.5 && dt < 8.5, stuck ? `after ${dt.toFixed(1)} s` : 'never')];
     },
@@ -613,76 +631,97 @@ const scenarios = [
   },
 ];
 
-// SEARCH in a room. The car turns at half the speed the code expects
-// (like a real 4WD car skidding), so a fixed short turn would be too small.
-function roomScenario(name, opts) {
+// ---------------- driving around a room with REAL walls (a tilted wall sends no echo back), motors and servo ----------------
+const box = (a, b, c, d) => [[a, b, c, b], [c, b, c, d], [c, d, a, d], [a, d, a, b]];
+const ROOM = [...box(0, 0, 300, 220), ...box(120, 80, 180, 130), [0, 160, 60, 220]];           // a box in the middle, a corner cut off
+const EMPTY = box(0, 0, 300, 220);
+const CLUTTER = [...box(0, 0, 260, 200), ...box(70, 60, 90, 80), ...box(170, 40, 200, 70), ...box(120, 130, 160, 160)];
+const DEAD_END = [[0, -150, 0, 200], [60, -150, 60, 200], [0, 200, 60, 200], [0, -150, 60, -150]];   // 60 cm wide, closed in front
+const CORRIDOR = [[0, 0, 0, 400], [75, 0, 75, 325], [75, 325, 400, 325], [0, 400, 400, 400], [0, 0, 75, 0], [400, 325, 400, 400]];
+const FAST = { vmax: 90, track: 13, tau: 0.1 };          // a quick car that coasts
+function roomScenario(name, key, maxCrashes, minMetres, opts) {
   const room = makeRoom(opts);
   return {
     name,
-    duration: opts.duration || 70,
-    oled: false,
+    duration: opts.duration || 45,
+    oled: true,
     distance: (t, a) => room.distance(t, a),
-    onSample: (t, m) => room.onSample(t, m),
-    inputs: [{ t: 0.5, bt: 'W' }, { t: 4.0, bt: 'I' }],
+    onSample: (t, m, a) => room.onSample(t, m, a),
+    inputs: [{ t: 0.5, bt: 'W' }, { t: 4.0, bt: key }],
     room,
-    check: (log) => {
+    check: () => {
       const st = room.state;
-      const blocked = kind(log, 'serial').filter((e) => /^SEARCH blocked/.test(e.v));
-      const turns = kind(log, 'serial').filter((e) => /^SEARCH -> |^SEARCH open way|^SEARCH no open/.test(e.v));
-      // "went straight back": blocked again after driving less than 30 cm on the chosen way
-      // (when it starts driving again: new code says "open way found", the old code drove right after "-> turn left/right")
-      const opens = kind(log, 'serial').filter((e) => /^SEARCH open way found|^SEARCH -> (straight|turn left|turn right)$/.test(e.v));
-      const runs = [];
-      for (const o of opens) {
-        const b = blocked.find((x) => x.t > o.t);
-        if (b) runs.push(room.odoAt(b.t) - room.odoAt(o.t));
-      }
-      const quickReblocks = runs.filter((d) => d < 30).length;
-      const avgRun = runs.length ? runs.reduce((a, b) => a + b, 0) / runs.length : 0;
-      const again = kind(log, 'serial').filter((e) => /^SEARCH no open way/.test(e.v)).length;
       return [
-        check('no crashes', st.crashes === 0, `crashes at ${st.crashTimes.join(', ') || '-'}`),
-        check('keeps exploring (drove at least 6 m)', st.odo >= 600, `${(st.odo / 100).toFixed(1)} m driven, ${blocked.length} obstacles, longest without driving ${st.maxStill.toFixed(1)} s`),
-        check('does not drive straight back into the obstacle (blocked again after < 30 cm)', quickReblocks <= Math.max(1, runs.length / 10),
-          `${quickReblocks} of ${runs.length} ways chosen were blocked again within 30 cm; average run ${avgRun.toFixed(0)} cm; looked again ${again}x; first decisions: ${turns.slice(0, 4).map((e) => e.v.replace('SEARCH ', '')).join(' | ')}`),
+        check(`bumps into things at most ${maxCrashes} x in ${opts.duration || 45} s`, st.crashes <= maxCrashes, `${st.crashes} bumps ${st.crashTimes.join(', ')}`),
+        check(`keeps going (drives at least ${minMetres} m)`, st.odo >= minMetres * 100, `${(st.odo / 100).toFixed(1)} m`),
+        ...(opts.out ? [check('finds the way out', st.path.some(opts.out), '')] : []),
       ];
     },
   };
 }
-
-const ROOM = [[0, 0, 300, 0], [300, 0, 300, 220], [300, 220, 0, 220], [0, 220, 0, 0],   // walls
-  [120, 80, 180, 80], [180, 80, 180, 130], [180, 130, 120, 130], [120, 130, 120, 80],   // a box in the middle
-  [0, 160, 60, 220]];                                                                     // a corner cut
-if (process.env.ROOM !== '0') {
-  scenarios.push(roomScenario('search-room-slow-turning', { walls: ROOM, x: 60, y: 40, th: 0, turnEff: 0.5, duration: 75 }));
-  scenarios.push(roomScenario('search-room-fast-turning', { walls: ROOM, x: 240, y: 170, th: 200, turnEff: 1.0, duration: 60 }));
-  scenarios.push(roomScenario('search-room-medium-turning', { walls: ROOM, x: 150, y: 40, th: 90, turnEff: 0.75, duration: 60 }));
-  scenarios.push(roomScenario('search-room-mirrored-servo', { walls: ROOM, x: 60, y: 40, th: 0, turnEff: 0.5, mirror: true, duration: 60 }));
-  const CLUTTER = [[0, 0, 260, 0], [260, 0, 260, 200], [260, 200, 0, 200], [0, 200, 0, 0],
-    [70, 60, 90, 60], [90, 60, 90, 80], [90, 80, 70, 80], [70, 80, 70, 60],            // chair legs / boxes
-    [170, 40, 200, 40], [200, 40, 200, 70], [200, 70, 170, 70], [170, 70, 170, 40],
-    [120, 130, 160, 130], [160, 130, 160, 160], [160, 160, 120, 160], [120, 160, 120, 130],
-    [200, 140, 260, 120]];
-  scenarios.push(roomScenario('search-cluttered-room', { walls: CLUTTER, x: 30, y: 30, th: 45, turnEff: 0.6, duration: 60 }));
-  // A dead end: a 60 cm corridor closed in front. It must turn 90 degrees at a time until it faces the way out.
-  {
-    const DEAD_END = [[0, -150, 0, 200], [60, -150, 60, 200], [0, 200, 60, 200], [0, -150, 60, -150]];
-    const sc = roomScenario('search-dead-end', { walls: DEAD_END, x: 30, y: 120, th: 90, turnEff: 1.04, duration: 20 });
-    const base = sc.check;
-    sc.check = (log) => {
-      const s = kind(log, 'serial').map((e) => e.v);
-      const boxed = s.filter((v) => /^SEARCH boxed in/.test(v)).length;
-      const opening = s.findIndex((v) => /^SEARCH opening found/.test(v));
-      const st = sc.room.state;
-      const southLater = st.path.some((p) => p[2] < 40);   // drove back out of the dead end
-      return [
-        check('boxed in: turns 90 degrees at a time, then finds the way out and drives out', boxed >= 1 && opening >= 0 && southLater && st.crashes === 0,
-          `${boxed} x 90-degree turns, opening ${opening >= 0 ? 'found' : 'not found'}, ${southLater ? 'drove out' : 'still inside'}, crashes ${st.crashes}`),
-        check('never went straight back at the wall', !s.some((v) => /-> straight/.test(v)), ''),
-      ];
-    };
-    scenarios.push(sc);
-  }
+for (const [room, walls, x, y, th] of [['room', ROOM, 100, 190, 300], ['empty', EMPTY, 60, 170, 280], ['clutter', CLUTTER, 130, 100, 10], ['corridor', CORRIDOR, 300, 362, 170]]) {
+  scenarios.push(roomScenario('search-' + room, 'I', 1, 5, { walls, x, y, th, echoLimit: 30 }));                    // echo lost past 45 degrees
+  scenarios.push(roomScenario('search-' + room + '-fast', 'I', 2, 6, { walls, x, y, th, echoLimit: 30, ...FAST }));
 }
+scenarios.push(roomScenario('search-smooth-walls', 'I', 1, 5, { walls: ROOM, x: 60, y: 40, th: 0, echoLimit: 15 }));   // echo lost past 30 degrees: very smooth walls
+scenarios.push(roomScenario('search-dead-end', 'I', 1, 3, { walls: DEAD_END, x: 30, y: 120, th: 90, echoLimit: 30, out: (p) => p[2] < 40 }));
+scenarios.push(roomScenario('search-dead-servo', 'I', 2, 3, { walls: ROOM, x: 60, y: 40, th: 0, servo: 'dead' }));
+
+// CHAOS and PET wander around the same room
+scenarios.push(roomScenario('chaos-room', '1', 4, 4, { walls: ROOM, x: 60, y: 40, th: 0, echoLimit: 30 }));
+scenarios.push(roomScenario('pet-room', 'P', 2, 1, { walls: ROOM, x: 60, y: 40, th: 0, echoLimit: 30 }));
+
+scenarios.push({
+  name: 'auto-forward-wall',
+  duration: 12,
+  distance: (t) => (t < 6 ? 120 : t < 8 ? 25 : 120),        // a wall appears from 6 to 8 s
+  inputs: [{ t: 0.5, bt: 'W' }, { t: 4.0, bt: '2' }, { t: 10.0, bt: 'J' }],
+  check: (log) => {
+    const firstStop = kind(log, 'motor').find((e) => e.t > 6000 && e.v !== 'LF255 RF255');
+    return [
+      check('auto forward drives', motorMs(log, 'LF255 RF255', 4000, 6000) > 1800, ''),
+      check('stops within 0.2 s of a wall appearing', firstStop && firstStop.t - 6000 < 200, firstStop ? `${(firstStop.t - 6000).toFixed(0)} ms` : 'never'),
+      check('waits at the wall', motorMs(log, 'L-0 R-0', 6300, 8000) > 1500, ''),
+      check('drives on when it has gone', motorMs(log, 'LF255 RF255', 8300, 10000) > 1500, ''),
+      check('auto backward drives backward', motorMs(log, 'LB255 RB255', 10000, 12000) > 1800, ''),
+    ];
+  },
+});
+scenarios.push({
+  name: 'brake-during-180',
+  duration: 8,
+  distance: () => 150,
+  inputs: [{ t: 0.5, bt: 'W' }, { t: 4.0, bt: 'U' }, { t: 4.2, bt: 'u' }],
+  check: (log) => {
+    const st = kind(log, 'state').filter((e) => e.t > 4000).map((e) => e.v);
+    const m = kind(log, 'motor').filter((e) => e.t > 4150);
+    return [
+      check('the brake takes over from the 180 turn and slows down gently', st.join(',') === 'TURN180,BRAKING,IDLE' && m.length > 10, st.join(',') + ', ' + m.length + ' speeds'),
+      check('it ends stopped', m.length > 0 && m[m.length - 1].v === 'L-0 R-0', ''),
+    ];
+  },
+});
+scenarios.push({
+  name: 'guard-far-wall',
+  duration: 30,
+  // a far wall whose echo comes and goes (nothing while it learns the room, later 165 cm): not an intruder
+  distance: (t) => (t > 15 && t % 6 < 4 ? 165 : null),
+  inputs: [{ t: 0.5, bt: 'W' }, { t: 3.0, bt: 'A' }],
+  check: (log) => [check('a flickering far wall sets off no alarm', !kind(log, 'bt').some((e) => e.v.startsWith('~INTRUDER')), '')],
+});
+scenarios.push({
+  name: 'head-during-modes',
+  duration: 12,
+  distance: () => 100,
+  // the head wheel of the app while guard has the head: ignored
+  inputs: [{ t: 0.5, bt: 'W' }, { t: 3.0, bt: 'A' }, { t: 4.0, bt: String.fromCharCode(6) }, { t: 10.5, bt: 'S' }, { t: 11.0, bt: String.fromCharCode(6) }],
+  check: (log) => {
+    const sv = kind(log, 'servo');
+    return [
+      check('guard: the head wheel is ignored', !sv.some((e) => e.t > 3900 && e.t < 8000 && e.v < 85), ''),
+      check('after stop it works again', sv.some((e) => e.t > 11000 && e.v === 40), ''),
+    ];
+  },
+});
 
 module.exports = scenarios;

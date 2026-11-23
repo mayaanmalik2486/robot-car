@@ -42,6 +42,7 @@ More QR codes (app guide, CV, full guide, song list) are in [Docs/qr](Docs/qr).
 | [`UPDATE_ALL_SONGS.bat`](UPDATE_ALL_SONGS.bat) | Changed `Robot_Car_Main`? Double-click this: every song file gets your change (each keeps its own song and choreography), then it checks they all compile. |
 | [`Dances_Before_Choreography`](Dances_Before_Choreography) | All 39 song dances as they were before the choreography (the older dance style), with their song list. |
 | [`Old_Versions`](Old_Versions) | Every earlier version of the main code, oldest first (from the starter tutorial and the first servo test up to v9). |
+| [`WATCH_THE_CAR.bat`](WATCH_THE_CAR.bat) | Try new code on the computer first: double-click it, and your real program drives around a pretend room while you watch. |
 | [`IDEAS.md`](IDEAS.md) | What's been built, how it fits in the memory, and ideas saved for later. |
 | [`Tools`](Tools) | Computer scripts that make the dances and test everything in a simulator. **You don't need these** to use the car. |
 
@@ -66,7 +67,7 @@ The app has a button for each of these. (Any "Bluetooth RC car" app works too: t
 | Y | horn | 4 | dance (press again ON a beat to line it up) |
 | 2 / J | auto forward / auto backward (stops at obstacles) | 3 | donut |
 | U | 180-degree turn | u | smooth brake |
-| 1 | chaos | I | search (looks around and drives to open space) |
+| 1 | chaos | I | search (scans while it drives, and finds open space by itself) |
 | M | follow me | K / k | goalkeeper / kick! |
 | A | guard (alarm) | N | music (your hand plays notes) |
 | E | gestures (tap, double tap, hold close, hold further) | P | pet |

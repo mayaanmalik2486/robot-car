@@ -1,6 +1,6 @@
 # Robot Car – CV
 
-*Updated Nov 12, 2026 (app 4.2) · also as a [PDF](Robot_Car_CV.pdf)*
+*Updated Nov 23, 2026 (app 4.2) · also as a [PDF](Robot_Car_CV.pdf)*
 
 ![The Robot Car on the desk: ultrasonic sensor eyes on top, the OLED screen showing "Hello! :-)" and "I'm awake!"](robot-car-photo.jpg)
 
@@ -19,8 +19,8 @@ A 4-wheel-drive Arduino robot car that drives from a phone, a computer or a game
 | Talks | HC-05 Bluetooth at 9600 baud, to its own Android app (4.2) and a web remote for computers |
 | Power | 3 x 18650 cells (motors + Arduino), 4 x AA (servo) |
 | Skills | Smooth steering, head control, 6 self-driving modes, 6 play modes, radar, 39 dances |
-| Program size | 31,136 bytes (96.5% of memory); song versions up to 99.2% |
-| Tested | Car simulator: 428 of 428 checks in 66 runs (main program + all 39 dances, with steering and the head codes). App: 256 checks pass |
+| Program size | 29,726 bytes (92.2% of memory); song versions up to 94.8% |
+| Tested | Car simulator: 465 of 465 checks in 83 runs (every mode, search in rooms with real walls, and all 39 dances). App: 256 checks pass |
 | Code | Public on GitHub: [mayaanmalik2486/robot-car](https://github.com/mayaanmalik2486/robot-car) |
 
 ## How it works
@@ -98,7 +98,7 @@ One tap starts them; they keep going until another command arrives. An "S" sent 
 | Mode | Letter | What it does |
 | --- | --- | --- |
 | Auto forward / backward | 2 / J | Drives straight by itself and stops at obstacles |
-| Search | I | Stops, backs up 120 ms, looks left, right and ahead with the servo, then turns toward the side with the most room in 60 ms steps (about 20° each) until at least 100 cm is clear, plus one extra step so the whole car clears the edge. Boxed in: turns 90° at a time. If the distance ahead hasn't changed for 1.5 s while driving (stuck on something it can't see), it backs up 300 ms and turns |
+| Search | I | Drives while the sensor scans (ahead, left, ahead, right, 60° to each side), because a wall at an angle sends no echo straight back. Something close at the side that comes closer: it steers away. Something ahead: it backs up, looks left, right and ahead, and turns in small steps toward the side with more room until the way ahead is open and it is past what it turned away from. "No echo" never counts as open space. It notices when it is stuck and backs out |
 | Chaos | 1 | Random straight runs (0.4–1.3 s), turns (0.12–0.45 s), a 15% chance of a spin (0.4–0.9 s) and a 15% chance of a reverse wiggle, at 75% speed. Obstacle: backs up 250 ms and turns. Angry eyes |
 | Donut | 3 | Spins round and round; stopped, it shows dizzy eyes and wobbles its head ±25° for 1.3 s |
 | 180° turn | U | Spins exactly 455 ms, tuned to half a turn on this car (a 90° turn is 227 ms) |
@@ -293,7 +293,7 @@ The app understands all four Cyclone 2 modes, shows a live drawing of the contro
 
 ## Software
 
-The car runs one Arduino program of about 4,500 lines, written in plain language with a comment on almost every line.
+The car runs one Arduino program of about 4,300 lines, written in plain language with a comment on almost every line.
 
 **Program layout:** 1 libraries · 2 pins · 3 settings · 3b dance moves · 3c the song (tempo, steps, choreography) · 5 memory · 6 motors · 7 buzzer · 8 screen · 9 distance sensor · 10 servo · 11 greeting · 12 timed moves · 13 stop/start helpers · 15 Bluetooth · 16 self-driving modes · 16b play modes, radar, turbo, battery · 17 setup and loop.
 
@@ -301,19 +301,20 @@ The car runs one Arduino program of about 4,500 lines, written in plain language
 
 | Memory | Used | Of |
 | --- | --- | --- |
-| Main program | 31,136 bytes (96.5%) | 32,256 |
-| Fullest song file (Get Lucky) | 31,988 bytes (99.2%), 268 bytes left | 32,256 |
-| RAM (variables) | 992 bytes (48%) | 2,048 |
+| Main program | 29,726 bytes (92.2%) | 32,256 |
+| Fullest song file (Get Lucky) | 30,578 bytes (94.8%), 1,678 bytes left | 32,256 |
+| RAM (variables) | 957 bytes (47%) | 2,048 |
 
 Smooth steering, the four fixes and the head codes cost 480 bytes together.
 
-**Switches (section 3):** HAS_FOLLOW, HAS_KEEPER, HAS_GUARD, HAS_MUSIC, HAS_GESTURE, HAS_PET, HAS_RADAR turn each mode on or off; debug messages are off (saves 2.9 KB).
+**Switches (section 3):** HAS_FOLLOW, HAS_KEEPER, HAS_GUARD, HAS_MUSIC, HAS_GESTURE, HAS_PET, HAS_RADAR turn each mode on or off.
 
 **Libraries:** U8g2 (screen), Servo, SoftwareSerial (Bluetooth), Wire (I2C).
 
 **Add-ons and tools:**
 
-- **IR remote add-on:** one file + 3 lines puts a TV-style remote back (radar off, and pet off in the bigger song files, to make room).
+- **IR remote add-on:** one file + 3 lines puts a TV-style remote back. It fits the main program with every mode on; in the biggest song files one mode has to be switched off.
+- **WATCH_THE_CAR.bat:** the real program drives around a pretend room on the computer and a little film of it opens.
 - **UPDATE_ALL_SONGS.bat:** copies a change in the main program into all 39 song files (each keeps its song and choreography) and checks all 40 compile.
 - **Every sketch opens ready for Arduino Uno on COM4.**
 
@@ -321,10 +322,11 @@ Smooth steering, the four fixes and the head codes cost 480 bytes together.
 
 Every change is checked on the computer. The car program runs in a simulator: the real compiled program on a simulated ATmega328P, with a simulated distance sensor, servo, motors, buzzer, screen and Bluetooth. The app's logic and drawing code run as plain Java.
 
-| What is checked | Result (Nov 12, 2026) |
+| What is checked | Result (car: Nov 23, 2026; app: Nov 12, 2026) |
 | --- | --- |
-| Car simulator runs (main program, debug build, all 39 song dances) | 66 of 66 passed |
-| Individual simulator checks, with steering and the head codes | 428 of 428 passed, 0 failed |
+| Car simulator runs (main program, rooms, all 39 song dances) | 83 of 83 passed |
+| Search bumps in rooms with real walls, same starting points (old → new program) | 100 → 4 |
+| Individual simulator checks (every mode, rooms, steering, all dances) | 465 of 465 passed, 0 failed |
 | Programs compiled and fitting in memory | 40 of 40 (main + 39 songs) |
 | App driving logic, controller map, button presses, car answers | 131 of 131 |
 | App layout: nothing overlapping or cut off at 31 screen sizes x 3 driving styles | 93 of 93 |
@@ -342,6 +344,7 @@ The car grew from a tutorial obstacle avoider into a phone-controlled entertaine
 
 | When | Version | What changed |
 | --- | --- | --- |
+| Nov 23, 2026 | Search rebuilt, slimmed | Search scans while it drives and never takes "no echo" for open space; fixes to guard, pet, brake and the head wheel; 1.4 KB smaller; WATCH_THE_CAR.bat |
 | Nov 11, 2026 | App 4.2 + head | A wheel that turns the sensor head (new car codes 6–26), on the controller with LB + right stick |
 | Nov 11, 2026 | App 4.1 | The new look: live 3D car, steering wheel and throttle lever, glossy bubble buttons, animations |
 | Nov 10, 2026 | App 4.0 + steering + web | Smooth steering (the app sets each side's speed), 0.6 s safety stop, four car fixes, GameSir Cyclone 2 map with remapping, settings, controller screen, web remote for computers |
@@ -366,7 +369,7 @@ The car grew from a tutorial obstacle avoider into a phone-controlled entertaine
 
 **Limits today:**
 
-- **Memory is nearly full** (96.5%, up to 99.2% in song files; the fullest has 268 bytes left): new features need something switched off first.
+- **Memory is nearly full** (92.2%, up to 94.8% in song files; the fullest has 1,678 bytes left): new features need something switched off first.
 - **Android and computers only:** iPhones can't talk to an HC-05 module, in an app or a web page.
 - **Battery:** it can only warn when nearly empty; a real percentage needs two resistors (a voltage divider into A2).
 - **One sensor, straight ahead:** thin, soft or angled things (chair legs, cushions) can be missed.

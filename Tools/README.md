@@ -13,13 +13,14 @@ screen, and check that every dance move lands on the beat and every buzzer note 
 | `tools/make-dances.js` | Makes one dance program per song from `Robot_Car_Main`, the song data and the choreography |
 | `results/songs.json` | Song data: tempo, key, chords and song parts (intro / verse / chorus...) |
 | `tools/build.js` | Compiles a sketch with the Arduino IDE's compiler (Windows) |
-| `tools/test-all.ps1` | Tests everything in the simulator: the main program (play modes, buttons, dances...) and every song |
+| `tools/test-all.ps1` | Tests everything in the simulator: the main program (every mode, buttons, driving around rooms...) and every song |
 | `tools/test-dances.ps1` | (older) builds every dance and plays each whole song in the simulator |
 | `tools/run-sims.ps1` | Runs chosen simulator tests (driving, search room, buttons...) |
 | `sim/harness.js` | The simulator: Bluetooth (both ways - it also reads the car's status line), IR, ultrasonic sensor, servo, buzzer, OLED, and any variable in the car's memory |
 | `sim/scenarios.js` | The tests: every dance, every play mode (a virtual hand, ball, intruder or wall at chosen distances and angles), the buttons, search, sounds |
 | `sim/dancecheck.js` | Works out where every dance move and buzzer note should be |
-| `sim/room.js` | A pretend room with walls, for testing search mode |
+| `sim/room.js` | A pretend room for testing search, chaos and the pet: walls that send no echo back when they are tilted, motors that coast, a servo that takes time |
+| `tools/watch.js` | What `WATCH_THE_CAR.bat` runs: your program drives around a pretend room and a little film of it opens |
 
 The app has its own tests too: `App/tests/run-tests.ps1` (the driving brain, the layout, Android versions, and the web page's copy of the brain). It writes `build/app-replay.json`, a drive by the app's real driving brain, which the `app-replay` scenario plays to the real car program.
 

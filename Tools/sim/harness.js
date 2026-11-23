@@ -251,7 +251,8 @@ function simulate(build, scenario, opts = {}) {
   const sample = () => {
     for (const v of varList) {
       const a = syms[v.n];
-      const val = v.sz === 2 ? cpu.data[a] | (cpu.data[a + 1] << 8) : cpu.data[a];
+      let val = 0;
+      for (let k = v.sz - 1; k >= 0; k--) val = val * 256 + cpu.data[a + k];
       if (val !== v.last) { v.last = val; add('var', v.n + '=' + val); }
     }
     if (servoAddr !== undefined && cpu.data[servoAddr] & 0x40) {   // only once attach() marked it active

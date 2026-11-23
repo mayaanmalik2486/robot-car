@@ -1,16 +1,21 @@
 'use strict';
-// A virtual room for SEARCH tests: the car drives around from its own motor
-// signals (differential drive), and the HC-SR04 answers with the distance to
-// the nearest wall inside a 20-degree cone in the direction the servo points.
+// A virtual room for SEARCH, CHAOS and PET tests: the car drives around from its own motor
+// signals (differential drive), and the HC-SR04 answers with the distance to the nearest wall
+// inside a 30-degree cone in the direction the servo points.
+// What makes it like the real thing (all optional):
+//   echoLimit  a wall tilted more than this many degrees (+ 15 for the cone) sends NO echo back
+//   tau        seconds the motors need to speed up and slow down (the car coasts)
+//   servo      'dead' = the head never turns
 
 function makeRoom(opts = {}) {
   const VMAX = opts.vmax || 50;            // cm/s at full PWM
   const TRACK = opts.track || 15;          // cm between left and right wheels
   const TURN_EFF = opts.turnEff || 0.5;    // real 4WD cars skid: they turn slower than the wheel speeds say
+  const ECHO = opts.echoLimit || 90, TAU = opts.tau || 0;
   const R = opts.radius || 9;              // car "size" for crash detection (cm)
   const walls = opts.walls;                // [[x1,y1,x2,y2], ...]
   const st = { x: opts.x, y: opts.y, th: opts.th * Math.PI / 180, lastT: null, crashes: 0, crashing: false,
-    crashTimes: [], path: [], odo: 0, maxStill: 0, stillSince: 0, odoLog: [] };
+    crashTimes: [], path: [], odo: 0, maxStill: 0, stillSince: 0, odoLog: [], vl: 0, vr: 0, head: 90, headT: null };
 
   const segDist = (px, py, w) => {        // distance from point to wall segment
     const [x1, y1, x2, y2] = w, dx = x2 - x1, dy = y2 - y1;
@@ -19,26 +24,43 @@ function makeRoom(opts = {}) {
   };
   const nearestWall = (px, py) => Math.min(...walls.map((w) => segDist(px, py, w)));
 
-  const ray = (ox, oy, a) => {             // distance along a ray to the first wall
-    let best = Infinity;
+  const ray = (ox, oy, a) => {             // distance along a ray to the first wall (Infinity when its echo is lost)
+    let best = Infinity, heard = true;
     const dx = Math.cos(a), dy = Math.sin(a);
     for (const [x1, y1, x2, y2] of walls) {
       const ex = x2 - x1, ey = y2 - y1, den = dx * ey - dy * ex;
       if (Math.abs(den) < 1e-9) continue;
       const t = ((x1 - ox) * ey - (y1 - oy) * ex) / den;
       const u = ((x1 - ox) * dy - (y1 - oy) * dx) / den;
-      if (t > 0 && u >= 0 && u <= 1) best = Math.min(best, t);
+      if (t > 0 && u >= 0 && u <= 1 && t < best) {
+        best = t;
+        const tilt = Math.acos(Math.min(1, Math.abs(den) / Math.hypot(ex, ey))) * 180 / Math.PI;
+        const hx = ox + dx * t, hy = oy + dy * t;                         // (edges and corners always send an echo)
+        heard = tilt <= ECHO || Math.min(Math.hypot(hx - x1, hy - y1), Math.hypot(hx - x2, hy - y2)) < 6;
+      }
     }
-    return best;
+    return heard ? best : Infinity;
   };
 
   const wheel = (s) => { const m = s.match(/^([FB-])(\d+)$/); if (!m || m[1] === '-') return 0; return (m[1] === 'F' ? 1 : -1) * (+m[2] / 255) * VMAX; };
 
-  function onSample(t, motorStr) {
+  // a servo takes time: about 60 degrees in 0.15 s
+  function turnHead(t, servoAngle) {
+    if (opts.servo === 'dead') return;
+    const step = st.headT === null ? 999 : 400 * (t - st.headT);
+    st.head += Math.max(-step, Math.min(step, servoAngle - st.head));
+    st.headT = t;
+  }
+
+  function onSample(t, motorStr, servoAngle) {
+    turnHead(t, servoAngle);
     if (st.lastT === null) { st.lastT = t; return; }
     const dt = t - st.lastT; st.lastT = t;
     const [l, r] = motorStr.split(' ');
-    const vl = wheel(l.slice(1)), vr = wheel(r.slice(1));
+    const k = TAU ? 1 - Math.exp(-dt / TAU) : 1;
+    st.vl += (wheel(l.slice(1)) - st.vl) * k;
+    st.vr += (wheel(r.slice(1)) - st.vr) * k;
+    const vl = st.vl, vr = st.vr;
     const v = (vl + vr) / 2, w = (vr - vl) / TRACK * TURN_EFF;
     const nx = st.x + v * Math.cos(st.th) * dt, ny = st.y + v * Math.sin(st.th) * dt;
     st.th += w * dt;
@@ -59,10 +81,11 @@ function makeRoom(opts = {}) {
 
   function distance(t, servoAngle) {
     const sx = st.x + 6 * Math.cos(st.th), sy = st.y + 6 * Math.sin(st.th);   // sensor sits at the front
-    const look = (servoAngle - 90) * (opts.mirror ? -1 : 1);                    // mirror: servo mounted the other way round
+    turnHead(t, servoAngle);
+    const look = (st.head - 90) * (opts.mirror ? -1 : 1);                    // mirror: servo mounted the other way round
     const a = st.th + look * Math.PI / 180;                                       // servo 140 = looks 50 deg left
     let d = Infinity;
-    for (let k = -10; k <= 10; k += 2.5) d = Math.min(d, ray(sx, sy, a + k * Math.PI / 180));
+    for (let k = -15; k <= 15; k += 2.5) d = Math.min(d, ray(sx, sy, a + k * Math.PI / 180));
     return d > 400 ? null : Math.round(d * 10) / 10;
   }
 

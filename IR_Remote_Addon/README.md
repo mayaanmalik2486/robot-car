@@ -60,16 +60,14 @@ Upload. Done.
 
 ## "Sketch too big"?
 
-The IR library is about 2 KB, and the programs are nearly full (radar mode added another 0.9 KB).
-So to add the remote, switch radar mode off - and in the bigger song files the pet too:
+The IR library is about 2 KB. With it:
 
 | Program | Size with the remote | |
 |---|---|---|
-| Robot_Car_Main, as it is | 32,592 bytes (101 %) | too big |
-| Robot_Car_Main, radar off | 31,682 bytes (98.2 %) | fits |
-| the biggest song file (Get Lucky), radar off | 32,498 bytes (100.8 %) | too big |
-| that song file, radar and pet off | 31,434 bytes (97.5 %) | fits |
+| Robot_Car_Main, as it is | 31,704 bytes (98.3 %) | fits with every mode on |
+| the biggest song file (Get Lucky) | 32,520 bytes (100.8 %) | too big |
+| that song file, radar off | 31,618 bytes (98.0 %) | fits |
 
-Switch them off near the top of the program (section 3):
+If a song file is too big, switch a mode off near the top of the program (section 3):
 `const bool HAS_RADAR = true;` → `false` frees about 0.9 KB, `const bool HAS_PET = true;` → `false` about 1 KB.
-With both off, every song file fits. `HAS_GESTURE` frees about 0.5 KB, `HAS_GUARD` about 0.5 KB.
+`HAS_GESTURE` frees about 0.5 KB, `HAS_GUARD` about 0.5 KB.

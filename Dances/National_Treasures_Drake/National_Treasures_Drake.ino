@@ -8,10 +8,10 @@
     RC car" app), through the HC-05. The IR remote is an add-on now.
   - It has self-driving modes that use the ultrasonic distance sensor
     (HC-SR04) so it stops before it bumps into things, some fun moves
-    (dance, chaos, donut, curve, turbo) and a SEARCH mode that turns the
-    sensor with the servo to look left, ahead and right, then turns toward
-    the side with the most room until the way ahead is open (boxed in: it
-    turns 90 degrees at a time until it finds an opening).
+    (dance, chaos, donut, curve, turbo) and a SEARCH mode that scans with the
+    sensor while it drives (ahead, left, ahead, right), because a wall at an
+    angle sends no echo straight back. At an obstacle it looks left, right and
+    ahead, and turns toward the side with more room until the way is really open.
   - DANCE follows a whole song with real choreography, in time with the
     beat: the song's own dance steps (signature moves), a routine for each
     part of the song that comes back every time that part does, poses at
@@ -99,26 +99,6 @@
 #include <Wire.h>             // I2C, used by the OLED
 #include <U8x8lib.h>          // OLED text drawing (part of the U8g2 library)
 
-// Debug messages on the computer's Serial Monitor (USB cable). They are OFF to save
-// about 3 KB of memory for the car's modes - the car works exactly the same either way.
-// To see them, change the 0 to 1 (with every mode on, the program may then be too big).
-#ifndef DEBUG_MESSAGES
-#define DEBUG_MESSAGES 0
-#endif
-
-#if DEBUG_MESSAGES
-#define DEBUG Serial
-#else
-struct NoDebug                // stands in for Serial and does nothing: the messages are left out
-{
-    void begin(long) {}
-    template <class T> void print(T) {}
-    template <class T> void println(T) {}
-    void println() {}
-};
-NoDebug DEBUG;
-#endif
-
 
 //======================================================
 // 2. PINS - every wire to the Arduino, all in one place
@@ -138,7 +118,7 @@ const byte TRIG_PIN = 11;    // HC-SR04 "trigger": Arduino -> sensor
 const byte ECHO_PIN = 12;    // HC-SR04 "echo":    sensor -> Arduino
 
 // Bluetooth module (HC-05). It uses "software serial" pins, so the
-// USB cable (pins 0 and 1) stays free for uploading and the Serial Monitor.
+// USB cable (pins 0 and 1) stays free for uploading.
 const byte BT_RX_PIN = 3;    // Arduino listens here  <- HC-05 TXD
 const byte BT_TX_PIN = A0;   // Arduino talks here    -> HC-05 RXD
 
@@ -155,8 +135,7 @@ const byte OLED_SCL_PIN = A5;
 // 3. SETTINGS - numbers you can tweak
 //======================================================
 
-// Serial speeds
-const long SERIAL_BAUD = 115200;      // USB Serial Monitor
+// Bluetooth speed
 const long BT_BAUD = 9600;            // HC-05 default speed
 
 // Motor speeds: 0 = stopped, 255 = full power
@@ -188,7 +167,7 @@ const unsigned long PING_GAP_MS = 15;          // pause between the 3 pings of o
 // the turn was only stopped once per loop - that was the 190-200 degrees. Now it
 // stops on time, and 455 ms = 180 degrees on this car. Still off? Change it a little.)
 const unsigned long TURN180_TIME = 455;
-const unsigned long TURN90_TIME = TURN180_TIME / 2;   // and for a 90-degree turn (SEARCH when boxed in)
+const unsigned long TURN90_TIME = TURN180_TIME / 2;   // and for a 90-degree turn (the play modes use it to face you)
 
 const unsigned long BRAKE_STEP_MS = 40;        // smooth brake: lower the speed every 40 ms ...
 const int BRAKE_STEP_PWM = 10;                 // ... by this much
@@ -208,16 +187,26 @@ const int CHAOS_WIGGLE_CHANCE = 15;                // % chance of a little rever
 // CHAOS drives a bit slower than full speed, so it crashes less
 const int AUTO_SPEED_PERCENT = 75;
 
-// SEARCH mode: stop, look left / right / ahead with the servo, then turn
-// toward the side with the most room UNTIL THE SENSOR SEES OPEN SPACE
+// SEARCH mode: drive while the sensor scans (ahead, left, ahead, right); at an obstacle stop, look
+// left / right / ahead, then turn toward the side with the most room UNTIL THE WAY IS REALLY OPEN
+const int SEARCH_SPEED = 165;                  // it drives at most this fast, so the scanning sensor keeps up
+const int SCAN_LEFT = SERVO_CENTER + (SERVO_LEFT - SERVO_CENTER) * 6 / 5;     // it scans a bit further than SERVO_LEFT / SERVO_RIGHT: 60 degrees
+const int SCAN_RIGHT = SERVO_CENTER + (SERVO_RIGHT - SERVO_CENTER) * 6 / 5;
+const unsigned long SEARCH_PEEK_MS = 150;      // scanning: time for the servo to turn to the next look
+const int SEARCH_SIDE_CM = 42;                 // something this close at the side, and coming closer: steer away
+const byte SEARCH_MAX_NUDGES = 4;              // steered away this often in a row: stop and look around instead
+const int SEARCH_TOO_CLOSE = 18;               // ... and if it is this close and coming closer: back up and look around
+const int SEARCH_UNKNOWN_CM = 80;              // no echo is NOT "open" (it can be a tilted wall): count it as this much room
+const int SEARCH_SAME_CM = 10;                 // sides that differ less than this: pick one at random
+const int SEARCH_CLEAR_SIDE_CM = 32;           // after turning: the thing it turned away from must be at least this far
 const unsigned long SEARCH_BACKUP_MS = 120;    // back up a little after stopping
 const unsigned long SERVO_SETTLE_MS = 250;     // time for a 50-degree servo move
 const unsigned long SERVO_SWING_MS = 350;      // time for the 100-degree swing left -> right
-const unsigned long SEARCH_TURN_STEP_MS = 60;  // turn toward the open side in small steps (about 20 degrees each):
-                                               // turn, stop, measure while standing still, repeat
-const byte SEARCH_TURN_MAX_STEPS = 18;         // no open way after this many steps (all the way round): look again
-const byte SEARCH_TURN_EXTRA_STEPS = 1;        // after it sees open space: one more step, so the whole car gets past the edge
+const unsigned long SEARCH_TURN_STEP_MS = 60;  // turn in small steps (about 20 degrees each): turn, stop, measure, repeat
+const byte SEARCH_HALF_WAY = 12;               // after this many steps it accepts a smaller opening
+const byte SEARCH_TURN_MAX_STEPS = 30;         // no open way after this many steps (more than all the way round): look again
 const int SEARCH_OPEN_ENOUGH = 100;            // open = this much is clear ahead (or 3/4 of what it saw on that side)
+const int SEARCH_OPEN_LEAST = 60;              // (at least this much, at first)
 const unsigned long SEARCH_STUCK_MS = 1500;    // driving, but the distance ahead hasn't changed for this long ...
 const int SEARCH_STUCK_CM = 4;                 // ... (by less than this) = stuck on something the sensor can't see
 const byte SEARCH_NO_ECHO_CHECKS = 4;          // seeing nothing at all ahead for 4 checks in a row (6 s) = probably stuck too
@@ -673,7 +662,7 @@ const unsigned long DANCE_STEP_US = 60000000.0 / (SONG_BPM * 2);   // one step, 
 //======================================================
 
 // The robot is always in exactly one of these states.
-enum RobotState
+enum RobotState : byte
 {
     IDLE,
     MANUAL_FORWARD,
@@ -705,20 +694,13 @@ RobotState robotState = IDLE;
 
 // Hardware objects
 Servo scanner;                              // the servo with the distance sensor
+byte headAngle = SERVO_CENTER;              // where it points now (degrees)
 SoftwareSerial BT(BT_RX_PIN, BT_TX_PIN);    // the Bluetooth module
 U8X8_SSD1306_128X64_NONAME_HW_I2C oled(U8X8_PIN_NONE);   // the OLED screen
 
 // Speed
 bool slowMode = false;
 int currentSpeed = FULL_SPEED;
-
-// Driving modes (true = that mode is running)
-bool autoForward = false;
-bool autoBackward = false;
-bool donutMode = false;
-
-// Smooth brake
-bool braking = false;
 
 // Steering from the app: the speed of each side, -31 (full backward) ... 0 ... 31 (full forward)
 int8_t steerLeft = 0;
@@ -727,11 +709,9 @@ bool steerAhead = false;           // the car as a whole is going forward (so an
 unsigned int steerAt = 0;          // when the app last sent a speed (the car stops if it goes quiet)
 
 // 180-degree turn
-bool turning180 = false;
 unsigned long turn180Timer = 0;    // when the turn started
 
 // Dance: where we are in the song (part of SONG_MAP, bar in that part, step in that bar)
-bool danceMode = false;
 byte dancePart = 0;
 byte danceBar = 0;
 byte danceStep = 0;
@@ -751,7 +731,6 @@ const byte CHAOS_STRAIGHT = 0;
 const byte CHAOS_TURN = 1;           // a turn (a long turn is a "spin")
 const byte CHAOS_BACKUP = 2;
 
-bool chaosMode = false;
 byte chaosStep = CHAOS_STRAIGHT;
 unsigned long chaosTimer = 0;
 unsigned long chaosDuration = 0;     // how long the current random move lasts
@@ -762,12 +741,8 @@ const byte AVOID_DRIVE = 0;          // drive forward, looking ahead
 const byte AVOID_LOOK_LEFT = 1;
 const byte AVOID_LOOK_RIGHT = 2;
 const byte AVOID_LOOK_CENTER = 3;
-const byte AVOID_CORNER_TURN = 4;    // boxed in: turning 90 degrees ...
 const byte AVOID_TURN_TO_OPEN = 5;   // turning toward the open side until the way is clear
-const byte AVOID_CORNER_CHECK = 6;   // ... then checking straight ahead for an opening
-const byte MAX_CORNER_TURNS = 4;     // 4 x 90 = all the way round: then back up and look again
 
-bool searchMode = false;
 byte searchStep = AVOID_DRIVE;
 unsigned long avoidTimer = 0;
 bool searchTurnLeft = false;         // which way it is turning toward the open side
@@ -777,7 +752,8 @@ int stuckCheckDistance = 0;          // the distance ahead at the last "am I stu
 unsigned long stuckCheckAt = 0;      // and when that was
 byte noEchoChecks = 0;               // how many checks in a row saw nothing at all ahead
 byte sameChecks = 0;                 // how many checks in a row saw the same distance ahead
-byte cornerTurns = 0;                // how many 90-degree turns it has done while boxed in
+byte scanStep = 0;                   // where the scanning sensor looks: 0 ahead, 1 left, 2 ahead, 3 right
+byte sideNudges = 0;                 // how often in a row it steered away from something at the side
 int leftDistance = NO_ECHO;
 int rightDistance = NO_ECHO;
 int centerDistance = NO_ECHO;
@@ -928,7 +904,7 @@ int danceSpeedNow()
 
 int turnSpeed()
 {
-    return danceMode ? danceSpeedNow() : percentOf(currentSpeed, TURN_SPEED_PERCENT);
+    return robotState == DANCE ? danceSpeedNow() : percentOf(currentSpeed, TURN_SPEED_PERCENT);
 }
 
 void stop()
@@ -953,22 +929,22 @@ void backward(int speed)
     goingForward = false;
 }
 
-// Spin on the spot to the left: left wheels back, right wheels forward
-void left()
+// Spin on the spot: the two sides of the car turn opposite ways
+void spin(int speed, bool toLeft)
 {
-    int speed = turnSpeed();
     setSpeed(speed, speed);
-    setWheels(DIR_BACKWARD, DIR_FORWARD);
+    setWheels(toLeft ? DIR_BACKWARD : DIR_FORWARD, toLeft ? DIR_FORWARD : DIR_BACKWARD);
     goingForward = false;
 }
 
-// Spin on the spot to the right: left wheels forward, right wheels back
+void left()
+{
+    spin(turnSpeed(), true);
+}
+
 void right()
 {
-    int speed = turnSpeed();
-    setSpeed(speed, speed);
-    setWheels(DIR_FORWARD, DIR_BACKWARD);
-    goingForward = false;
+    spin(turnSpeed(), false);
 }
 
 // Curve left while driving forward (left wheels slower)
@@ -987,23 +963,6 @@ void curveRight()
     setWheels(DIR_FORWARD, CURVE_INNER_PERCENT < 0 ? DIR_BACKWARD : DIR_FORWARD);
     goingForward = true;
     forwardSpeed = currentSpeed;
-}
-
-// Spin right on the spot (used by donut mode and the dance)
-void donut()
-{
-    int speed = danceMode ? DANCE_SPEED : currentSpeed;
-    setSpeed(speed, speed);
-    setWheels(DIR_FORWARD, DIR_BACKWARD);
-    goingForward = false;
-}
-
-// Spin right at the current speed (used by the 180-degree turn)
-void spin180()
-{
-    setSpeed(currentSpeed, currentSpeed);
-    setWheels(DIR_FORWARD, DIR_BACKWARD);
-    goingForward = false;
 }
 
 // Emergency stop for an obstacle: if it was driving forward, a short burst
@@ -1193,10 +1152,6 @@ void setupBuzzer()
 
 // More notes for the jingles below
 const uint16_t NOTE_A4 = 440;
-const uint16_t NOTE_BB4 = 466;      // B-flat
-const uint16_t NOTE_D5 = 587;
-const uint16_t NOTE_EB5 = 622;      // E-flat
-const uint16_t NOTE_F5 = 698;
 const uint16_t NOTE_B5 = 988;
 const uint16_t NOTE_D6 = 1175;
 const uint16_t NOTE_F6 = 1397;
@@ -1286,11 +1241,6 @@ const uint16_t SOUND_ZAP[] PROGMEM = {            // the special moment: an elec
     2400, 30,  REST, 20,  3000, 40,  1500, 60,
     END_OF_TUNE
 };
-const uint16_t SOUND_HIT[] PROGMEM = {            // big accent: "ta-daa"
-    NOTE_C6, 25,  NOTE_G6, 25,  NOTE_C7, 60,
-    END_OF_TUNE
-};
-
 // Single beeps (used by the parking sensor and the dance)
 bool beepPlaying = false;
 unsigned long beepStart = 0;
@@ -1419,16 +1369,16 @@ const byte E_TIRED = 6;              // outer top corners droop: sad / sleepy
 const byte E_OPEN = 7;               // 100 = open, 0 = closed (blink)
 const byte E_WOBBLE = 8;             // dizzy: left eye this many pixels down, right eye up
 const byte EYE_VALUES = 9;
-int eyeNow[EYE_VALUES] = {EYE_W, EYE_H, 0, 0, 0, 0, 0, 100, 0};
-int eyeTarget[EYE_VALUES];
+int8_t eyeNow[EYE_VALUES] = {EYE_W, EYE_H, 0, 0, 0, 0, 0, 100, 0};
+int8_t eyeTarget[EYE_VALUES];
 
 bool eyesDrawn = false;
 unsigned long eyesDrawnAt = 0;
 unsigned long blinkStart = 0;
 unsigned long nextBlinkAt = 2500;
 unsigned long nextIdleLookAt = 0;
-int idleLookX = 0;
-int idleLookY = 0;
+int8_t idleLookX = 0;
+int8_t idleLookY = 0;
 // What each 8x8 tile of the eye area looked like last time (2 bits per tile:
 // 0 = all dark, 1 = all lit, 2 = partly lit). Tiles that stay all dark or
 // all lit are not sent again - that makes drawing much faster.
@@ -1463,22 +1413,7 @@ void flashText(char* buf, const char* textP, byte width)
 // the play modes, which need it to see where they're going
 bool sensorOff()
 {
-    switch (robotState)
-    {
-    case SEARCH:
-    case CHAOS:
-    case FOLLOW:
-    case KEEPER:
-    case GUARD:
-    case MUSIC:
-    case GESTURE:
-    case PET:
-    case RADAR:
-        return false;              // these need to see
-
-    default:
-        return footballMode;
-    }
+    return footballMode && robotState != SEARCH && robotState != CHAOS && (robotState < FOLLOW || robotState == TURBO);
 }
 
 // Short name of what the robot is doing (max 8 letters, stored in flash)
@@ -1517,8 +1452,8 @@ const char* actionName()
         if (searchStep == AVOID_LOOK_LEFT)   return PSTR("LOOK L");
         if (searchStep == AVOID_LOOK_RIGHT)  return PSTR("LOOK R");
         if (searchStep == AVOID_LOOK_CENTER) return PSTR("LOOK C");
-        if (searchStep == AVOID_TURN_TO_OPEN) return searchTurnLeft ? PSTR("TURN L") : PSTR("TURN R");
-        if (searchStep == AVOID_CORNER_TURN || searchStep == AVOID_CORNER_CHECK) return PSTR("BOXED IN");
+        if (searchStep == AVOID_TURN_TO_OPEN)
+            return turnSteps >= SEARCH_HALF_WAY ? PSTR("BOXED IN") : searchTurnLeft ? PSTR("TURN L") : PSTR("TURN R");
         return PSTR("SEARCH");
     }
 
@@ -1617,7 +1552,7 @@ void wantedText(byte area, char* buf)
         return;
     }
 
-    if (danceMode)
+    if (robotState == DANCE)
     {
         if (area == 0 && (long)(shoutUntil - millis()) > 0)
             shoutText(buf);                    // the special moment, e.g. "FEEDBACK!"
@@ -1686,7 +1621,7 @@ void drawText(byte row, const char* text, char* shown)
 // looks (not the little glances while driving), so the eyes stay calm
 int servoLook(int toLeft)
 {
-    int angle = scanner.read() - SERVO_CENTER;    // + = the sensor looks to the robot's left
+    int angle = headAngle - SERVO_CENTER;    // + = the sensor looks to the robot's left
 
     if (SERVO_LEFT < SERVO_CENTER)                // (unless SERVO_LEFT and SERVO_RIGHT were swapped)
         angle = -angle;
@@ -1706,15 +1641,10 @@ void setEyeTargets()
     int toLeft = EYES_FLIP ? -LOOK_X : LOOK_X;
 
     // normal eyes, looking straight ahead
+    memset(eyeTarget, 0, sizeof(eyeTarget));
     eyeTarget[E_W] = EYE_W;
     eyeTarget[E_H] = EYE_H;
-    eyeTarget[E_X] = 0;
-    eyeTarget[E_Y] = 0;
-    eyeTarget[E_HAPPY] = 0;
-    eyeTarget[E_ANGRY] = 0;
-    eyeTarget[E_TIRED] = 0;
     eyeTarget[E_OPEN] = 100;
-    eyeTarget[E_WOBBLE] = 0;
 
     if (robotState != IDLE)
         lastActiveAt = now;
@@ -1854,8 +1784,9 @@ void setEyeTargets()
 
         case SEARCH:                                    // focused, looking where the sensor looks
             eyeTarget[E_ANGRY] = 5;
-            eyeTarget[E_X] = servoLook(toLeft);
-            if (searchStep == AVOID_TURN_TO_OPEN || searchStep == AVOID_CORNER_TURN)   // ... or where it is turning
+            if (searchStep != AVOID_DRIVE)              // (not while it drives: then the sensor scans all the time)
+                eyeTarget[E_X] = servoLook(toLeft);
+            if (searchStep == AVOID_TURN_TO_OPEN)       // ... or where it is turning
                 eyeTarget[E_X] = searchTurnLeft ? toLeft : -toLeft;
             break;
 
@@ -2209,12 +2140,12 @@ void drawRadar()
 // Called from loop(): animates the eyes, or updates one text row
 void updateDisplay()
 {
-    if (!oledFound || turning180 || playStopAt)
+    if (!oledFound || robotState == TURN180 || playStopAt)
         return;
 
     // While dancing, don't start drawing just before the next step: a picture
     // can take up to 60 ms, and the step would come late (off the beat)
-    if (danceMode && (long)(danceNextUs - micros()) < (long)DANCE_DRAW_GUARD_US)
+    if (robotState == DANCE && (long)(danceNextUs - micros()) < (long)DANCE_DRAW_GUARD_US)
         return;
     if (danceTurnStopMs && (long)(danceTurnStopMs - millis()) < (long)(DANCE_DRAW_GUARD_US / 1000))   // ... or just before a ROUND spin stops
         return;
@@ -2280,7 +2211,6 @@ void setupDisplay()
 
     if (address == 0)
     {
-        DEBUG.println(F("OLED not found - check the SDA/SCL wires"));
         return;
     }
 
@@ -2294,7 +2224,6 @@ void setupDisplay()
     memset(shownBottom, ' ', 16);
     memset(tileStates, 0, sizeof(tileStates));   // and the eye area starts all dark
 
-    DEBUG.println(F("OLED ready"));
 }
 
 
@@ -2434,6 +2363,9 @@ void emergencyStop();               // (section 13 - this line just lets us use 
 
 void checkObstacle()
 {
+    if (robotState == SEARCH)                  // (SEARCH measures by itself, when the sensor has turned)
+        return;
+
     int distance = filteredDistance();
 
     if (robotState == MANUAL_FORWARD)
@@ -2461,23 +2393,19 @@ void checkObstacle()
 // 10. SERVO - points the distance sensor
 //======================================================
 
+void look(byte angle)
+{
+    headAngle = angle;
+    scanner.write(angle);
+}
+
 void lookCenter()
 {
-    scanner.write(SERVO_CENTER);
-}
-
-void lookLeft()
-{
-    scanner.write(SERVO_LEFT);
-}
-
-void lookRight()
-{
-    scanner.write(SERVO_RIGHT);
+    look(SERVO_CENTER);
 }
 
 // Where the play modes look when they look around: right ... straight ... left
-const int LOOK_ANGLES[5] = {SERVO_RIGHT, (SERVO_RIGHT + SERVO_CENTER) / 2, SERVO_CENTER,
+const byte LOOK_ANGLES[5] = {SERVO_RIGHT, (SERVO_RIGHT + SERVO_CENTER) / 2, SERVO_CENTER,
                             (SERVO_CENTER + SERVO_LEFT) / 2, SERVO_LEFT};
 
 
@@ -2497,10 +2425,9 @@ void startGreeting(bool fromPhone)
     {
         waveStep = 1;
         waveTimer = millis();
-        scanner.write(WAVE_ANGLES[0]);
+        look(WAVE_ANGLES[0]);
     }
 
-    DEBUG.println(fromPhone ? F("HELLO PHONE") : F("HELLO"));
 }
 
 // Called from loop(): after a donut, the head wobbles left and right while
@@ -2522,8 +2449,8 @@ void updateDizzy()
         return;
 
     dizzyWobbleAt = millis();
-    bool toLeft = scanner.read() <= SERVO_CENTER;
-    scanner.write(SERVO_CENTER + (toLeft ? DIZZY_WOBBLE_DEGREES : -DIZZY_WOBBLE_DEGREES));
+    bool toLeft = headAngle <= SERVO_CENTER;
+    look(SERVO_CENTER + (toLeft ? DIZZY_WOBBLE_DEGREES : -DIZZY_WOBBLE_DEGREES));
 }
 
 // Called from loop(): moves the wave along and ends the hello screen
@@ -2549,7 +2476,7 @@ void updateGreeting()
 
     if (waveStep < WAVE_STEPS)
     {
-        scanner.write(WAVE_ANGLES[waveStep]);
+        look(WAVE_ANGLES[waveStep]);
         waveStep++;
     }
     else
@@ -2565,13 +2492,20 @@ void updateGreeting()
 //     loop() finishes it when the time is up (no waiting around).
 //======================================================
 
-void cancelAutoModes();             // (it's further down, in section 13 - this line just lets us use it here)
+void dizzyIfDonut();                // (it's further down, in section 13 - this line just lets us use it here)
 
-// Smooth brake: slows the car down to a stop (any self-driving mode stops too)
+// Smooth brake: slows the car down to a stop (any mode stops too, but the motors slow down gently)
 void beginBrake()
 {
-    cancelAutoModes();
-    braking = true;
+    dizzyIfDonut();
+    playStopAt = 0;
+
+    if (robotState == MUSIC)
+        stopSound();
+
+    if (robotState == DANCE || robotState == SEARCH || robotState >= FOLLOW)   // the head may be turned (play modes are last in the list)
+        lookCenter();
+
     robotState = BRAKING;
 }
 
@@ -2581,7 +2515,7 @@ void updateBrake()
 {
     static unsigned long lastStep = 0;
 
-    if (!braking)
+    if (robotState != BRAKING)
         return;
 
     if (millis() - lastStep < BRAKE_STEP_MS)
@@ -2593,7 +2527,6 @@ void updateBrake()
 
     if ((speedLeft | speedRight) == 0)
     {
-        braking = false;
         stop();
         robotState = IDLE;
     }
@@ -2601,10 +2534,9 @@ void updateBrake()
 
 void start180()
 {
-    turning180 = true;
     turn180Timer = millis();
     robotState = TURN180;
-    spin180();
+    spin(currentSpeed, false);         // to the right
 
     playSound(TUNE_TURN_AROUND);
 
@@ -2616,12 +2548,8 @@ void start180()
 // Stops the spin after TURN180_TIME
 void update180()
 {
-    if (!turning180)
-        return;
-
-    if (millis() - turn180Timer >= TURN180_TIME)
+    if (robotState == TURN180 && millis() - turn180Timer >= TURN180_TIME)
     {
-        turning180 = false;
         stop();
         robotState = IDLE;
     }
@@ -2635,7 +2563,7 @@ void update180()
 // Stopping a donut makes the robot dizzy for a moment (eyes + wobbly head)
 void dizzyIfDonut()
 {
-    if (donutMode)
+    if (robotState == DONUT)
     {
         dizzyUntil = millis() + DIZZY_AFTER_DONUT_MS;
         dizzyWobbleAt = millis();
@@ -2646,21 +2574,6 @@ void dizzyIfDonut()
 void emergencyStop()
 {
     dizzyIfDonut();
-    autoForward = false;
-    autoBackward = false;
-    donutMode = false;
-
-    danceMode = false;
-    danceStep = 0;
-
-    braking = false;
-    turning180 = false;
-
-    chaosMode = false;
-    chaosStep = CHAOS_STRAIGHT;
-
-    searchMode = false;
-    searchStep = AVOID_DRIVE;
 
     if (robotState == MUSIC)           // music mode: its note stops too
         stopSound();
@@ -2673,55 +2586,6 @@ void emergencyStop()
     playStopAt = 0;                    // (no play-mode move waiting to stop)
 
     nextBlinkAt = millis();            // the eyes blink at every new command
-
-    DEBUG.println(F("STOP"));
-}
-
-// Switches off every mode that drives by itself (auto forward/backward, donut,
-// dance, chaos, search, play modes) without stopping the motors - the button that
-// called this decides what the motors do next. Used by the smooth brake and the
-// IR add-on, so a running dance or search can't fight with them.
-void cancelAutoModes()
-{
-    dizzyIfDonut();
-    playStopAt = 0;
-    autoForward = false;
-    autoBackward = false;
-    donutMode = false;
-
-    if (danceMode || searchMode || robotState >= FOLLOW)
-        lookCenter();                  // the sensor head may be turned (play modes are last in the list)
-
-    if (robotState == MUSIC)
-        stopSound();
-
-    danceMode = false;
-    chaosMode = false;
-    searchMode = false;
-}
-
-void setAutoForward()
-{
-    cancelAutoModes();
-    autoForward = true;
-    robotState = AUTO_FORWARD;
-    playSound(TUNE_AUTO_FORWARD);
-}
-
-void setAutoBackward()
-{
-    cancelAutoModes();
-    autoBackward = true;
-    robotState = AUTO_BACKWARD;
-    playSound(TUNE_AUTO_BACKWARD);
-}
-
-void setDonut()
-{
-    cancelAutoModes();
-    donutMode = true;
-    robotState = DONUT;
-    playSound(TUNE_DONUT);
 }
 
 void sendStatus();                  // (section 15 - this line just lets us use it here)
@@ -2730,7 +2594,6 @@ void sendStatus();                  // (section 15 - this line just lets us use 
 void startDance()
 {
     emergencyStop();
-    danceMode = true;
     dancePart = 0;
     danceBar = 0;
     danceStep = 0;
@@ -2746,10 +2609,6 @@ void startDance()
     danceStartMs = millis();
     sendStatus();                      // ... then tell the app (no messages while dancing)
 
-    DEBUG.print(F("DANCE to: "));
-    DEBUG.print((const __FlashStringHelper*)SONG_NAME);
-    DEBUG.print(F("  BPM "));
-    DEBUG.println((int)(SONG_BPM + 0.5));
 }
 
 // Dance button tapped again while dancing: you tapped ON a beat, so move the
@@ -2765,14 +2624,11 @@ void danceTap()
     danceNextUs += shift;
     danceBeatUs += shift;
 
-    DEBUG.print(F("DANCE beat moved by ms: "));
-    DEBUG.println(shift / 1000);
 }
 
 void startChaos()
 {
     emergencyStop();
-    chaosMode = true;
     chaosStep = CHAOS_STRAIGHT;
     chaosTimer = millis();
     chaosDuration = random(CHAOS_STRAIGHT_MIN_MS, CHAOS_STRAIGHT_MAX_MS);
@@ -2785,7 +2641,6 @@ void searchDriveOn();                // (it's further down, in section 16 - this
 void startSearch()
 {
     emergencyStop();
-    searchMode = true;
     searchDriveOn();
     robotState = SEARCH;
     playSound(TUNE_SEARCH);
@@ -2831,7 +2686,7 @@ void updateStatus()
     static byte sentFlags = 255;
     static unsigned long sentAt = 0;
 
-    if (!btGreeted || danceMode || turning180 || millis() - sentAt < 250)
+    if (!btGreeted || robotState == DANCE || robotState == TURN180 || millis() - sentAt < 250)
         return;
 
     const char* name = actionName();
@@ -2846,53 +2701,17 @@ void updateStatus()
     sendStatus();
 }
 
-void keeperPunch();                 // (section 16b - this line just lets us use it here)
+void keeperPunch();                 // (section 16b - these lines just let us use them here)
+void petStep(byte step, unsigned long ms);
 
-// The same driving letter again (some apps repeat it while you hold the button): just keep going
-bool sameDriving(char c)
-{
-    switch (c)
-    {
-        case 'F': return robotState == MANUAL_FORWARD;
-        case 'B': return robotState == MANUAL_BACKWARD;
-        case 'L': return robotState == MANUAL_LEFT;
-        case 'R': return robotState == MANUAL_RIGHT;
-        case 'G': return robotState == CURVE_LEFT;
-        case 'H': return robotState == CURVE_RIGHT;
-    }
-    return false;
-}
-
-// Letters that start a self-driving mode
-bool isModeLetter(char c)
-{
-    return c == 'I' || c == '1' || c == '2' || c == 'J' || c == '3' || c == '4' || c == 'U'
-        || c == 'M' || c == 'K' || c == 'A' || c == 'N' || c == 'E' || c == 'P' || c == 'T' || c == 'O';
-}
-
-// Is the mode for this letter already running?
-bool modeAlreadyRunning(char c)
-{
-    switch (c)
-    {
-        case 'I': return searchMode;
-        case '1': return chaosMode;
-        case '2': return robotState == AUTO_FORWARD;
-        case 'J': return robotState == AUTO_BACKWARD;
-        case '3': return robotState == DONUT;
-        case '4': return danceMode;
-        case 'U': return turning180;
-        case 'M': return robotState == FOLLOW;
-        case 'K': return robotState == KEEPER;
-        case 'A': return robotState == GUARD;
-        case 'N': return robotState == MUSIC;
-        case 'E': return robotState == GESTURE;
-        case 'P': return robotState == PET;
-        case 'T': return robotState == TURBO;
-        case 'O': return robotState == RADAR;
-    }
-    return false;
-}
+// Every letter that drives or starts a mode, and the state it leads to
+const byte LETTER_STATES[][2] PROGMEM = {
+    {'F', MANUAL_FORWARD}, {'B', MANUAL_BACKWARD}, {'L', MANUAL_LEFT}, {'R', MANUAL_RIGHT}, {'G', CURVE_LEFT}, {'H', CURVE_RIGHT},   // driving
+    {'I', SEARCH}, {'1', CHAOS}, {'2', AUTO_FORWARD}, {'J', AUTO_BACKWARD}, {'3', DONUT}, {'4', DANCE}, {'U', TURN180},               // modes
+    {'M', FOLLOW}, {'K', KEEPER}, {'A', GUARD}, {'N', MUSIC}, {'E', GESTURE}, {'P', PET}, {'T', TURBO}, {'O', RADAR}
+};
+const byte DRIVE_LETTERS = 6;
+const byte ALL_LETTERS = sizeof(LETTER_STATES) / 2;
 
 void handleCommand(char c);         // (just below)
 
@@ -2906,8 +2725,6 @@ void handleBluetooth()
 // Does what one letter asks for. (The IR add-on turns remote buttons into these letters too.)
 void handleCommand(char c)
 {
-    DEBUG.print(F("Received: "));
-    DEBUG.println(c);
 
     // STEERING (the Robot Car app): a code above 127 is not a letter but the speed of one
     // side of the car. Bit 6 says which side (0 = left, 1 = right); the low 6 bits are the
@@ -2939,11 +2756,21 @@ void handleCommand(char c)
     // 6 = 50 degrees right, 16 = straight ahead, 26 = 50 degrees left. (STOP centres it again.)
     if (c >= 6 && c <= 26)
     {
-        scanner.write(SERVO_RIGHT + (c - 6) * 5);
+        if (robotState == SEARCH || robotState >= FOLLOW)
+            return;                    // this mode turns the head itself
+
+        look(SERVO_RIGHT + (c - 6) * 5);
         return;
     }
 
-    if (sameDriving(c))
+    byte letter = 0;                   // find it in the table
+    while (letter < ALL_LETTERS && pgm_read_byte(&LETTER_STATES[letter][0]) != (byte)c)
+        letter++;
+
+    bool running = letter < ALL_LETTERS && pgm_read_byte(&LETTER_STATES[letter][1]) == robotState;
+
+    // The same driving letter again (some apps repeat it while you hold the button): just keep going
+    if (running && letter < DRIVE_LETTERS)
         return;
 
     // Phone apps send the letter again and again while you hold a button,
@@ -2951,12 +2778,12 @@ void handleCommand(char c)
     //  - the same mode letter again does NOT restart the mode
     //  - an 'S' right after a mode letter is ignored, so the mode keeps going.
     //    Any other button (or 'S' later, or OK on the remote) stops it.
-    if (isModeLetter(c))
+    if (letter >= DRIVE_LETTERS && letter < ALL_LETTERS)
     {
         bool newTap = millis() - modeLetterAt >= DANCE_TAP_GAP_MS;   // not just the button being held
         modeLetterAt = millis();
 
-        if (modeAlreadyRunning(c))
+        if (running)
         {
             if (c == '4' && newTap)        // dance tapped again on a beat: line up with it
                 danceTap();
@@ -2965,65 +2792,55 @@ void handleCommand(char c)
     }
     else if (c == 'S' && modeLetterAt != 0 && millis() - modeLetterAt < BUTTON_RELEASE_IGNORE_MS)
     {
-        DEBUG.println(F("(button let go - mode keeps going)"));
         return;
     }
 
     switch (c)
     {
         case 'F':                          // forward
-            DEBUG.println(F("FORWARD"));
             emergencyStop();
             robotState = MANUAL_FORWARD;
             forward(currentSpeed);
             break;
 
         case 'B':                          // backward
-            DEBUG.println(F("BACKWARD"));
             emergencyStop();
             robotState = MANUAL_BACKWARD;
             backward(currentSpeed);
             break;
 
         case 'L':                          // spin left
-            DEBUG.println(F("LEFT"));
             emergencyStop();
             left();
             robotState = MANUAL_LEFT;
             break;
 
         case 'R':                          // spin right
-            DEBUG.println(F("RIGHT"));
             emergencyStop();
             right();
             robotState = MANUAL_RIGHT;
             break;
 
         case 'G':                          // curve left (forward while turning left)
-            DEBUG.println(F("CURVE LEFT"));
             emergencyStop();
             robotState = CURVE_LEFT;
             break;
 
         case 'H':                          // curve right (forward while turning right)
-            DEBUG.println(F("CURVE RIGHT"));
             emergencyStop();
             robotState = CURVE_RIGHT;
             break;
 
         case 'S':                          // stop
-            DEBUG.println(F("STOP"));
             emergencyStop();
             break;
 
         case 'Q':                          // slow speed
             setSlowMode(true);
-            DEBUG.println(F("Slow Mode ON"));
             break;
 
         case 'W':                          // full speed
             setSlowMode(false);
-            DEBUG.println(F("Full Speed"));
             break;
 
         case 'X':                          // the "!" button: mute / unmute all sounds
@@ -3034,7 +2851,6 @@ void handleCommand(char c)
                 muteToggledAt = millis();
                 if (muted)
                     stopSound();
-                DEBUG.println(muted ? F("MUTED") : F("SOUND ON"));
             }
             break;
 
@@ -3045,41 +2861,37 @@ void handleCommand(char c)
                 footballMode = !footballMode;
                 footballToggledAt = millis();
                 playBeep(footballMode ? NOTE_A5 : NOTE_BEEP, 120);
-                DEBUG.println(footballMode ? F("FOOTBALL MODE: sensor off") : F("SENSOR ON"));
             }
             break;
 
         case '2':                          // auto forward
-            DEBUG.println(F("AUTO FORWARD"));
             emergencyStop();
-            setAutoForward();
+            robotState = AUTO_FORWARD;
+            playSound(TUNE_AUTO_FORWARD);
             break;
 
         case 'J':                          // auto backward
-            DEBUG.println(F("AUTO BACKWARD"));
             emergencyStop();
-            setAutoBackward();
+            robotState = AUTO_BACKWARD;
+            playSound(TUNE_AUTO_BACKWARD);
             break;
 
         case '3':                          // donut
-            DEBUG.println(F("DONUT"));
             emergencyStop();
-            setDonut();
+            robotState = DONUT;
+            playSound(TUNE_DONUT);
             break;
 
         case 'U':                          // 180-degree turn
-            DEBUG.println(F("180 TURN"));
             emergencyStop();
             start180();
             break;
 
         case 'u':                          // smooth brake
-            DEBUG.println(F("BRAKE"));
             beginBrake();
             break;
 
         case '4':                          // dance
-            DEBUG.println(F("DANCE"));
             startDance();
             break;
 
@@ -3088,7 +2900,6 @@ void handleCommand(char c)
             break;
 
         case '1':                          // chaos
-            DEBUG.println(F("CHAOS"));
             startChaos();
             break;
 
@@ -3152,7 +2963,7 @@ void handleCommand(char c)
             if (HAS_PET)
             {
                 startPlayMode(PET);
-                playMoveMs = 8000;         // a walk first
+                petStep(PET_WANDER, 8000);   // a walk first
                 playSound(TUNE_HAPPY);
             }
             break;
@@ -3176,7 +2987,6 @@ void handleCommand(char c)
             break;
 
         case 'I':                          // search
-            DEBUG.println(F("SEARCH"));
             startSearch();
             break;
     }
@@ -3205,7 +3015,7 @@ void updateDriving()
     switch (robotState)
     {
     case AUTO_FORWARD:                 // forward, pause at obstacles
-        if (filteredDistance() > STOP_DISTANCE)
+        if (lastDistance > STOP_DISTANCE)
             forward(currentSpeed);
         else
             brakeStop();
@@ -3216,18 +3026,18 @@ void updateDriving()
         break;
 
     case DONUT:
-        donut();
+        spin(currentSpeed, false);
         break;
 
     case CURVE_LEFT:
-        if (filteredDistance() > STOP_DISTANCE)
+        if (lastDistance > STOP_DISTANCE)
             curveLeft();
         else
             brakeStop();
         break;
 
     case CURVE_RIGHT:
-        if (filteredDistance() > STOP_DISTANCE)
+        if (lastDistance > STOP_DISTANCE)
             curveRight();
         else
             brakeStop();
@@ -3248,14 +3058,6 @@ void danceWheels(int leftSpeed, int rightSpeed, int dir)
 {
     setSpeed(leftSpeed, rightSpeed);
     setWheels(dir, dir);
-    goingForward = false;
-}
-
-// Both sides of the car turn opposite ways: a spin or twist on the spot
-void danceTurn(int speed, bool toLeft)
-{
-    setSpeed(speed, speed);
-    setWheels(toLeft ? DIR_BACKWARD : DIR_FORWARD, toLeft ? DIR_FORWARD : DIR_BACKWARD);
     goingForward = false;
 }
 
@@ -3298,17 +3100,17 @@ void doDanceMove(byte move, bool soft, bool round)
     case FWD:     forward(speed);         break;
     case BACK:    backward(backFull ? FULL_SPEED : speed);   break;
     case DASH:    forward(FULL_SPEED);    break;
-    case SPIN_L:  danceTurn(speed, true);    head = SERVO_LEFT;   break;
-    case SPIN_R:  danceTurn(speed, false);   head = SERVO_RIGHT;  break;
-    case TWIST_L: danceTurn(twist, true);    head = SERVO_LEFT;   break;
-    case TWIST_R: danceTurn(twist, false);   head = SERVO_RIGHT;  break;
+    case SPIN_L:  spin(speed, true);    head = SERVO_LEFT;   break;
+    case SPIN_R:  spin(speed, false);   head = SERVO_RIGHT;  break;
+    case TWIST_L: spin(twist, true);    head = SERVO_LEFT;   break;
+    case TWIST_R: spin(twist, false);   head = SERVO_RIGHT;  break;
     case SWAY_L:  danceWheels(inner, speed, DIR_FORWARD);         head = SERVO_LEFT;   break;
     case SWAY_R:  danceWheels(speed, inner, DIR_FORWARD);         head = SERVO_RIGHT;  break;
     case BACK_L:  danceWheels(inner, speed, DIR_BACKWARD);        break;
     case BACK_R:  danceWheels(speed, inner, DIR_BACKWARD);        break;
     case LOOK_L:  stop();   head = SERVO_LEFT;   break;
     case LOOK_R:  stop();   head = SERVO_RIGHT;  break;
-    case FREEZE:  stop();   if (DANCE_HEAD) scanner.write(SERVO_CENTER);   return;   // a pose: head dead ahead, no bob
+    case FREEZE:  stop();   if (DANCE_HEAD) look(SERVO_CENTER);   return;   // a pose: head dead ahead, no bob
     default:      stop();                 break;            // POSE
     }
 
@@ -3324,7 +3126,7 @@ void doDanceMove(byte move, bool soft, bool round)
     }
 
     if (DANCE_HEAD)
-        scanner.write(head);
+        look(head);
 }
 
 // The frequency of a note (MIDI number: 60 = middle C, +1 = one semitone higher)
@@ -3415,8 +3217,6 @@ bool nextDanceStep()
         else
             danceSectionBar++;
 
-        DEBUG.print(F("DANCE part "));
-        DEBUG.println(dancePart);
         return true;
     }
 
@@ -3426,18 +3226,16 @@ bool nextDanceStep()
 // The song is over: final pose, a "ta-da" and back to normal
 void endDance()
 {
-    danceMode = false;
     dancePart = 0;
     stop();
     lookCenter();
     robotState = IDLE;
     playSound(TUNE_TADA);
-    DEBUG.println(F("DANCE finished"));
 }
 
 void updateDance()
 {
-    if (!danceMode)
+    if (robotState != DANCE)
         return;
 
     if (danceTurnStopMs && (long)(millis() - danceTurnStopMs) >= 0)   // a ROUND spin has gone once round: stop, facing the front
@@ -3491,7 +3289,6 @@ void updateDance()
     {
         shoutUntil = millis() + SHOUT_MS;
         playSound(SOUND_ZAP);
-        DEBUG.println((const __FlashStringHelper*)SONG_SHOUT);
     }
 
     bool shouting = (long)(shoutUntil - millis()) > (long)(SHOUT_MS - SHOUT_SOUND_MS);   // let the zap play
@@ -3556,7 +3353,7 @@ void chaosNextMove()
 
 void updateChaos()
 {
-    if (!chaosMode)
+    if (robotState != CHAOS)
         return;
 
     unsigned long elapsed = millis() - chaosTimer;
@@ -3564,7 +3361,7 @@ void updateChaos()
     switch (chaosStep)
     {
     case CHAOS_STRAIGHT:
-        if (filteredDistance() <= STOP_DISTANCE)   // obstacle: jerk-stop, back up, turn away
+        if (lastDistance <= STOP_DISTANCE)   // obstacle: jerk-stop, back up, turn away
         {
             brakeStop();
             chaosBackup();
@@ -3596,15 +3393,32 @@ void updateChaos()
     }
 }
 
-// Drive on (forward, sensor looking ahead). Also starts the "am I stuck?" checks.
+// Point the sensor: 1 = left, 3 = right, 0 or 2 = ahead
+void searchLook(byte step)
+{
+    scanStep = step;
+    look(step == 1 ? SCAN_LEFT : step == 3 ? SCAN_RIGHT : SERVO_CENTER);
+    avoidTimer = millis();
+}
+
+// Start driving with the sensor scanning (scanDrive() does it): look ahead first
+void scanStart()
+{
+    searchLook(0);
+    leftDistance = rightDistance = NO_ECHO;
+    sideNudges = 0;
+}
+
+// Drive on (forward, the sensor scanning). Also starts the "am I stuck?" checks.
 void searchDriveOn()
 {
     searchStep = AVOID_DRIVE;
-    stuckCheckDistance = lastDistance;
+    scanStart();
+    centerDistance = NO_ECHO;
+    stuckCheckDistance = NO_ECHO;
     stuckCheckAt = millis();
     noEchoChecks = 0;
     sameChecks = 0;
-    cornerTurns = 0;
 }
 
 // Something in the way (or stuck): back up a little, then look around
@@ -3615,121 +3429,107 @@ void searchLookAround(bool stuck)
     delay(stuck ? SEARCH_STUCK_BACKUP_MS : SEARCH_BACKUP_MS);
     stop();
 
-    lookLeft();
-    avoidTimer = millis();
+    searchLook(1);
     searchStep = AVOID_LOOK_LEFT;
 }
 
-// Start turning toward the open side, in small steps, with the sensor looking
-// straight ahead, until it sees open space (see AVOID_TURN_TO_OPEN below).
-// "Open" means about as much room as it saw when it looked that way
-// (3/4 of it, and more than straight ahead had; at least SAFE_DISTANCE, at
-// most SEARCH_OPEN_ENOUGH), so it really points into the open space, not
-// just past the edge of the obstacle.
-void startTurnToOpen(bool toLeft)
+// A short spin (an exact time: delay() keeps it precise, and the buzzer keeps playing)
+void searchSpin(bool toLeft, int ms)
 {
-    DEBUG.println(toLeft ? F("SEARCH -> turn left until open") : F("SEARCH -> turn right until open"));
-
-    int seen = toLeft ? leftDistance : rightDistance;
-    searchOpenTarget = constrain(max(seen / 4 * 3, centerDistance + 10), SAFE_DISTANCE, SEARCH_OPEN_ENOUGH);
-
-    searchTurnLeft = toLeft;
-    turnSteps = 0;
-    searchStep = AVOID_TURN_TO_OPEN;
-}
-
-// One small turning step toward the open side (an exact short move: delay()
-// keeps the time precise, and the buzzer keeps playing during it)
-void turnStep()
-{
-    if (searchTurnLeft)
+    if (toLeft)
         left();
     else
         right();
 
-    delay(SEARCH_TURN_STEP_MS);
-    stop();
+    delay(ms);
 }
 
-// Boxed in: spin 90 degrees (at full speed, timed like the 180 turn),
-// then check straight ahead (see AVOID_CORNER_TURN / AVOID_CORNER_CHECK below)
-void startCornerTurn(bool toLeft)
+// Drives forward while the sensor scans: ahead, left, ahead, right. (A wall at an
+// angle can't be seen from the front, but the sensor sees it when it looks toward it.)
+// Something at the side that comes closer: it steers away from it.
+// True = it has to turn: something right ahead, or too close at the side.
+bool scanDrive(int speed)
 {
-    DEBUG.println(toLeft ? F("SEARCH boxed in -> 90 left") : F("SEARCH boxed in -> 90 right"));
+    forward(speed);
 
-    searchTurnLeft = toLeft;
-    cornerTurns++;
-    searchStep = AVOID_CORNER_TURN;
+    if (millis() - avoidTimer < SEARCH_PEEK_MS)
+        return false;                              // the sensor is still turning
 
-    // a short exact move: delay() keeps the time precise (the buzzer keeps playing)
-    setSpeed(currentSpeed, currentSpeed);
-    setWheels(toLeft ? DIR_BACKWARD : DIR_FORWARD, toLeft ? DIR_FORWARD : DIR_BACKWARD);
-    goingForward = false;
-    delay(TURN90_TIME);
-    stop();
+    int seen = filteredDistance();
 
-    avoidTimer = millis();
-    searchStep = AVOID_CORNER_CHECK;
-}
-
-// After looking left and right: it NEVER goes straight on (the obstacle was
-// right there a moment ago). It turns toward the side with more room:
-//  - that side is open: turn until the sensor sees the open space, then drive
-//  - both sides blocked (boxed in): turn 90 degrees that way, look ahead,
-//    and keep turning 90 degrees until it finds an opening
-void chooseClearestWay()
-{
-    bool toLeft = leftDistance >= rightDistance;
-    int side = toLeft ? leftDistance : rightDistance;
-
-    if (side >= SAFE_DISTANCE)
+    if (scanStep & 1)                              // looked to the side (1 = left, 3 = right)
     {
-        startTurnToOpen(toLeft);
+        int* side = (scanStep == 1) ? &leftDistance : &rightDistance;
+        int before = *side;
+        *side = seen;
+
+        if (seen >= SEARCH_SIDE_CM)
+            sideNudges = 0;
+        else if (seen < before - 1)                // close, and getting closer: steer away from it
+        {
+            if (seen <= SEARCH_TOO_CLOSE || ++sideNudges > SEARCH_MAX_NUDGES)
+                return true;
+
+            searchSpin(scanStep == 3, 30 + (SEARCH_SIDE_CM - seen) * 2);
+        }
     }
     else
     {
-        cornerTurns = 0;
-        startCornerTurn(toLeft);
+        centerDistance = seen;
+
+        if (seen <= STOP_DISTANCE)                 // something ahead
+            return true;
     }
+
+    searchLook((scanStep + 1) & 3);
+    return false;
+}
+
+// Point the sensor left (or right), wait for the servo, and measure
+int searchPeek(bool toLeft)
+{
+    searchLook(toLeft ? 1 : 3);
+    delay(SEARCH_PEEK_MS);
+    int seen = filteredDistance();
+    searchLook(0);
+    delay(SEARCH_PEEK_MS);
+    return seen;
+}
+
+// After looking left, right and ahead: turn toward the side with more room.
+// NO ECHO IS NOT "OPEN": a wall that stands at an angle bounces the sound away,
+// so it looks just like empty space. No echo only counts as a guess
+// (SEARCH_UNKNOWN_CM), and about equal sides are a coin toss (not always left).
+void chooseClearestWay()
+{
+    int toLeft = min(leftDistance, SEARCH_UNKNOWN_CM);
+    int toRight = min(rightDistance, SEARCH_UNKNOWN_CM);
+
+    searchTurnLeft = abs(toLeft - toRight) < SEARCH_SAME_CM ? random(2) : toLeft > toRight;
+    searchOpenTarget = constrain(max(max(toLeft, toRight) / 4 * 3, centerDistance + 10), SEARCH_OPEN_LEAST, SEARCH_OPEN_ENOUGH);
+    turnSteps = 0;
+    searchStep = AVOID_TURN_TO_OPEN;
 }
 
 // SEARCH (obstacle avoidance) keeps going until another command stops it.
-// It drives forward with the sensor looking straight ahead. At an obstacle
-// it backs up, looks left, right and ahead with the servo, then turns toward
-// the side with the most room until the sensor sees open space, and drives
-// on (never straight back at the obstacle). If it is boxed in, it turns 90
-// degrees at a time until it finds an opening. If it gets stuck on something
-// the sensor can't see, it notices and backs out.
+// It drives forward while the sensor scans (scanDrive). Something ahead: it
+// backs up, looks left, right and ahead, and turns in small steps
+// toward the side with more room until the way ahead is open AND the thing it
+// turned away from is no longer in the way. Boxed in, it simply turns on until
+// it faces the way out. Stuck on something it can't see: it backs out.
 void runObstacleAvoidance()
 {
-    if (!searchMode)
+    if (robotState != SEARCH)
         return;
 
     switch (searchStep)
     {
-    case AVOID_DRIVE:                          // drive forward, looking straight ahead
-    {
-        lookCenter();
-
-        int ahead = filteredDistance();
-
-        static unsigned long lastReport = 0;   // debug: what it sees, twice a second
-        if (millis() - lastReport >= 500)
+    case AVOID_DRIVE:
+        if (scanDrive(min(currentSpeed, SEARCH_SPEED)))
         {
-            lastReport = millis();
-            DEBUG.print(F("SEARCH ahead: "));
-            DEBUG.println(ahead);
-        }
-
-        if (ahead <= STOP_DISTANCE)
-        {
-            DEBUG.print(F("SEARCH blocked at "));
-            DEBUG.println(ahead);
-            searchLookAround(false);           // something in the way
+            searchLookAround(lastDistance <= SEARCH_TOO_CLOSE);   // (very close: back up a bit more)
             break;
         }
-
-        forward(currentSpeed);
 
         // Stuck? Driving forward should change the distance ahead. If it
         // hasn't changed for a while, a wheel or corner is caught on something.
@@ -3737,31 +3537,24 @@ void runObstacleAvoidance()
         //  is that big, so it is probably pushing against something.)
         if (millis() - stuckCheckAt >= SEARCH_STUCK_MS)
         {
-            noEchoChecks = (ahead >= NO_ECHO) ? noEchoChecks + 1 : 0;
-            bool same = ahead < NO_ECHO && abs(ahead - stuckCheckDistance) < SEARCH_STUCK_CM;
+            noEchoChecks = (centerDistance >= NO_ECHO) ? noEchoChecks + 1 : 0;
+            bool same = centerDistance < NO_ECHO && abs(centerDistance - stuckCheckDistance) < SEARCH_STUCK_CM;
             sameChecks = same ? sameChecks + 1 : 0;
-
-            bool stuck = (same && ahead < SEARCH_STUCK_NEAR_CM)
-                      || sameChecks >= SEARCH_STUCK_FAR_CHECKS
-                      || noEchoChecks >= SEARCH_NO_ECHO_CHECKS;
-            stuckCheckDistance = ahead;
+            stuckCheckDistance = centerDistance;
             stuckCheckAt = millis();
 
-            if (stuck)
-            {
-                DEBUG.println(F("SEARCH stuck - backing out"));
+            if ((same && centerDistance < SEARCH_STUCK_NEAR_CM)
+                || sameChecks >= SEARCH_STUCK_FAR_CHECKS
+                || noEchoChecks >= SEARCH_NO_ECHO_CHECKS)
                 searchLookAround(true);
-            }
         }
         break;
-    }
 
     case AVOID_LOOK_LEFT:                      // wait for the servo, then measure
         if (millis() - avoidTimer >= SERVO_SETTLE_MS)
         {
             leftDistance = filteredDistance();
-            lookRight();
-            avoidTimer = millis();
+            searchLook(3);
             searchStep = AVOID_LOOK_RIGHT;
         }
         break;
@@ -3770,8 +3563,7 @@ void runObstacleAvoidance()
         if (millis() - avoidTimer >= SERVO_SWING_MS)
         {
             rightDistance = filteredDistance();
-            lookCenter();
-            avoidTimer = millis();
+            searchLook(0);
             searchStep = AVOID_LOOK_CENTER;
         }
         break;
@@ -3780,67 +3572,24 @@ void runObstacleAvoidance()
         if (millis() - avoidTimer >= SERVO_SETTLE_MS)
         {
             centerDistance = filteredDistance();
-
-            DEBUG.print(F("SEARCH looked  L="));   // debug: what it saw around it
-            DEBUG.print(leftDistance);
-            DEBUG.print(F("  C="));
-            DEBUG.print(centerDistance);
-            DEBUG.print(F("  R="));
-            DEBUG.println(rightDistance);
-
             chooseClearestWay();
         }
         break;
 
-    case AVOID_CORNER_CHECK:                   // ... stand still a moment, then look straight ahead
-        if (millis() - avoidTimer >= SERVO_SETTLE_MS)
-        {
-            int ahead = filteredDistance();
-
-            if (ahead >= SAFE_DISTANCE)
-            {
-                DEBUG.print(F("SEARCH opening found: "));
-                DEBUG.println(ahead);
-                searchDriveOn();               // an opening: go that way
-            }
-            else if (cornerTurns < MAX_CORNER_TURNS)
-            {
-                startCornerTurn(searchTurnLeft);   // still blocked: another 90 degrees
-            }
-            else
-            {
-                DEBUG.println(F("SEARCH turned all the way round - looking again"));
-                searchLookAround(false);
-            }
-        }
-        break;
-
     case AVOID_TURN_TO_OPEN:                   // turn a small step, stop, look straight ahead
-    {
-        turnStep();
+        searchSpin(searchTurnLeft, SEARCH_TURN_STEP_MS);
+        stop();
         turnSteps++;
 
-        int ahead = filteredDistance();        // measured standing still: accurate
+        if (turnSteps == SEARCH_HALF_WAY)
+            searchOpenTarget = SAFE_DISTANCE;  // turned a lot and nothing really open: take less
 
-        if (ahead >= searchOpenTarget)
-        {
-            DEBUG.print(F("SEARCH open way found: "));
-            DEBUG.println(ahead);
-
-            for (byte i = 0; i < SEARCH_TURN_EXTRA_STEPS; i++)
-                turnStep();                    // a little more, so the whole car gets past the edge
-
-            searchDriveOn();                   // the way is open: drive on
-        }
+        if (filteredDistance() >= searchOpenTarget
+            && searchPeek(!searchTurnLeft) >= (turnSteps < SEARCH_HALF_WAY ? SEARCH_CLEAR_SIDE_CM : SEARCH_TOO_CLOSE))
+            searchDriveOn();                   // open ahead, and past what it turned away from
         else if (turnSteps >= SEARCH_TURN_MAX_STEPS)
-        {
-            DEBUG.println(F("SEARCH no open way yet - looking again"));
-            lookLeft();
-            avoidTimer = millis();
-            searchStep = AVOID_LOOK_LEFT;
-        }
+            searchLookAround(false);           // all the way round: look again
         break;
-    }
     }
 }
 
@@ -3905,7 +3654,7 @@ bool playMoveDone()
 void startLookAround()
 {
     playLook = 0;
-    scanner.write(LOOK_ANGLES[0]);
+    look(LOOK_ANGLES[0]);
     playTimer = millis();
 }
 
@@ -3918,7 +3667,7 @@ bool lookAroundDone()
 
     if (++playLook < 5)
     {
-        scanner.write(LOOK_ANGLES[playLook]);
+        look(LOOK_ANGLES[playLook]);
         playTimer = millis();
         return false;
     }
@@ -4103,12 +3852,11 @@ void updateGuard()
         if (millis() - playTimer < SERVO_SETTLE_MS + 60)
             break;
 
-        if (d + GUARD_CLOSER_CM < playSeen[playLook])
+        if (d < SEE_CM && d + GUARD_CLOSER_CM < playSeen[playLook])   // (far things flicker: only near ones count)
         {
             if (++playCount < 2)                  // check once more before raising the alarm
                 break;
 
-            DEBUG.println(F("GUARD: INTRUDER"));
             playCm = d;
             lookCenter();
             playTurnToward(LOOK_ANGLES[playLook]);
@@ -4125,7 +3873,7 @@ void updateGuard()
             playFlag = true;
 
         playLook += playFlag ? 1 : -1;
-        scanner.write(LOOK_ANGLES[playLook]);
+        look(LOOK_ANGLES[playLook]);
         playTimer = millis();
         break;
 
@@ -4263,7 +4011,7 @@ void updateGesture()
         }
         else
         {
-            danceTurn(percentOf(currentSpeed, 70), (t / 130) % 2 == 0);
+            spin(percentOf(currentSpeed, 70), (t / 130) % 2 == 0);
         }
         break;
     }
@@ -4282,6 +4030,7 @@ void updateGesture()
 // A hand in front of it while it sits = petting: it wakes up, wiggles and purrs.
 void petStep(byte step, unsigned long ms)
 {
+    scanStart();                                  // (the head looks ahead again)
     playStep = step;
     playMoveMs = ms;
     playTimer = millis();
@@ -4291,7 +4040,6 @@ void petStep(byte step, unsigned long ms)
 void petHappy()
 {
     stop();
-    lookCenter();
     playSince = millis();
     petStep(PET_HAPPY, 0);
     playSound(TUNE_HAPPY);
@@ -4302,22 +4050,17 @@ void updatePet()
     int d = lastDistance;
     unsigned long now = millis();
     unsigned long inStep = now - playTimer;
-    bool lookingAhead = scanner.read() == SERVO_CENTER && now - playOther >= SERVO_SETTLE_MS + 60;
+    bool lookingAhead = headAngle == SERVO_CENTER && now - playOther >= SERVO_SETTLE_MS + 60;
 
     switch (playStep)
     {
     case PET_WANDER:                              // a little walk
-        if (d < 35)                               // something in the way: turn away from it
+        if (scanDrive(percentOf(currentSpeed, PET_SPEED_PERCENT)))   // something in the way: turn away from it
         {
-            if (random(2))
-                left();
-            else
-                right();
+            spin(turnSpeed(), random(2));
             petStep(PET_TURN, random(300, 700));
             break;
         }
-
-        forward(percentOf(currentSpeed, PET_SPEED_PERCENT));
 
         if (inStep >= playMoveMs)                 // walked enough: sit down
         {
@@ -4344,13 +4087,11 @@ void updatePet()
         if (now - playOther >= 1500)              // turn the head: somewhere, then back to the middle
         {
             playOther = now;
-            scanner.write(scanner.read() == SERVO_CENTER ? LOOK_ANGLES[random(5)] : SERVO_CENTER);
+            look(headAngle == SERVO_CENTER ? LOOK_ANGLES[random(5)] : SERVO_CENTER);
         }
 
         if (inStep >= playMoveMs)
         {
-            lookCenter();
-
             if (now - playSince > PET_BORED_MS)   // nobody played with it for ages: bored
             {
                 petStep(PET_BORED, 0);
@@ -4397,7 +4138,7 @@ void updatePet()
             playSound(TUNE_PURR);
 
         if (inStep < 6 * 120UL)                   // a happy wiggle first
-            danceTurn(percentOf(currentSpeed, 70), (inStep / 120) % 2 == 0);
+            spin(percentOf(currentSpeed, 70), (inStep / 120) % 2 == 0);
         else
             stop();
 
@@ -4452,7 +4193,7 @@ void updateRadar()
         playFlag = true;
     playLook = playFlag ? playLook + 1 : playLook - 1;
 
-    scanner.write(radarAngle(playLook));
+    look(radarAngle(playLook));
     playTimer = millis();
 }
 
@@ -4529,7 +4270,6 @@ void updateBattery()
         batteryLow = true;
         warnedAt = millis();
         playSound(TUNE_BATTERY_LOW);
-        DEBUG.println(F("LOW BATTERY"));
     }
 }
 
@@ -4540,42 +4280,33 @@ void updateBattery()
 
 void setup()
 {
-    DEBUG.begin(SERIAL_BAUD);
     BT.begin(BT_BAUD);
 
     randomSeed(analogRead(A3) ^ micros());   // A3 is unused, its noise makes CHAOS different each time
 
-    // The numbers 1-7 are start-up progress markers in the Serial Monitor
-    DEBUG.println(F("1"));
 
     pinMode(ENA, OUTPUT);
     pinMode(ENB, OUTPUT);
 
-    DEBUG.println(F("2"));
 
     pinMode(IN1, OUTPUT);
     pinMode(IN2, OUTPUT);
     pinMode(IN3, OUTPUT);
     pinMode(IN4, OUTPUT);
 
-    DEBUG.println(F("3"));
 
     pinMode(TRIG_PIN, OUTPUT);
     pinMode(ECHO_PIN, INPUT);
 
-    DEBUG.println(F("4"));
 
     scanner.attach(SERVO_PIN);
 
-    DEBUG.println(F("5"));
 
     lookCenter();
 
-    DEBUG.println(F("6"));
 
     stop();
 
-    DEBUG.println(F("7"));
 
     setupBuzzer();             // (the IR add-on's IrReceiver.begin() goes just before this line)
 
@@ -4583,14 +4314,11 @@ void setup()
 
     startGreeting(false);      // power-on hello: screen + fanfare + servo wave
 
-    DEBUG.println(F("READY"));
 }
 
 void loop()
 {
     handleBluetooth();         // phone commands
-
-    updateDriving();           // auto forward/backward, donut, curve
 
     updateDance();
 
@@ -4599,6 +4327,8 @@ void loop()
     updateBrake();
 
     checkObstacle();           // distance check (also sets loop timing)
+
+    updateDriving();           // auto forward/backward, donut, curve
 
     handleBluetooth();         // (again: the distance check takes a while - this answers the phone sooner)
 

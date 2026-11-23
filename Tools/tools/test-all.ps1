@@ -1,7 +1,6 @@
 param([switch]$SkipSongs, [string[]]$Only = @(), [string[]]$Scen = @())
 # Tests everything in the simulator:
-#  - the main program, exactly as uploaded (no debug messages): play modes + the full demo dance
-#  - the main program with debug messages (simulator only - too big to upload): the older tests that read them
+#  - the main program, exactly as uploaded: every mode, and driving around rooms with real walls
 #  - every song file (as uploaded): the whole-song dance test
 # Setup once: Node.js, then "npm install" inside Tools\pkg-avr8js.
 # Run: powershell -ExecutionPolicy Bypass -File Tools\tools\test-all.ps1   (results: Tools\build\test-all.txt)
@@ -32,24 +31,22 @@ $src = [regex]::Replace($src, 'const int SONG_SHOUT_STEPS\[3\] = \{[^}]*\};', 'c
 # 2. build
 $main = "$repo\Robot_Car_Main\Robot_Car_Main.ino"
 $list = @(
-  @{ id = 'main'; ino = $main; name = 'Robot_Car_Main'; dbg = $false },
-  @{ id = 'maindbg'; ino = $main; name = 'Robot_Car_Main'; dbg = $true },
-  @{ id = 'shout'; ino = "$st\shouttest.ino"; name = 'shouttest'; dbg = $true })
+  @{ id = 'main'; ino = $main; name = 'Robot_Car_Main' },
+  @{ id = 'shout'; ino = "$st\shouttest.ino"; name = 'shouttest' })
 $i = 0
 if (-not $SkipSongs) {
   foreach ($d in Get-ChildItem $gen -Directory) {
     $i++
     if ($Only.Count -and -not ($Only | Where-Object { $d.Name -like "*$_*" })) { continue }
-    $list += @{ id = "s$i"; ino = "$($d.FullName)\$($d.Name).ino"; name = $d.Name; song = $true; dbg = $false }
+    $list += @{ id = "s$i"; ino = "$($d.FullName)\$($d.Name).ino"; name = $d.Name; song = $true }
   }
 }
 $jobs = @()
 foreach ($x in $list) {
   while (@($jobs | Where-Object { $_.State -eq 'Running' }).Count -ge 6) { Start-Sleep -Milliseconds 500 }
-  $jobs += Start-Job -ArgumentList $tools, $work, $x.ino, $x.id, $u, $c, $x.dbg -ScriptBlock {
-    param($tools, $work, $ino, $id, $u, $c, $dbg)
-    $extra = @(); if ($dbg) { $extra = @('--define', 'DEBUG_MESSAGES=1') }
-    node "$tools\tools\build.js" --sketch $ino --out "$work\bin\$id" --lib "$u\Servo" --lib "$u\U8g2" --lib "$c\SoftwareSerial" --lib "$c\Wire" --lib "$c\SPI" @extra 2>&1 | Out-String
+  $jobs += Start-Job -ArgumentList $tools, $work, $x.ino, $x.id, $u, $c -ScriptBlock {
+    param($tools, $work, $ino, $id, $u, $c)
+    node "$tools\tools\build.js" --sketch $ino --out "$work\bin\$id" --lib "$u\Servo" --lib "$u\U8g2" --lib "$c\SoftwareSerial" --lib "$c\Wire" --lib "$c\SPI" 2>&1 | Out-String
   }
 }
 $jobs | Wait-Job | Out-Null
@@ -59,21 +56,23 @@ $jobs | Remove-Job
 "BUILT: $(@($b -split "`n" | Where-Object { $_ -match '^OK' }).Count) of $($list.Count)" | Add-Content $log
 
 # 3. simulate
-$rel = @('dance-full-song', 'curve-sharper', 'steering', 'head', 'speed-brake-fixes', 'app-replay', 'turbo-horn-status', 'radar', 'app-session', 'follow-me', 'goalkeeper', 'guard', 'music', 'gestures', 'pet')
-$dbg = @('dance-tap-resync', 'dance-hold-button', 'football-mode', 'stop-dance-forward', 'stop-dance-brake', 'stop-dance-180', 'stop-search-backward',
-  'faces-donut-dizzy-180', 'mute-button', 'search-stuck-no-echo', 'dance-wall-in-front')
-if ($Scen.Count) { $rel = @($rel | Where-Object { $Scen -contains $_ }); $dbg = @($dbg | Where-Object { $Scen -contains $_ }) }
+$rel = @('dance-full-song', 'curve-sharper', 'steering', 'head', 'speed-brake-fixes', 'app-replay', 'turbo-horn-status', 'radar', 'app-session', 'follow-me', 'goalkeeper', 'guard', 'music', 'gestures', 'pet',
+  'dance-tap-resync', 'dance-hold-button', 'football-mode', 'stop-dance-forward', 'stop-dance-brake', 'stop-dance-180', 'stop-search-backward',
+  'faces-donut-dizzy-180', 'mute-button', 'search-stuck-no-echo', 'dance-wall-in-front',
+  # driving around rooms with real walls (tilted walls send no echo), motors and servo
+  'search-room', 'search-room-fast', 'search-empty', 'search-empty-fast', 'search-clutter', 'search-clutter-fast', 'search-corridor', 'search-corridor-fast',
+  'search-smooth-walls', 'search-dead-end', 'search-dead-servo', 'chaos-room', 'pet-room', 'auto-forward-wall', 'brake-during-180', 'guard-far-wall', 'head-during-modes')
+if ($Scen.Count) { $rel = @($rel | Where-Object { $Scen -contains $_ }) }
 $runs = @()
 foreach ($sc in $rel) { $runs += @{ label = "main $sc"; ino = $main; bin = "$work\bin\main\Robot_Car_Main"; sc = $sc } }
-foreach ($sc in $dbg) { $runs += @{ label = "maindbg $sc"; ino = $main; bin = "$work\bin\maindbg\Robot_Car_Main"; sc = $sc } }
-if (-not $Scen.Count -or $Scen -contains 'shout-moment') { $runs += @{ label = 'shout shout-moment'; ino = $list[2].ino; bin = "$work\bin\shout\shouttest"; sc = 'shout-moment' } }
+if (-not $Scen.Count -or $Scen -contains 'shout-moment') { $runs += @{ label = 'shout shout-moment'; ino = $list[1].ino; bin = "$work\bin\shout\shouttest"; sc = 'shout-moment' } }
 foreach ($x in ($list | Where-Object { $_.song })) { $runs += @{ label = "song $($x.name)"; ino = $x.ino; bin = "$work\bin\$($x.id)\$($x.name)"; sc = 'dance-full-song' } }
 $jobs = @()
 foreach ($r in $runs) {
   while (@($jobs | Where-Object { $_.State -eq 'Running' }).Count -ge 6) { Start-Sleep -Seconds 2 }
   $jobs += Start-Job -ArgumentList $tools, $avr, $work, $r.ino, $r.bin, $r.sc, $r.label -ScriptBlock {
     param($tools, $avr, $work, $ino, $bin, $sc, $label)
-    $env:AVR8JS = $avr; $env:SKETCH = $ino; $env:ROOM = '0'
+    $env:AVR8JS = $avr; $env:SKETCH = $ino
     $o = node "$tools\sim\run.js" "$tools\sim\scenarios.js" "$work\sim-out\$($label -replace '\W','_')" $bin $sc 2>&1 | Out-String
     "##### $label`n$o"
   }
